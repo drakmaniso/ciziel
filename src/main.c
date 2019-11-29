@@ -1,5 +1,7 @@
 #include <stdio.h>
-#include <stdlib.h>
+
+#include "string.h"
+
 
 int main (int argc, char **argv)
 {
@@ -8,25 +10,11 @@ int main (int argc, char **argv)
         return 1;
     }
 
-    char *filepath = argv[1];
+    String source = stringReadFrom (argv[1]);
 
-    FILE *stream = fopen (filepath, "r");
-    if (stream == NULL) {
-        printf ("unable to open input file\n");
-    }
+    printf ("Source:\n");
+    stringPrint (source);
 
-    fseek (stream, 0, SEEK_END);
-    size_t size = ftell (stream);
-    rewind (stream);
-
-    char *source;
-    source = (char *)calloc (size + 1, sizeof (char));
-    fread (source, sizeof(char), size, stream);
-    source[size] = '\0';
-    fclose (stream);
-
-    printf ("Source:\n%s", source);
-
-    free (source);
+    stringFree (&source);
     return 0;
 }        
