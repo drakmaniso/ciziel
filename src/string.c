@@ -12,6 +12,7 @@ String stringNew (size_t length)
     };
 }
 
+
 void stringFree (String *s)
 {
     free (s->start);
@@ -21,10 +22,30 @@ void stringFree (String *s)
     };
 }
 
+
+String stringSlice (String s, stringPos start, stringPos end) {
+    return (String) {
+        .start = s.start + start,
+        .length = end - start
+    };
+}
+
+
+Rune stringAt (String s, stringPos index) {
+    return s.start[index];
+}
+
+
+stringPos stringLength (String s) {
+    return s.length;
+}
+
+
 void stringPrint (String s)
 {
-    printf ("%s", s.start);
+    fwrite (s.start, sizeof(char), s.length, stdout);
 }
+
 
 String stringReadFrom (char *filepath) {
     FILE *stream = fopen (filepath, "r");
