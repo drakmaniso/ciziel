@@ -8,14 +8,14 @@
 
 
 typedef struct {
-    char *name;
-    String input;
-    stringPos start;
-    stringPos pos;
+	char *name;
+	String input;
+	stringPos start;
+	stringPos pos;
 } Scanner;
 
 
-void scanMake (Scanner *s, char *filepath, String input); 
+void scanMake (Scanner *s, char *filepath, String input);
 void scanRun (Scanner *s);
 void scanPrint (Token t);
 

@@ -9,8 +9,8 @@ typedef int32_t stringPos;
 
 
 typedef struct {
-    char *start;
-    stringPos length;
+	char *start;
+	stringPos length;
 } String;
 
 

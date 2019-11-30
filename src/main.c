@@ -5,17 +5,17 @@
 
 int main (int argc, char **argv)
 {
-    if (argc != 2) {
-        printf ("Usage: %s <filepath>", argv[0]);
-        return 1;
-    }
+	if (argc != 2) {
+		printf ("Usage: %s <filepath>", argv[0]);
+		return 1;
+	}
 
-    String source = stringReadFrom (argv[1]);
+	String source = stringReadFrom (argv[1]);
 
-    Scanner scanner;
-    scanMake (&scanner, argv[1], source);
-    scanRun (&scanner);
+	Scanner scanner;
+	scanMake (&scanner, argv[1], source);
+	scanRun (&scanner);
 
-    stringFree (&source);
-    return 0;
-}        
+	stringFree (&source);
+	return 0;
+}

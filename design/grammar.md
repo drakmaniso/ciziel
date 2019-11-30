@@ -2,13 +2,13 @@
 
 Module = Definitions+
 
-Definition = VariableName '=' Expression
+Definition = VariableName '=' << Expression >>
 
 Expression = Function / FunctionCall / SubExpression
 
-Function = 'func' VariableName+ '->' Expression
+Function = 'func' VariableName+ '->' << Expression >>
 
-FunctionCall = SubExpression SubExpression+
+FunctionCall = SubExpression << SubExpression+ >>
 
 SubExpression = VariableName / Number / '(' Expression ')'
 
@@ -18,3 +18,4 @@ VariableName = letter (letter / digit)*
 
 Number = digit+
 
+```

@@ -6,19 +6,19 @@
 
 
 typedef enum TokenType {
-    tokNone,
-    tokEOF,
-    tokKeyword,
-    tokIdentifier,
-    tokNumber,
-    tokDefine,
-    tokInvalid
+	tokNone,
+	tokEOF,
+	tokKeyword,
+	tokIdentifier,
+	tokNumber,
+	tokDefine,
+	tokInvalid
 } TokenType;
 
 
 typedef struct {
-    String value;
-    TokenType type;
+	String value;
+	TokenType type;
 } Token;
 
 
