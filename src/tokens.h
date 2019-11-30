@@ -1,8 +1,6 @@
-#ifndef LEX_H
-#define LEX_H
+#ifndef TOKENS_H
+#define TOKENS_H
 
-
-#include <stdint.h>
 
 #include "string.h"
 
@@ -24,15 +22,4 @@ typedef struct {
 } Token;
 
 
-typedef struct {
-    char *name;
-    String input;
-    int32_t start;
-    int32_t pos;
-} Lexer;
-
-
-void lexPrint (Token t);
-
-
-#endif // LEX_H
+#endif // TOKENS_H

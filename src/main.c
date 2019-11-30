@@ -1,7 +1,6 @@
 #include <stdio.h>
-
 #include "string.h"
-#include "lex.h"
+#include "scanner.h"
 
 
 int main (int argc, char **argv)
@@ -13,12 +12,9 @@ int main (int argc, char **argv)
 
     String source = stringReadFrom (argv[1]);
 
-    //printf ("Source:\n");
-    //stringPrint (source);
-
-    Lexer lexer;
-    lexMake (&lexer, argv[1], source);
-    lexRun (lexer);
+    Scanner scanner;
+    scanMake (&scanner, argv[1], source);
+    scanRun (&scanner);
 
     stringFree (&source);
     return 0;
