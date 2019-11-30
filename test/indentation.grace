@@ -2,10 +2,13 @@ main =
 	foo bar baz
 
 foo =
-	bar
-		111
-		33
+	func x y ->
+		bar
+			y
 
-bar =
+bar = func z ->
 	44
+
+baz
+	= 111
 

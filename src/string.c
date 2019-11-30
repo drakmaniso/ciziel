@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "string.h"
 
 
@@ -62,4 +63,13 @@ String stringReadFrom (char *filepath) {
 	fclose (stream);
 
 	return s;
+}
+
+
+bool stringIs (String s, char *cs) {
+	size_t len = strlen (cs);
+	if (stringLength (s) == len && strncmp (s.start, cs, len) == 0) {
+		return true;
+	}
+	return false;
 }

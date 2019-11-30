@@ -24,6 +24,33 @@ bool isDigit (Rune r) {
 }
 
 
+bool isSymbol (Rune r) {
+	return r == '!'
+		|| r == '#'
+		|| r == '$'
+		|| r == '%'
+		|| r == '&'
+		|| r == '*'
+		|| r == '+'
+		|| r == '-'
+		|| r == '/'
+		|| r == '<'
+		|| r == '='
+		|| r == '>'
+		|| r == '?'
+		|| r == '@'
+		|| r == '\\'
+		|| r == '^'
+		|| r == '|'
+		|| r == '~';
+}
+
+
+bool isKeyword (String s) {
+	return stringIs (s, "func");
+}
+
+
 Rune next (Scanner *s);
 void ignore (Scanner *s);
 void backup (Scanner *s);
@@ -42,6 +69,7 @@ typedef struct state {
 
 state lexBetween (Scanner *s);
 state lexIdentifier (Scanner *s);
+state lexOperator (Scanner *s);
 state lexNumber (Scanner *s);
 state lexInvalid (Scanner *s);
 
@@ -76,17 +104,24 @@ state lexBetween (Scanner *s) {
 			continue;
 		}
 
-		if (r == '=') {
-			emit (s, tokDefine);
-			return (state) {lexBetween};
-		}
-
 		if (isLetter (r)) {
 			return (state) {lexIdentifier};
 		}
 
 		if (isDigit (r)) {
 			return (state) {lexNumber};
+		}
+
+		if (r == '-' && peek (s) == '-') {
+			while (peek (s) != '\n' && peek (s) != '\0') {
+				next (s);
+			}
+			ignore (s);
+			continue;
+		}
+
+		if (isSymbol (r)) {
+			return (state) {lexOperator};
 		}
 
 		// Invalid rune in input
@@ -104,9 +139,28 @@ state lexIdentifier (Scanner *s) {
 		}
 
 		backup (s);
-		emit (s, tokIdentifier);
+		if (isKeyword (stringSlice (s->input, s->start, s->pos))) {
+			emit (s, tokKeyword);
+		} else {
+			emit (s, tokIdentifier);
+		}
 		return (state) {lexBetween};
 	}
+}
+
+
+state lexOperator (Scanner *s) {
+	while (isSymbol (peek (s))) {
+		next (s);
+	}
+
+	if (stringIs (stringSlice (s->input, s->start, s->pos), "=")) {
+		emit (s, tokDefine);
+		return (state) {lexBetween};
+	}
+
+	emit (s, tokOperator);
+	return (state) {lexBetween};
 }
 
 
@@ -212,9 +266,7 @@ void scanPrint (Token t) {
 			return;
 
 		case tokKeyword:
-			printf ("Keyword{");
 			stringPrint (t.value);
-			printf ("}");
 			return;
 
 		case tokIdentifier:
@@ -224,6 +276,12 @@ void scanPrint (Token t) {
 			return;
 
 		case tokNumber:
+			printf ("`");
+			stringPrint (t.value);
+			printf ("`");
+			return;
+
+		case tokOperator:
 			printf ("`");
 			stringPrint (t.value);
 			printf ("`");

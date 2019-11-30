@@ -4,5 +4,5 @@ foo = 33
 
 bar = 101
 
-firstOf x y = x
+firstOf = func x y -> x
 

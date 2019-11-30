@@ -3,6 +3,7 @@
 
 
 #include <stdint.h>
+#include <stdbool.h>
 
 
 typedef int32_t stringPos;
@@ -22,6 +23,7 @@ void stringFree (String *s);
 String stringSlice (String s, stringPos start, stringPos end);
 void stringPrint (String s);
 String stringReadFrom (char *filepath);
+bool stringIs (String s, char *cs);
 
 
 #endif // STRINGS_H
