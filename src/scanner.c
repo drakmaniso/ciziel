@@ -3,6 +3,11 @@
 
 
 bool isSpace (Rune r) {
+	return r == ' ';
+}
+
+
+bool isWhiteSpace (Rune r) {
 	return r == ' ' || r == '\n' || r == '\t';
 }
 
@@ -41,6 +46,18 @@ state lexNumber (Scanner *s);
 state lexInvalid (Scanner *s);
 
 
+state lexNewLine (Scanner *s) {
+	ignore (s); // drop the newline character
+
+	while (peek (s) == '\t') {
+		next (s);
+	}
+	emit (s, tokIndent);
+
+	return (state) {lexBetween};
+}
+
+
 state lexBetween (Scanner *s) {
 	while (true) {
 		Rune r = next (s);
@@ -48,6 +65,10 @@ state lexBetween (Scanner *s) {
 		if (r == '\0') {
 			emit (s, tokEOF);
 			return (state) {NULL};
+		}
+
+		if (r == '\n') {
+			return (state) {lexNewLine};
 		}
 
 		if (isSpace (r)) {
@@ -131,7 +152,7 @@ void scanMake (Scanner *s, char *filepath, String input) {
 
 
 void scanRun (Scanner *s) {
-	state st = (state) { .func = lexBetween };
+	state st = (state) { .func = lexNewLine };
 	for (; st.func != NULL; ) {
 		st = st.func (s);
 	}
@@ -171,8 +192,11 @@ void emit (Scanner *s, TokenType typ) {
 		.type = typ,
 	};
 	s->start = s->pos;
+	if (tok.type == tokIndent) {
+		printf ("\n");
+	}
 	scanPrint (tok);
-	printf ("\n");
+	printf (" ");
 }
 
 
@@ -183,29 +207,41 @@ void scanPrint (Token t) {
 	}
 
 	switch (t.type) {
+		case tokIndent:
+			printf ("|%d|", stringLength (t.value));
+			return;
+
 		case tokKeyword:
 			printf ("Keyword{");
-			break;
+			stringPrint (t.value);
+			printf ("}");
+			return;
 
 		case tokIdentifier:
-			printf ("Identifier{");
-			break;
+			printf ("`");
+			stringPrint (t.value);
+			printf ("`");
+			return;
 
 		case tokNumber:
-			printf ("Number{");
-			break;
+			printf ("`");
+			stringPrint (t.value);
+			printf ("`");
+			return;
 
 		case tokDefine:
-			printf ("Define");
+			printf ("=");
 			return;
 
 		case tokInvalid:
 			printf ("Invalid{");
-			break;
+			stringPrint (t.value);
+			printf ("}");
+			return;
 
 		default:
 			printf ("UNKNOWN{");
+			stringPrint (t.value);
+			printf ("}");
 	}
-	stringPrint (t.value);
-	printf ("}");
 }
