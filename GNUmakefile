@@ -5,7 +5,7 @@ LINK = gcc
 
 # Source Files
 
-PROGRAM = grace
+PROGRAM = compile
 
 SOURCES = $(SRC)/main.c $(SRC)/string.c $(SRC)/token.c $(SRC)/scanner.c
 

@@ -1,5 +1,5 @@
 *.exe
-grace
+compile
 *.o
 build/
 build/*

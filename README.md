@@ -1,7 +1,7 @@
-# Grace
+# The Odo programming language
 
-Grace is my ongoing project to design a simple functional language, and write
-a compiler for it.
+Odo is my ongoing project to design a simple functional language, and write a
+compiler for it.
 
 
 ## Motivation

@@ -1,6 +1,6 @@
-# The Grace programming language
+# The Odo programming language
 
-Grace is a simple programming language with the following features:
+Odo is a simple programming language with the following features:
 
 - pure functions,
 - type inference,
