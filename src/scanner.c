@@ -3,24 +3,24 @@
 #include "scanner.h"
 
 
-bool isWhiteSpace (Rune r) {
+bool is_white_space (Rune r) {
 	return r == ' ' || r == '\t';
 }
 
 
-bool isLetter (Rune r) {
+bool is_letter (Rune r) {
 	return (r >= 'A' && r <= 'Z')
 		|| (r >= 'a' && r <= 'z')
 		|| r == '_';
 }
 
 
-bool isDigit (Rune r) {
+bool is_digit (Rune r) {
 	return r >= '0' && r <= '9';
 }
 
 
-bool isSymbol (Rune r) {
+bool is_symbol (Rune r) {
 	return r == '!'
 		|| r == '#'
 		|| r == '$'
@@ -42,8 +42,8 @@ bool isSymbol (Rune r) {
 }
 
 
-bool isKeyword (String s) {
-	return stringIs (s, "func");
+bool is_keyword (String s) {
+	return String_is (s, "func");
 }
 
 
@@ -51,7 +51,7 @@ Rune next (Scanner *s);
 void ignore (Scanner *s);
 void backup (Scanner *s);
 Rune peek (Scanner *s);
-void emit (Scanner *s, TokenType typ);
+void emit (Scanner *s, Token_Tag typ);
 
 
 // LEXICAL STATES
@@ -63,19 +63,19 @@ typedef struct state {
 } state;
 
 
-state lexBetween (Scanner *s);
-state lexIdentifier (Scanner *s);
-state lexOperator (Scanner *s);
-state lexNumber (Scanner *s);
-state lexInvalid (Scanner *s);
+state lex_between (Scanner *s);
+state lex_identifier (Scanner *s);
+state lex_operator (Scanner *s);
+state lex_number (Scanner *s);
+state lex_invalid (Scanner *s);
 
 
-state lexBetween (Scanner *s) {
+state lex_between (Scanner *s) {
 	while (true) {
 		Rune r = next (s);
 
 		if (r == '\0') {
-			emit (s, tokEOF);
+			emit (s, Token_EOF);
 			return (state) {NULL};
 		}
 
@@ -85,22 +85,22 @@ state lexBetween (Scanner *s) {
 			//return (state) {lexNewLine};
 		}
 
-		if (isWhiteSpace (r)) {
+		if (is_white_space (r)) {
 			ignore (s);
 			continue;
 		}
 
 		if (r == ';') {
-			emit (s, tokSemicolon);
-			return (state) {lexBetween};
+			emit (s, Token_Semicolon);
+			return (state) {lex_between};
 		}
 
-		if (isLetter (r)) {
-			return (state) {lexIdentifier};
+		if (is_letter (r)) {
+			return (state) {lex_identifier};
 		}
 
-		if (isDigit (r)) {
-			return (state) {lexNumber};
+		if (is_digit (r)) {
+			return (state) {lex_number};
 		}
 
 		if (r == '-' && peek (s) == '-') {
@@ -111,77 +111,77 @@ state lexBetween (Scanner *s) {
 			continue;
 		}
 
-		if (isSymbol (r)) {
-			return (state) {lexOperator};
+		if (is_symbol (r)) {
+			return (state) {lex_operator};
 		}
 
 		// Invalid rune in input
-		return (state) {lexInvalid};
+		return (state) {lex_invalid};
 	}
 }
 
 
-state lexIdentifier (Scanner *s) {
+state lex_identifier (Scanner *s) {
 	while (true) {
 		Rune r = next (s);
 
-		if (isLetter (r) || isDigit (r)) {
+		if (is_letter (r) || is_digit (r)) {
 			continue;
 		}
 
 		backup (s);
-		if (isKeyword (stringSlice (s->input, s->start, s->pos))) {
-			emit (s, tokKeyword);
+		if (is_keyword (String_slice (s->input, s->start, s->pos))) {
+			emit (s, Token_Keyword);
 		} else {
-			emit (s, tokIdentifier);
+			emit (s, Token_Identifier);
 		}
-		return (state) {lexBetween};
+		return (state) {lex_between};
 	}
 }
 
 
-state lexOperator (Scanner *s) {
-	while (isSymbol (peek (s))) {
+state lex_operator (Scanner *s) {
+	while (is_symbol (peek (s))) {
 		next (s);
 	}
 
-	if (stringIs (stringSlice (s->input, s->start, s->pos), "=")) {
-		emit (s, tokEqual);
-		return (state) {lexBetween};
-	} else if (stringIs (stringSlice (s->input, s->start, s->pos), "->")) {
-		emit (s, tokArrow);
-		return (state) {lexBetween};
+	if (String_is (String_slice (s->input, s->start, s->pos), "=")) {
+		emit (s, Token_Equal);
+		return (state) {lex_between};
+	} else if (String_is (String_slice (s->input, s->start, s->pos), "->")) {
+		emit (s, Token_Arrow);
+		return (state) {lex_between};
 	}
 
-	emit (s, tokOperator);
-	return (state) {lexBetween};
+	emit (s, Token_Operator);
+	return (state) {lex_between};
 }
 
 
-state lexNumber (Scanner *s) {
+state lex_number (Scanner *s) {
 	while (true) {
 		Rune r = next (s);
 
-		if (isDigit (r)) {
+		if (is_digit (r)) {
 			continue;
 		}
 
 		backup (s);
-		emit (s, tokNumber);
-		return (state) {lexBetween};
+		emit (s, Token_Number);
+		return (state) {lex_between};
 	}
 }
 
 
-state lexInvalid (Scanner *s) {
+state lex_invalid (Scanner *s) {
 	while (true) {
 		Rune r = next (s);
 
 		if (r == '\0' || r == '\n') {
 			backup (s);
 		}
-		emit (s, tokInvalid);
-		return (state){lexBetween};
+		emit (s, Token_Invalid);
+		return (state){lex_between};
 	}
 }
 
@@ -189,7 +189,7 @@ state lexInvalid (Scanner *s) {
 // SCANNER
 
 
-void scanMake (Scanner *s, char *filepath, String input) {
+void Scanner_make (Scanner *s, char *filepath, String input) {
 	*s = (Scanner) {
 		.name = filepath,
 		.input = input,
@@ -199,8 +199,8 @@ void scanMake (Scanner *s, char *filepath, String input) {
 }
 
 
-void scanRun (Scanner *s) {
-	state st = (state) { .func = lexBetween };
+void Scanner_run (Scanner *s) {
+	state st = (state) { .func = lex_between };
 	for (; st.func != NULL; ) {
 		st = st.func (s);
 	}
@@ -208,10 +208,10 @@ void scanRun (Scanner *s) {
 
 
 Rune next (Scanner *s) {
-	if (s->pos >= stringLength (s->input)) {
+	if (s->pos >= String_length (s->input)) {
 		return '\0';
 	}
-	Rune result = stringAt (s->input, s->pos);
+	Rune result = String_at (s->input, s->pos);
 	s->pos++;
 	return result;
 }
@@ -234,69 +234,69 @@ Rune peek (Scanner *s) {
 }
 
 
-void emit (Scanner *s, TokenType typ) {
-	Token tok = (Token) {
-		.value = stringSlice (s->input, s->start, s->pos),
-		.type = typ,
+void emit (Scanner *s, Token_Tag tag) {
+	Token Token_ = (Token) {
+		.value = String_slice (s->input, s->start, s->pos),
+		.tag = tag,
 	};
 	s->start = s->pos;
-	scanPrint (tok);
+	Scanner_print (Token_);
 }
 
 
-void scanPrint (Token t) {
-	if (t.type == tokEOF) {
+void Scanner_print (Token t) {
+	if (t.tag == Token_EOF) {
 		printf ("EOF\n");
 		return;
 	}
 
-	switch (t.type) {
-		case tokKeyword:
+	switch (t.tag) {
+		case Token_Keyword:
 			printf ("kw<");
-			stringPrint (t.value);
+			String_print (t.value);
 			printf (">");
 			break;
 
-		case tokIdentifier:
+		case Token_Identifier:
 			printf ("id<");
-			stringPrint (t.value);
+			String_print (t.value);
 			printf (">");
 			break;
 
-		case tokNumber:
+		case Token_Number:
 			printf ("num<");
-			stringPrint (t.value);
+			String_print (t.value);
 			printf (">");
 			break;
 
-		case tokOperator:
+		case Token_Operator:
 			printf ("op<");
-			stringPrint (t.value);
+			String_print (t.value);
 			printf (">");
 			break;
 
-		case tokEqual:
+		case Token_Equal:
 			printf ("=");
 			break;
 
-		case tokArrow:
+		case Token_Arrow:
 			printf ("->");
 			break;
 
-		case tokSemicolon:
+		case Token_Semicolon:
 			printf (";\n");
 			return;
 			break;
 
-		case tokInvalid:
+		case Token_Invalid:
 			printf ("invalid<");
-			stringPrint (t.value);
+			String_print (t.value);
 			printf (">");
 			break;
 
 		default:
 			printf ("UNKNOWN<");
-			stringPrint (t.value);
+			String_print (t.value);
 			printf (">");
 	}
 	printf(" ");

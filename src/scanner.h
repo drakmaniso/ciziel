@@ -4,20 +4,20 @@
 
 #include <stdint.h>
 #include "string.h"
-#include "tokens.h"
+#include "token.h"
 
 
 typedef struct {
 	char *name;
 	String input;
-	stringPos start;
-	stringPos pos;
+	String_Pos start;
+	String_Pos pos;
 } Scanner;
 
 
-void scanMake (Scanner *s, char *filepath, String input);
-void scanRun (Scanner *s);
-void scanPrint (Token t);
+void Scanner_make (Scanner *s, char *filepath, String input);
+void Scanner_run (Scanner *s);
+void Scanner_print (Token t);
 
 
 #endif // SCANNER_H

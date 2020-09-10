@@ -7,26 +7,26 @@
 #include <stdbool.h>
 
 
-typedef int32_t stringPos;
+typedef int32_t String_Pos;
 
 
 typedef struct {
 	char *start;
-	stringPos length;
+	String_Pos length;
 } String;
 
 
 typedef char Rune;
 
 
-String stringNew (size_t length);
-void stringFree (String *s);
-String stringSlice (String s, stringPos start, stringPos end);
-void stringPrint (String s);
-String stringReadFrom (char *filepath);
-bool stringIs (String s, char *cs);
-stringPos stringLength (String s);
-Rune stringAt (String s, stringPos index);
+String String_new (size_t length);
+void String_free (String *s);
+String String_slice (String s, String_Pos start, String_Pos end);
+void String_print (String s);
+String String_read_from (char *filepath);
+bool String_is (String s, char *cs);
+String_Pos String_length (String s);
+Rune String_at (String s, String_Pos index);
 
 
 #endif // STRINGS_H

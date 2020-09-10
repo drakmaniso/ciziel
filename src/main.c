@@ -10,12 +10,12 @@ int main (int argc, char **argv)
 		return 1;
 	}
 
-	String source = stringReadFrom (argv[1]);
+	String source = String_read_from (argv[1]);
 
 	Scanner scanner;
-	scanMake (&scanner, argv[1], source);
-	scanRun (&scanner);
+	Scanner_make (&scanner, argv[1], source);
+	Scanner_run (&scanner);
 
-	stringFree (&source);
+	String_free (&source);
 	return 0;
 }

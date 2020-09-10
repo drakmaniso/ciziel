@@ -5,23 +5,23 @@
 #include "string.h"
 
 
-typedef enum TokenType {
-	tokNone,
-	tokKeyword,
-	tokIdentifier,
-	tokOperator,
-	tokNumber,
-	tokEqual,
-	tokArrow,
-	tokSemicolon,
-	tokEOF,
-	tokInvalid
-} TokenType;
+typedef enum Token_Tag {
+	Token_None,
+	Token_Keyword,
+	Token_Identifier,
+	Token_Operator,
+	Token_Number,
+	Token_Equal,
+	Token_Arrow,
+	Token_Semicolon,
+	Token_EOF,
+	Token_Invalid
+} Token_Tag;
 
 
 typedef struct {
 	String value;
-	TokenType type;
+	Token_Tag tag;
 } Token;
 
 
