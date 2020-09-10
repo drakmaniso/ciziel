@@ -1,4 +1,6 @@
 *.exe
+grace
+*.o
 build/
 build/*
 
