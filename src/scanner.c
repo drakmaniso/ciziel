@@ -1,14 +1,10 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include "scanner.h"
 
 
-bool isSpace (Rune r) {
-	return r == ' ';
-}
-
-
 bool isWhiteSpace (Rune r) {
-	return r == ' ' || r == '\n' || r == '\t';
+	return r == ' ' || r == '\t';
 }
 
 
@@ -74,18 +70,6 @@ state lexNumber (Scanner *s);
 state lexInvalid (Scanner *s);
 
 
-state lexNewLine (Scanner *s) {
-	ignore (s); // drop the newline character
-
-	while (peek (s) == '\t') {
-		next (s);
-	}
-	emit (s, tokIndent);
-
-	return (state) {lexBetween};
-}
-
-
 state lexBetween (Scanner *s) {
 	while (true) {
 		Rune r = next (s);
@@ -96,12 +80,19 @@ state lexBetween (Scanner *s) {
 		}
 
 		if (r == '\n') {
-			return (state) {lexNewLine};
-		}
-
-		if (isSpace (r)) {
 			ignore (s);
 			continue;
+			//return (state) {lexNewLine};
+		}
+
+		if (isWhiteSpace (r)) {
+			ignore (s);
+			continue;
+		}
+
+		if (r == ';') {
+			emit (s, tokSemicolon);
+			return (state) {lexBetween};
 		}
 
 		if (isLetter (r)) {
@@ -155,7 +146,10 @@ state lexOperator (Scanner *s) {
 	}
 
 	if (stringIs (stringSlice (s->input, s->start, s->pos), "=")) {
-		emit (s, tokDefine);
+		emit (s, tokEqual);
+		return (state) {lexBetween};
+	} else if (stringIs (stringSlice (s->input, s->start, s->pos), "->")) {
+		emit (s, tokArrow);
 		return (state) {lexBetween};
 	}
 
@@ -185,9 +179,9 @@ state lexInvalid (Scanner *s) {
 
 		if (r == '\0' || r == '\n') {
 			backup (s);
-			emit (s, tokInvalid);
-			return (state){lexBetween};
 		}
+		emit (s, tokInvalid);
+		return (state){lexBetween};
 	}
 }
 
@@ -206,7 +200,7 @@ void scanMake (Scanner *s, char *filepath, String input) {
 
 
 void scanRun (Scanner *s) {
-	state st = (state) { .func = lexNewLine };
+	state st = (state) { .func = lexBetween };
 	for (; st.func != NULL; ) {
 		st = st.func (s);
 	}
@@ -246,60 +240,64 @@ void emit (Scanner *s, TokenType typ) {
 		.type = typ,
 	};
 	s->start = s->pos;
-	if (tok.type == tokIndent) {
-		printf ("\n");
-	}
 	scanPrint (tok);
-	printf (" ");
 }
 
 
 void scanPrint (Token t) {
 	if (t.type == tokEOF) {
-		printf ("EOF");
+		printf ("EOF\n");
 		return;
 	}
 
 	switch (t.type) {
-		case tokIndent:
-			printf ("|%d|", stringLength (t.value));
-			return;
-
 		case tokKeyword:
+			printf ("kw<");
 			stringPrint (t.value);
-			return;
+			printf (">");
+			break;
 
 		case tokIdentifier:
-			printf ("`");
+			printf ("id<");
 			stringPrint (t.value);
-			printf ("`");
-			return;
+			printf (">");
+			break;
 
 		case tokNumber:
-			printf ("`");
+			printf ("num<");
 			stringPrint (t.value);
-			printf ("`");
-			return;
+			printf (">");
+			break;
 
 		case tokOperator:
-			printf ("`");
+			printf ("op<");
 			stringPrint (t.value);
-			printf ("`");
-			return;
+			printf (">");
+			break;
 
-		case tokDefine:
+		case tokEqual:
 			printf ("=");
+			break;
+
+		case tokArrow:
+			printf ("->");
+			break;
+
+		case tokSemicolon:
+			printf (";\n");
 			return;
+			break;
 
 		case tokInvalid:
-			printf ("Invalid{");
+			printf ("invalid<");
 			stringPrint (t.value);
-			printf ("}");
-			return;
+			printf (">");
+			break;
 
 		default:
-			printf ("UNKNOWN{");
+			printf ("UNKNOWN<");
 			stringPrint (t.value);
-			printf ("}");
+			printf (">");
 	}
+	printf(" ");
 }

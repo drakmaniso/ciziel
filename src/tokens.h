@@ -7,12 +7,13 @@
 
 typedef enum TokenType {
 	tokNone,
-	tokIndent,
 	tokKeyword,
 	tokIdentifier,
 	tokOperator,
 	tokNumber,
-	tokDefine,
+	tokEqual,
+	tokArrow,
+	tokSemicolon,
 	tokEOF,
 	tokInvalid
 } TokenType;
