@@ -2,72 +2,143 @@
 #include <stdio.h>
 #include "scanner.h"
 
-
-bool is_white_space (Rune r) {
-	return r == ' ' || r == '\t';
-}
-
-
-bool is_letter (Rune r) {
-	return (r >= 'A' && r <= 'Z')
-		|| (r >= 'a' && r <= 'z')
-		|| r == '_';
-}
-
-
-bool is_digit (Rune r) {
-	return r >= '0' && r <= '9';
-}
-
-
-bool is_symbol (Rune r) {
-	return r == '!'
-		|| r == '#'
-		|| r == '$'
-		|| r == '%'
-		|| r == '&'
-		|| r == '*'
-		|| r == '+'
-		|| r == '-'
-		|| r == '/'
-		|| r == '<'
-		|| r == '='
-		|| r == '>'
-		|| r == '?'
-		|| r == '@'
-		|| r == '\\'
-		|| r == '^'
-		|| r == '|'
-		|| r == '~';
-}
-
-
-bool is_keyword (String s) {
-	return String_is (s, "func");
-}
-
-
-Rune next (Scanner *s);
-void ignore (Scanner *s);
-void backup (Scanner *s);
-Rune peek (Scanner *s);
-void emit (Scanner *s, Token_Tag typ);
-
-
-// LEXICAL STATES
-
-
 typedef struct state {
 	// The type is recursive, so it must be embedded in a struct
 	struct state (*func) (Scanner *s);
 } state;
-
 
 state lex_between (Scanner *s);
 state lex_identifier (Scanner *s);
 state lex_operator (Scanner *s);
 state lex_number (Scanner *s);
 state lex_invalid (Scanner *s);
+
+bool is_white_space (Rune r);
+bool is_letter (Rune r);
+bool is_digit (Rune r);
+bool is_symbol (Rune r);
+bool is_keyword (String s);
+
+
+// SCANNER
+
+
+void Scanner_make (Scanner *s, char *filepath, String input) {
+	*s = (Scanner) {
+		.name = filepath,
+		.input = input,
+		.start = 0,
+		.pos = 0,
+	};
+}
+
+
+void Scanner_run (Scanner *s) {
+	state st = (state) { .func = lex_between };
+	for (; st.func != NULL; ) {
+		st = st.func (s);
+	}
+}
+
+
+Rune next (Scanner *s) {
+	if (s->pos >= String_length (s->input)) {
+		return '\0';
+	}
+	Rune result = String_at (s->input, s->pos);
+	s->pos++;
+	return result;
+}
+
+
+void ignore (Scanner *s) {
+	s->start = s->pos;
+}
+
+
+void backup (Scanner *s) {
+	s->pos--;
+}
+
+
+Rune peek (Scanner *s) {
+	Rune r = next (s);
+	backup (s);
+	return r;
+}
+
+
+void emit (Scanner *s, Token_Tag tag) {
+	Token token = (Token) {
+		.value = String_slice (s->input, s->start, s->pos),
+		.tag = tag,
+	};
+	s->start = s->pos;
+	Scanner_print (token);
+}
+
+
+void Scanner_print (Token t) {
+	if (t.tag == Token_EOF) {
+		printf ("EOF\n");
+		return;
+	}
+
+	switch (t.tag) {
+		case Token_Keyword:
+			printf ("kw<");
+			String_print (t.value);
+			printf (">");
+			break;
+
+		case Token_Identifier:
+			printf ("id<");
+			String_print (t.value);
+			printf (">");
+			break;
+
+		case Token_Number:
+			printf ("num<");
+			String_print (t.value);
+			printf (">");
+			break;
+
+		case Token_Operator:
+			printf ("op<");
+			String_print (t.value);
+			printf (">");
+			break;
+
+		case Token_Equal:
+			printf ("=");
+			break;
+
+		case Token_Arrow:
+			printf ("->");
+			break;
+
+		case Token_Semicolon:
+			printf (";\n");
+			return;
+			break;
+
+		case Token_Invalid:
+			printf ("invalid<");
+			String_print (t.value);
+			printf (">");
+			break;
+
+		default:
+			printf ("UNKNOWN<");
+			String_print (t.value);
+			printf (">");
+	}
+	printf(" ");
+}
+
+
+// LEXICAL STATES
+
 
 
 state lex_between (Scanner *s) {
@@ -186,118 +257,47 @@ state lex_invalid (Scanner *s) {
 }
 
 
-// SCANNER
+// UTILS
 
-
-void Scanner_make (Scanner *s, char *filepath, String input) {
-	*s = (Scanner) {
-		.name = filepath,
-		.input = input,
-		.start = 0,
-		.pos = 0,
-	};
+bool is_white_space (Rune r) {
+	return r == ' ' || r == '\t';
 }
 
 
-void Scanner_run (Scanner *s) {
-	state st = (state) { .func = lex_between };
-	for (; st.func != NULL; ) {
-		st = st.func (s);
-	}
+bool is_letter (Rune r) {
+	return (r >= 'A' && r <= 'Z')
+		|| (r >= 'a' && r <= 'z')
+		|| r == '_';
 }
 
 
-Rune next (Scanner *s) {
-	if (s->pos >= String_length (s->input)) {
-		return '\0';
-	}
-	Rune result = String_at (s->input, s->pos);
-	s->pos++;
-	return result;
+bool is_digit (Rune r) {
+	return r >= '0' && r <= '9';
 }
 
 
-void ignore (Scanner *s) {
-	s->start = s->pos;
+bool is_symbol (Rune r) {
+	return r == '!'
+		|| r == '#'
+		|| r == '$'
+		|| r == '%'
+		|| r == '&'
+		|| r == '*'
+		|| r == '+'
+		|| r == '-'
+		|| r == '/'
+		|| r == '<'
+		|| r == '='
+		|| r == '>'
+		|| r == '?'
+		|| r == '@'
+		|| r == '\\'
+		|| r == '^'
+		|| r == '|'
+		|| r == '~';
 }
 
 
-void backup (Scanner *s) {
-	s->pos--;
-}
-
-
-Rune peek (Scanner *s) {
-	Rune r = next (s);
-	backup (s);
-	return r;
-}
-
-
-void emit (Scanner *s, Token_Tag tag) {
-	Token Token_ = (Token) {
-		.value = String_slice (s->input, s->start, s->pos),
-		.tag = tag,
-	};
-	s->start = s->pos;
-	Scanner_print (Token_);
-}
-
-
-void Scanner_print (Token t) {
-	if (t.tag == Token_EOF) {
-		printf ("EOF\n");
-		return;
-	}
-
-	switch (t.tag) {
-		case Token_Keyword:
-			printf ("kw<");
-			String_print (t.value);
-			printf (">");
-			break;
-
-		case Token_Identifier:
-			printf ("id<");
-			String_print (t.value);
-			printf (">");
-			break;
-
-		case Token_Number:
-			printf ("num<");
-			String_print (t.value);
-			printf (">");
-			break;
-
-		case Token_Operator:
-			printf ("op<");
-			String_print (t.value);
-			printf (">");
-			break;
-
-		case Token_Equal:
-			printf ("=");
-			break;
-
-		case Token_Arrow:
-			printf ("->");
-			break;
-
-		case Token_Semicolon:
-			printf (";\n");
-			return;
-			break;
-
-		case Token_Invalid:
-			printf ("invalid<");
-			String_print (t.value);
-			printf (">");
-			break;
-
-		default:
-			printf ("UNKNOWN<");
-			String_print (t.value);
-			printf (">");
-	}
-	printf(" ");
+bool is_keyword (String s) {
+	return String_is (s, "func");
 }
