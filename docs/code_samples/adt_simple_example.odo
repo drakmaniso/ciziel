@@ -1,0 +1,52 @@
+module
+
+public
+
+Point = type Point{x: Int, y: Int} end
+
+
+Shape =
+	type
+		Circle{
+			center: Point
+			radius: Int
+		}
+
+		Square{
+			center: Point
+			side: Int
+		}
+
+		Rectangle{
+			center: Point
+			width: Int
+			height: Int
+		}
+	end
+
+
+move_to(self: Shape, position: Point) -> Shape =
+	Shape{center: position, ...shape}
+
+
+scale_by(self: Shape, scale_factor: Float) -> Shape =
+	do
+		multiply(a) = Int (Float a * scale_factor)
+		
+		case self
+		of Circle{radius, ...rest} then
+			r = multiply(radius)
+			Circle{radius: r, ...rest}
+
+		of Square{side, ...rest} then
+			s = multiply(side)
+			Square{side: s, ...rest}
+
+		of Rectangle{width, height, ...rest} then
+			w = multiply(width)
+			h = multiply(height)
+			Rectangle{width: w, height: h, ...rest}
+		end
+	end
+
+

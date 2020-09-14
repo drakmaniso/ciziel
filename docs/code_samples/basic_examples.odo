@@ -1,0 +1,43 @@
+public
+
+simple_factorial(n) =
+	if n <= 1 then 1
+	else n * simple_factorial(n - 1)
+	end
+
+
+better_factorial(n: Int) -> Int =
+	do
+		loop(n, accum) =
+			if n <= 1 then accum
+			else loop(n - 1, n * accum)
+			end
+
+		loop(n, 1)
+	end
+
+
+idiomatic_factorial(n: Int) -> Int =
+	do
+		(1 to n + 1)
+			.fold(1, (n, accum) -> n * accum)
+	end
+
+
+gcd(a: Int, b: Int) -> Int =
+	require
+		a > 0
+		b > 0
+	ensure
+		result > 0
+	do
+		loop(a, b) =
+			if b == 0 then a
+			else
+				(c, d) = if a > b then (b, a) else (a, b) end
+				loop(c, d .modulo c)
+			end
+
+		loop(a, b)
+	end
+

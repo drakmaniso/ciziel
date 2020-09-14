@@ -1,0 +1,9 @@
+module
+
+using std:Console
+
+public
+
+main(io) =
+	io.print "Hello, World!"
+
