@@ -16,7 +16,7 @@ fn main() {
                 println!("unable to read file {}: {}", filename, e);
             }
             Ok(source) => {
-                syntax::scan(filename.to_string(), source);
+                syntax::parse(source);
             }
         }
     }
