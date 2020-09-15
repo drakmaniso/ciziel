@@ -1,32 +1,32 @@
 public
 
 simple_factorial = n ->
-	if is_leq(n, 1) then 1;
-	else 'add(n, simple_factorial(sub(n, 1)));
-	end
+	if is_leq(n, 1) then 1
+	else add(n, simple_factorial(sub(n, 1)))
+	end;
 
 
 better_factorial = n ->
 	do
 		loop = (n, accum) ->
-			if is_leq(n, 1) then accum;
-			else loop('add(n, 1), 'mul(n, accum));
-			end
+			if is_leq(n, 1) then accum
+			else loop(add(n, 1), mul(n, accum))
+			end;
 
-		loop(n, 1);
-	end
+		loop(n, 1)
+	end;
 
 
 gcd = (a, b) ->
 	do
 		loop = (a, b) ->
-			if 'is_eq(b, 0) then a;
+			if is_eq(b, 0) then a
 			else
-				(c, d) = if 'is_gt(a, b) then (b, a) else (a, b) end
-				loop(c, 'modulo(d, c));
-			end
+				(c, d) = if is_gt(a, b) then (b, a) else (a, b) end;
+				loop(c, modulo(d, c))
+			end;
 
-		loop(a, b);
-	end
+		loop(a, b)
+	end;
 
 
