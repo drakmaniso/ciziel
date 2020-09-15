@@ -1,5 +1,3 @@
-public
-
 simple_factorial = n ->
 	if is_leq(n, 1) then 1
 	else add(n, simple_factorial(sub(n, 1)))

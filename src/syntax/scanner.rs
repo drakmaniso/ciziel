@@ -199,4 +199,55 @@ mod test {
             [Name("b_a__z456f_".to_string())]
         );
     }
+
+    #[test]
+    fn keywords() {
+        assert_eq!(
+            scan(String::from("do if then else end")),
+            [Do, If, Then, Else, End]
+        );
+    }
+
+    #[test]
+    fn simple_factorial() {
+        let source = "simple_factorial = n ->
+	if is_leq(n, 1) then 1
+	else add(n, simple_factorial(sub(n, 1)))
+	end;";
+        assert_eq!(
+            scan(String::from(source)),
+            [
+                Name("simple_factorial".to_string()),
+                Define,
+                Name("n".to_string()),
+                Arrow,
+                If,
+                Name("is_leq".to_string()),
+                LeftParen,
+                Name("n".to_string()),
+                Comma,
+                Number("1".to_string()),
+                RightParen,
+                Then,
+                Number("1".to_string()),
+                Else,
+                Name("add".to_string()),
+                LeftParen,
+                Name("n".to_string()),
+                Comma,
+                Name("simple_factorial".to_string()),
+                LeftParen,
+                Name("sub".to_string()),
+                LeftParen,
+                Name("n".to_string()),
+                Comma,
+                Number("1".to_string()),
+                RightParen,
+                RightParen,
+                RightParen,
+                End,
+                Semicolon
+            ]
+        );
+    }
 }
