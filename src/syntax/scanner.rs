@@ -4,7 +4,7 @@ use std::iter::Peekable;
 use std::str::Chars;
 
 /// A lexical token.
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum Token {
     // Delimiters
     LeftParen,

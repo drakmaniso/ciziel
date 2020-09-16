@@ -16,7 +16,9 @@ fn main() {
                 println!("unable to read file {}: {}", filename, e);
             }
             Ok(source) => {
-                syntax::parse(source);
+                let ast = syntax::parse(source);
+                println!("-----------------------------");
+                println!("AST = {:?}", ast);
             }
         }
     }
