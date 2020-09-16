@@ -1,4 +1,4 @@
-module
+module main
 
 -- The language type system will be based on System CT from:
 -- "Type Inference for Overloading without Restrictions, Declarations or Annotations"

@@ -1,4 +1,4 @@
-module
+module main
 
 
 Point = type Point{x: Int, y: Int} end

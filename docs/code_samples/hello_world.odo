@@ -1,4 +1,4 @@
-module
+module main
 
 using std:console
 

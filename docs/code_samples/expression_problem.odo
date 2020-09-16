@@ -11,9 +11,11 @@ Expr A =
 eval(self: Expr A) -> Int =
 	with
 		eval(A) -> Int
-	case self
-	of Literal v then v
-	of Addition{left, right} then 'eval(left) + 'eval(right)
+	do
+		case self
+		of Literal v then v
+		of Addition{left, right} then 'eval(left) + 'eval(right)
+		end
 	end
 
 
@@ -28,38 +30,43 @@ Expr A =
 	end
 
 
-Foo.eval(self: Expr A) -> Int =
+eval(self: Expr A) -> Int =
 	with
 		eval(A) -> Int
-	case self
-	of Negation{expr} then -'eval(expr)
-	else 'eval(self as Foo.Expr A)
+	do
+		case self
+		of Negation{expr} then -'eval(expr)
+		else 'eval(self as Foo.Expr A)
+		end
 	end
 
 
 pretty_string(expr: Foo.Expr A) -> String! =
 	with
 		pretty_string(A) -> String!
-	case expr
-	of Foo.Literal v then "{v}"
-	of Foo.Addition{left, right} then
-		l = 'pretty_string(left)
-		r = 'pretty_string(right)
-		"{l} +{r}"
+	do
+		case expr
+		of Foo.Literal v then "{v}"
+		of Foo.Addition{left, right} then
+			l = 'pretty_string(left)
+			r = 'pretty_string(right)
+			"{l} +{r}"
+		end
 	end
 
 
 pretty_string(self: Expr A) -> String! =
 	with
 		pretty_string(A) -> String!
-	case self
-	of Negation{expr} then
-		case expr
-		of Literal v then "-{v}"
-		else
-			e = 'pretty_string(expr)
-			"-({e})"
+	do
+		case self
+		of Negation{expr} then
+			case expr
+			of Literal v then "-{v}"
+			else
+				e = 'pretty_string(expr)
+				"-({e})"
+			end
+		else 'pretty_string(self as Foo.Expr A)
 		end
-	else 'pretty_string(self as Foo.Expr A)
 	end
-

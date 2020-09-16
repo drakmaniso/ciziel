@@ -1,0 +1,68 @@
+module do_notation
+
+-- In case the type system is System CT, the correct monadic wrap function
+-- can be inferrred.
+
+example_1(maybe_a: Maybe<Int>, maybe_b: Maybe<Int>) -> Maybe<String> =
+	do
+		a ?= maybe_a
+		b ?= maybe_b
+		(a + b)?
+	end
+
+example_1_desugared =
+	maybe_a .bind (a ->
+		maybe_b .bind (b ->
+			'wrap(a + b)
+		)
+	)
+
+
+to_float(s: String) -> Maybe<Float> = ...
+
+divide_by(x: Float, y: Float) -> Maybe<Float> = ...
+
+example_2(a, b) =
+	do
+		c ?= a.to_float
+		d ?= b.to_float
+		e = c + 1
+		f ?= e .safe_div d
+		f.to_string
+	end
+
+
+example_2_desugared(a, b) =
+	a.to_float .bind (c ->
+		b.to_float .bind (d ->
+				do
+					e = c + 1
+					e. safe_div d
+				end .bind (f ->
+					f.to_string
+				)
+			)
+		)
+
+
+example_2_desugared(a, b) =
+	a.to_float .bind (c ->
+		b.to_float .bind (d ->
+			(c + 1) >> e ->
+				e. safe_div d .bind (f ->
+					f.to_string
+				)
+			)
+		)
+
+
+-- In case the type system chosen is System O, it becomes necessary
+-- to specify the monad type.
+
+example_1(maybe_a: Maybe<Int>, maybe_b: Maybe<Int>) -> Maybe<String> =
+	with Maybe do
+		a ?= maybe_a
+		b ?= maybe_b
+		(a + b)?
+	end
+
