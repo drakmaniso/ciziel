@@ -1,8 +1,9 @@
+module
+
 -- The language type system will be based on System CT from:
 -- "Type Inference for Overloading without Restrictions, Declarations or Annotations"
 -- by Carlos Camarão and Lucília Figueiredo
 
-public
 
 better_factorial(n: N) -> N =
 	with

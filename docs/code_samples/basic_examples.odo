@@ -1,4 +1,29 @@
-public
+module main
+
+using std:console
+
+
+main(io) =
+	do
+		io = io.put "Please enter a number: "
+		number =
+			case io.input.to_int
+			of None then 121
+			of Some n then n
+			end
+		
+		naive = simple_factorial(number)
+		better = better_factorial(number)
+		idiomatic = idiomatic_factorial(number)
+
+		io.print "naive factorial of {number}: {naive}"
+			.print "better factorial of {number}: {better}"
+			.print "idiomatic factorial of {number}: {idiomatic}"
+	end
+
+
+private
+
 
 simple_factorial(n) =
 	-- A naive implementation of factorial.

@@ -1,7 +1,9 @@
-package =
-	{
-		name: "std"
-		version: "0.0.1"
-		dependencies: []
-	}
+module package
+
+
+name = "std"
+
+version = "0.0.1"
+
+dependencies = []
 

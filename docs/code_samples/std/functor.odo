@@ -1,6 +1,5 @@
 module Functor
 
-public (prelude)
 
 FUNCTOR =
 	concept

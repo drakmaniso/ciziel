@@ -1,6 +1,5 @@
 module
 
-public
 
 Point = type Point{x: Int, y: Int} end
 
