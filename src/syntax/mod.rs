@@ -34,31 +34,28 @@ struct Parser {
 }
 
 fn parse_definition(parser: &mut Parser) -> Result<Definition, String> {
-    let name_tok = parser
-        .tokens
-        .next()
-        .ok_or("I expected a name for a definition, but reached the end of the file")?;
-    let name = match name_tok {
-        Token::Name(s) => s,
-        _ => {
-            return Err(format!(
-                "I expected a name for a definitiion, but got {:?} instead",
-                name_tok
-            )
-            .to_string())
-        }
+    let peeked = parser.tokens.peek().ok_or("expected identifier")?.clone();
+    let name;
+    match peeked {
+        Token::Name(s) => name = s,
+        _ => return Err("expected identifier".into()),
     };
+    parser.tokens.next();
 
-    match parser.tokens.next() {
-        Some(Token::Define) => (),
-        _ => return Err("missing \"=\" in definition".to_string()),
+    match parser.tokens.peek() {
+        Some(Token::Define) => {
+            parser.tokens.next();
+        }
+        _ => return Err("expected `=`".to_string()),
     }
 
     let expr = parse_expression(parser)?;
 
-    match parser.tokens.next() {
-        Some(Token::Semicolon) => (),
-        _ => return Err("missing \";\" after a definition".to_string()),
+    match parser.tokens.peek() {
+        Some(Token::Semicolon) => {
+            parser.tokens.next();
+        }
+        _ => return Err("expected `;`".to_string()),
     }
 
     Ok(Definition {
@@ -71,7 +68,7 @@ fn parse_expression(parser: &mut Parser) -> Result<Expression, String> {
     let peeked = parser
         .tokens
         .peek()
-        .ok_or("I expected an expression, but reached the end of the file")?
+        .ok_or("expected an expression")?
         .clone();
     match peeked {
         Token::Name(s) => {
@@ -82,6 +79,6 @@ fn parse_expression(parser: &mut Parser) -> Result<Expression, String> {
             parser.tokens.next();
             Ok(Expression::Number(s.clone()))
         }
-        _ => Err("I expected an expression, but got something else instead".to_string()),
+        _ => Err("expected an expression".to_string()),
     }
 }
