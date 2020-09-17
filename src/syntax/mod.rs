@@ -6,7 +6,7 @@ mod scanner;
 use scanner::Token;
 
 /// Parses a program source.
-pub fn parse(source: String) -> Result<Definition, String> {
+pub fn parse(source: &str) -> Result<Definition, String> {
     let tokens = scanner::scan(source);
     println!("tokens = {:?}", tokens);
     let mut parser = Parser {
@@ -29,21 +29,22 @@ pub enum Expression {
 
 // Private
 
-struct Parser {
-    tokens: Peekable<std::vec::IntoIter<Token>>,
+struct Parser<'a> {
+    tokens: Peekable<std::vec::IntoIter<Token<'a>>>,
 }
 
 fn parse_definition(parser: &mut Parser) -> Result<Definition, String> {
-    let peeked = parser.tokens.peek().ok_or("expected identifier")?.clone();
-    let name;
-    match peeked {
-        Token::Name(s) => name = s,
-        _ => return Err("expected identifier".into()),
-    };
-    parser.tokens.next();
+    let name =
+        match parser.tokens.peek() {
+            Some(&Token::Name(s)) => {
+                parser.tokens.next();
+                s.to_string()
+            },
+            _ => return Err("expected identifier".into()),
+        };
 
     match parser.tokens.peek() {
-        Some(Token::Define) => {
+        Some(&Token::Define) => {
             parser.tokens.next();
         }
         _ => return Err("expected `=`".to_string()),
@@ -52,32 +53,27 @@ fn parse_definition(parser: &mut Parser) -> Result<Definition, String> {
     let expr = parse_expression(parser)?;
 
     match parser.tokens.peek() {
-        Some(Token::Semicolon) => {
+        Some(&Token::Semicolon) => {
             parser.tokens.next();
         }
         _ => return Err("expected `;`".to_string()),
     }
 
     Ok(Definition {
-        name: name.clone(),
+        name: name,
         expression: expr,
     })
 }
 
 fn parse_expression(parser: &mut Parser) -> Result<Expression, String> {
-    let peeked = parser
-        .tokens
-        .peek()
-        .ok_or("expected an expression")?
-        .clone();
-    match peeked {
-        Token::Name(s) => {
+    match parser.tokens.peek() {
+        Some(&Token::Name(s)) => {
             parser.tokens.next();
-            Ok(Expression::Name(s.clone()))
+            Ok(Expression::Name(s.to_string()))
         }
-        Token::Number(s) => {
+        Some(&Token::Number(s)) => {
             parser.tokens.next();
-            Ok(Expression::Number(s.clone()))
+            Ok(Expression::Number(s.to_string()))
         }
         _ => Err("expected an expression".to_string()),
     }

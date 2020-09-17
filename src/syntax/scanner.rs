@@ -1,11 +1,11 @@
 //! Lexical analysis
 
 use std::iter::Peekable;
-use std::str::Chars;
+use std::str::CharIndices;
 
 /// A lexical token.
 #[derive(PartialEq, Clone, Debug)]
-pub enum Token {
+pub enum Token<'a> {
     // Delimiters
     LeftParen,
     RightParen,
@@ -21,16 +21,17 @@ pub enum Token {
     Define,
     Arrow,
     // Others
-    Name(String),
-    Number(String),
-    Operator(String),
+    Name(&'a str),
+    Number(&'a str),
+    Operator(&'a str),
 }
 
 /// Converts a program source into a sequence of lexical tokens.
-pub fn scan(source: String) -> Vec<Token> {
+pub fn scan<'a>(source: &'a str) -> Vec<Token<'a>> {
     let mut scanner = Scanner {
+        source: source,
         tokens: Vec::new(),
-        remaining: source.chars().peekable(),
+        remaining: source.char_indices().peekable(),
     };
     let mut f = scan_between(&mut scanner);
     loop {
@@ -47,8 +48,9 @@ pub fn scan(source: String) -> Vec<Token> {
 }
 
 struct Scanner<'a> {
-    tokens: Vec<Token>,
-    remaining: Peekable<Chars<'a>>,
+    source: &'a str,
+    tokens: Vec<Token<'a>>,
+    remaining: Peekable<CharIndices<'a>>,
 }
 
 enum Step {
@@ -63,7 +65,7 @@ enum Step {
 fn scan_between(scanner: &mut Scanner) -> Step {
     match scanner.remaining.peek() {
         None => Step::EndOfFile,
-        Some(c) => {
+        Some((_, c)) => {
             if c.is_whitespace() {
                 return Step::Whitespace;
             } else if c.is_lowercase() {
@@ -82,7 +84,7 @@ fn scan_between(scanner: &mut Scanner) -> Step {
 }
 
 fn scan_whitespace(scanner: &mut Scanner) -> Step {
-    while let Some(c) = scanner.remaining.peek() {
+    while let Some((_, c)) = scanner.remaining.peek() {
         if c.is_whitespace() {
             scanner.remaining.next();
         } else {
@@ -93,49 +95,56 @@ fn scan_whitespace(scanner: &mut Scanner) -> Step {
 }
 
 fn scan_name(scanner: &mut Scanner) -> Step {
-    let mut s = String::with_capacity(30);
-    while let Some(c) = scanner.remaining.peek() {
-        if c.is_alphanumeric() || *c == '_' {
-            s.push(*c);
-            scanner.remaining.next();
-        } else {
-            break;
+    if let Some(&(start, _)) = scanner.remaining.peek() {
+        let mut end = start;
+        while let Some(&(i, c)) = scanner.remaining.peek() {
+            if c.is_alphanumeric() || c == '_' {
+                scanner.remaining.next();
+            } else {
+                end = i;
+                break;
+            }
         }
-    }
-    if s == "do" {
-        scanner.tokens.push(Token::Do);
-    } else if s == "end" {
-        scanner.tokens.push(Token::End);
-    } else if s == "if" {
-        scanner.tokens.push(Token::If);
-    } else if s == "then" {
-        scanner.tokens.push(Token::Then);
-    } else if s == "else" {
-        scanner.tokens.push(Token::Else);
-    } else {
-        scanner.tokens.push(Token::Name(s));
+        let s = &scanner.source[start..end];
+        if s == "do" {
+            scanner.tokens.push(Token::Do);
+        } else if s == "end" {
+            scanner.tokens.push(Token::End);
+        } else if s == "if" {
+            scanner.tokens.push(Token::If);
+        } else if s == "then" {
+            scanner.tokens.push(Token::Then);
+        } else if s == "else" {
+            scanner.tokens.push(Token::Else);
+        } else {
+            scanner.tokens.push(Token::Name(s));
+        }
     }
     Step::Between
 }
 
 fn scan_number(scanner: &mut Scanner) -> Step {
-    let mut s = String::with_capacity(30);
-    while let Some(c) = scanner.remaining.peek() {
-        if c.is_ascii_digit() || *c == '_' {
-            s.push(*c);
-            scanner.remaining.next();
-        } else {
-            break;
+    if let Some(&(start, _)) = scanner.remaining.peek() {
+        let mut end = start;
+        while let Some(&(i, c)) = scanner.remaining.peek() {
+            if c.is_ascii_digit() || c == '_' {
+                scanner.remaining.next();
+            } else {
+                end = i;
+                break;
+            }
         }
+        let s = &scanner.source[start..end];
+        scanner.tokens.push(Token::Number(s));
     }
-    scanner.tokens.push(Token::Number(s));
     Step::Between
 }
 
 fn scan_symbol(scanner: &mut Scanner) -> Step {
-    if let Some(c) = scanner.remaining.peek() {
-        if is_delimiter(*c) {
-            match *c {
+    if let Some(&(start, c)) = scanner.remaining.peek() {
+        let mut end = start;
+        if is_delimiter(c) {
+            match c {
                 '(' => scanner.tokens.push(Token::LeftParen),
                 ')' => scanner.tokens.push(Token::RightParen),
                 ',' => scanner.tokens.push(Token::Comma),
@@ -144,17 +153,17 @@ fn scan_symbol(scanner: &mut Scanner) -> Step {
             }
             scanner.remaining.next();
         } else {
-            let mut s = String::with_capacity(8);
-            while let Some(c) = scanner.remaining.peek() {
-                if is_delimiter(*c) {
+            while let Some(&(i, c)) = scanner.remaining.peek() {
+                if is_delimiter(c) {
                     break;
                 } else if c.is_ascii_punctuation() {
-                    s.push(*c);
                     scanner.remaining.next();
                 } else {
+                    end = i;
                     break;
                 }
             }
+            let s = &scanner.source[start..end];
             if s == "=" {
                 scanner.tokens.push(Token::Define);
             } else if s == "->" {
