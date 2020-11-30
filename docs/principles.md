@@ -16,6 +16,8 @@ unboxed by default, and pointers are explicits.
 
 ## About correctness
 
+"Program with data, not types"
+
 The type system should be at the same time useful and helpful. This means
 statical type checking, type inference and enough expressivity, but also
 discouraging excessive type-level programming.

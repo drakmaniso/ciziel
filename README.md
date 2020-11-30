@@ -6,21 +6,16 @@ compiler for it.
 
 ## Motivation
 
-The main idea behind the project is to combine functional programming with
-ownership types.
+This project is born out of my longing for a functional language that would use
+dynamic arrays instead of linked lists.
 
-The expected benefits over other functional languages (such as ML, haskell)
-are:
 
-- automatic static memory management (instead of garbage collection),
-- arrays as the base collection type (instead of lists),
-- easy control of inputs/outputs (owned resource handle instead of monads),
+## Core design
 
-The expected benefits over other languages with ownership (such as Rust) are:
+The main idea behind the project the following synergy:
 
-- simplicity (data immutability means a simpler ownership system),
-- easier to reason about (pure functions make for better program structure).
-
+- Ownership should allow efficient use of arrays with no need for mutability.
+- Immutability should make it easier to reason about ownership.
 
 ## Status
 
