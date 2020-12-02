@@ -1,58 +1,52 @@
 module main
 
--- The language type system will be based on System CT from:
+-- The language type system *may* be based on System CT from:
 -- "Type Inference for Overloading without Restrictions, Declarations or Annotations"
 -- by Carlos Camarão and Lucília Figueiredo
 
 
 better_factorial(n: N) -> N =
-	with
+	forall
 		literal(Int) -> N
 		N <= N -> Bool
 		N - N -> N
 		N * N -> N
-	do
-		loop(n: N, accum: N) -> N =
-			if n <= 1 then accum
-			else loop(n - 1, n * accum)
-			end
+	
+	fact(n: N, accum: N) -> N =
+		if n <= 1 then accum
+		else fact(n - 1, n * accum)
 
-		loop(n, 1)
-	end
+	return fact(n, 1)
 
 -- or:
 
 better_factorial(n: N) -> N =
-	with
-		one: N
+	forall
+		N.one -> N
 		N <= N -> Bool
 		N - N -> N
 		N * N -> N
-	do
-		loop(n, accum) =
-			if n <= 'one then accum
-			else loop(n - 'one, n * accum)
-			end
+	
+	fact(n, accum) =
+		if n <= N.one then accum
+		else fact(n - N.one, n * accum)
 
-		loop(n, 'one)
-	end
+	return fact(n, N.one)
 
 
 idiomatic_factorial(n: N) -> N =
-	with
+	forall
 		one: N
 		range(N, N) -> Iter N
 		-- fold(Iter N, N, (N, N) -> N)
 		N + N -> N
 		N * N -> N
-	do
-		(one' to n + one')
-			.fold(one', (n, accum) -> n * accum)
-	end
+
+	return (N.one to n + N.one).fold(N.one, *)
 
 
 gcd(a: N, b: N) -> N =
-	with
+	forall
 		literal(Int) -> N
 		N > N -> Bool
 		N == N -> Bool
@@ -62,39 +56,35 @@ gcd(a: N, b: N) -> N =
 		b > 0
 	ensure
 		result > 0
-	do
-		loop(a, b) =
-			if b == 0 then a
-			else
-				(c, d) = if a > b then (b, a) else (a, b) end
-				loop(c, d .modulo c)
-			end
+	
+	step(a, b) =
+		if b == 0 then a
+		else step(c, d .modulo c)
 
-		loop(a, b)
-	end
+	return step(a, b)
 
 
 ----
 
-leaves(tree) =
+leaves(tree: Tree[A]) -> B[A] =
+	forall
+		B.wrap(A) -> B[A]
+		union(B[A], B[A]) -> B[A]
+	
 	case tree
-	of Leaf {item} then wrap(item)
-	of Branch {left, right} then
-		leaves(left) .union (leaves(right))
+	of Leaf(item) then B.wrap(item)
+	of Branch(left, right) then
+		leaves(left).union(leaves(right))
 	end
+
 
 leaves_example =
-	my_tree = ... -- make and populate a Tree Int
-	a: Array! Int = leaves(my_tree)
-	b: List! Int = leaves(my_tree)
-	b: Set! Int = leaves(my_tree)
+	my_tree = ... -- make and populate a Tree[Int]
+	a: Array[Int] = leaves(my_tree)
+	b: List[Int] = leaves(my_tree)
+	c: Set[Int] = leaves(my_tree)
 
 
-----
-
-
-print_each(f: FUNCTOR X, io: Console!, function: X -> String) -> Console! =
-	f.fold(f, io, (x, io) -> io.print x)
 
 ----
 

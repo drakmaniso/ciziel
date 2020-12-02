@@ -1,35 +1,23 @@
 module main
 
-using std:Console
+using std/io
 
 
-main(io: Console!) =
-	do
-		io = say_hello(io)
-		io = count_to_ten(io)
-	end
+main(io: Console) =
+	io
+		.sayHello
+		.countToTen
 
 
-say_hello(io: Console!) -> Console! =
-	do
-		io = io.print "Welcome,"
-			.print "Please enter your name: "
-		(io, name) = io.input
-		io.print "Hello, {name}!"
-	end
+sayHello(io: Console) -> Console =
+	name, io = io
+		.print("Welcome,")
+		.put("Please enter your name: ")
+		.input
+	return io.print("Hello, {name}!")
 
 
-count_to_ten(io: Console!) -> Console! =
-	do
-		(1 to 11)
-			.fold(io, (n, io) -> io.print "{n}")
-	end
-
--- or:
-
-count_to_ten(io: Console!) -> Console! =
-	do
-		(1 to 11)
-			.print_each(io, n -> "{n}")
-	end
+countToTen(io: Console) -> Console =
+	range(1, 10)
+		.fold(io, (io, n) -> io.print("{n}"))
 

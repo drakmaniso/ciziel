@@ -1,68 +1,39 @@
 module do_notation
 
--- In case the type system is System CT, the correct monadic wrap function
--- can be inferrred.
 
-example_1(maybe_a: Maybe<Int>, maybe_b: Maybe<Int>) -> Maybe<String> =
-	do
-		a ?= maybe_a
-		b ?= maybe_b
-		(a + b)?
-	end
+example1(a: String, b: String) -> Maybe[Float] =
+	x? = Float.parse(a)
+	y? = Float.parse(b)
+	z = x + 1.0
+	return z safediv y
 
-example_1_desugared =
-	maybe_a .bind (a ->
-		maybe_b .bind (b ->
-			'wrap(a + b)
+example1_desugared(a, b) =
+	Float.parse(a).bind(x ->
+		Float.parse(b).bind(y ->
+			z = x + 1
+			z safediv y
 		)
 	)
 
 
-to_float(s: String) -> Maybe<Float> = ...
+example2(a: String, b: String) -> Maybe[Float] =
+	x? = Float.parse(a)
+	y? = Float.parse(b)
+	return Some(x + y)
 
-divide_by(x: Float, y: Float) -> Maybe<Float> = ...
-
-example_2(a, b) =
-	do
-		c ?= a.to_float
-		d ?= b.to_float
-		e = c + 1
-		f ?= e .safe_div d
-		f.to_string
-	end
-
-
-example_2_desugared(a, b) =
-	a.to_float .bind (c ->
-		b.to_float .bind (d ->
-				do
-					e = c + 1
-					e. safe_div d
-				end .bind (f ->
-					f.to_string
-				)
-			)
+example2_desugared(a: String, b: String) -> Maybe[Float] =
+	Float.parse(a).bind (x ->
+		Float.parse(b).bind (y ->
+			Maybe.wrap(x + y)
 		)
+	)
 
+-- If the monad type is generic:
+example3(a: String, b: String) -> M[Float] =
+	forall
+		M: Monad
+	x? = Float.parse(a)
+	y? = Float.parse(b)
+	return M.wrap(a + b)
 
-example_2_desugared(a, b) =
-	a.to_float .bind (c ->
-		b.to_float .bind (d ->
-			(c + 1) >> e ->
-				e. safe_div d .bind (f ->
-					f.to_string
-				)
-			)
-		)
-
-
--- In case the type system chosen is System O, it becomes necessary
--- to specify the monad type.
-
-example_1(maybe_a: Maybe<Int>, maybe_b: Maybe<Int>) -> Maybe<String> =
-	with Maybe do
-		a ?= maybe_a
-		b ?= maybe_b
-		(a + b)?
-	end
 

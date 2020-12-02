@@ -1,51 +1,48 @@
 module main
 
 
-Point = type Point{x: Int, y: Int} end
+Point =
+	x: Int
+	y: Int
 
 
-Shape =
-	type
-		Circle{
-			center: Point
-			radius: Int
-		}
+Shape = Circle | Square | Rectangle
 
-		Square{
-			center: Point
-			side: Int
-		}
+Circle =
+	center: Point
+	radius: Int
 
-		Rectangle{
-			center: Point
-			width: Int
-			height: Int
-		}
-	end
+Square =
+	center: Point
+	side: Int
+
+Rectangle =
+	center: Point
+	width: Int
+	height: Int
 
 
-move_to(self: Shape, position: Point) -> Shape =
-	Shape{center: position, ...shape}
+moveTo(self: Shape, position: Point) -> Shape =
+	self.with(center: position)
 
 
-scale_by(self: Shape, scale_factor: Float) -> Shape =
-	do
-		multiply(a) = Int (Float a * scale_factor)
-		
+scaleBy(self: Shape, factor: Float) -> Shape =
+	multiply(a) = Int(Float(a) * factor)
+
+	return
 		case self
-		of Circle{radius, ...rest} then
+		of Circle(radius, ...) then
 			r = multiply(radius)
-			Circle{radius: r, ...rest}
+			self.with(radius: r)
 
-		of Square{side, ...rest} then
+		of Square(side, ...) then
 			s = multiply(side)
-			Square{side: s, ...rest}
+			self.with(side: s)
 
-		of Rectangle{width, height, ...rest} then
+		of Rectangle(width, height, ...) then
 			w = multiply(width)
 			h = multiply(height)
-			Rectangle{width: w, height: h, ...rest}
+			self.with(width: w, height: h)
 		end
-	end
 
 

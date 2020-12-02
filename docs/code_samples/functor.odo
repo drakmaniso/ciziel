@@ -1,0 +1,17 @@
+module Functor
+
+
+FUNCTOR =
+	map(self: FUNCTOR A, fn: A -> B) -> FUNCTOR B
+
+
+lift(fn: A -> B) -> (FUNCTOR A -> FUNCTOR B) =
+	FUNCTOR.map(fn)
+
+
+private -- test
+
+test_lift_on_list =
+	double(xs) = Functor.lift(x -> x * 2)
+	return double([1, 2, 3, 4]) == [2, 4, 6, 8],
+

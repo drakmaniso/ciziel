@@ -1,0 +1,54 @@
+Bool = False | True
+False = ()
+True = ()
+
+Maybe T = None | Some T
+None = ()
+Some[T] = item: T
+
+Result[T, E] = Ok[T] | Error[E]
+Ok[T] = item: T
+Error[E] = error: E
+
+
+Bool =
+	False()
+	True()
+
+Maybe[T] =
+	None()
+	Some(T)
+
+Result[T, E] =
+	Ok(T)
+	Error(E)
+
+
+---
+module btree
+
+BTree[T] = owned Empty | Node[T]
+
+Empty = ()
+
+Node[T] =
+	owned boxed
+	item: T
+	left: BTree[T]
+	right: BTree[T]
+
+
+contains(self: shared BTree[T], value: T) -> Bool =
+	forall
+		T == T -> Bool
+	
+	return
+		case self
+		of Empty then False
+		of Node(item, left, right) then
+			item == value
+			or left.contains(value)
+			or right.contains(value)
+		end
+
+

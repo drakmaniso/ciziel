@@ -1,0 +1,11 @@
+module Monad
+
+
+MONAD =
+	wrap(item: A) -> MONAD[A] -- Monadic unit (aka return)
+	bind(self: MONAD[A], fnct: A -> MONAD[B]) -> MONAD[B]
+
+
+join(self: MONAD[MONAD[A]]) -> MONAD[A] =
+	self.bind(identity)
+
