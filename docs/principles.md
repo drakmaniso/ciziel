@@ -1,28 +1,28 @@
 # Principles
 
-## About elegance
 
-Aim for simplicity and orthogonality of features, but allow for pragmatic
-concessions. In other words, purity and its associated kind of elegance are not
-a primary objective.
+## A tool for reasoning
 
+- Programs need to be easy to read and reason about, more than convenient to write.
+- The language should help the programmer to build a mental model of the codebase.
 
-## About performance
-
-Transforming data is the whole point of programming. The language should be
-able to handle any data in computer memory directly. This means all values are
-unboxed by default, and pointers are explicits.
+Corresponding characteristics:
+- orthogonality of features;
+- low noise syntax;
+- functions associated with types (aka methods);
 
 
-## About correctness
+## 
 
-The type system should be at the same time useful and helpful. This means
-statical type checking, type inference and enough expressivity, but also
-discouraging excessive type-level programming.
+- Exploratory programming and refactoring are important.
 
+Corresponding characteristics:
+- static type checking, but with type inference
+- immutability by default, but with optional mutability
 
-## About modularity
+## 
 
-The correct level of encapsulation is the module. Encapsulation at type-level
-leads to complex namespaces and over-engineering.
+- Data is more important than code.
 
+Correspongind characteristics:
+- zero-cost data abstractions

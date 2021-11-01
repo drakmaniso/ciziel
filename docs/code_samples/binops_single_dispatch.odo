@@ -1,0 +1,28 @@
+------
+module std'ops
+
+def #add =
+    def RightHand = Self
+    def Output = Self
+    has +(self, other: RightHand) -> Output
+
+def #mul =
+    def RightHand = Self
+    def Output = Self
+    has +(self, other: RightHand) -> Output
+
+------
+module vec
+
+use std'ops for #add, #mul
+
+def Vec2(x: Float, y: Float)
+
+for Vec2 #add:
+    def +(self, other: Vector) -> Vec2 =
+        Vec2(self.x + other.x, self.y + other.y)
+
+for Vec2 #mul:
+    def RightHand = Float
+    def *(self, other: Float) -> Vec2 =
+        Vec2(self.x * other, self.y * other)

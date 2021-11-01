@@ -1,0 +1,30 @@
+module vec
+
+def Vec2(x: Float, y: Float)
+
+for Vec2:
+    def zero = Vec2(0, 0)
+    
+    def +(self, other: Vec2) -> Vec2 =
+        Vec2(self.x + other.y, self.y + other.y)
+    
+    def +(self, scalar: Float) -> Vec2 =
+        Vec2(self.x + scalar, self.y + scalar)
+    
+    def +(scalar: Float, self) -> Vec2 =
+        self + scalar
+
+
+def #vec2 =
+    has Self(x: Float, y: Float)
+
+    def zero = Self(0, 0)
+    
+    def +(self, other: Self) -> Self =
+        Self(self.x + other.y, self.y + other.y)
+    
+    def +(self, scalar: Float) -> Self =
+        Self(self.x + scalar, self.y + scalar)
+    
+    def +(scalar: Float, self) -> Self =
+        self + scalar

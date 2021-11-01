@@ -1,65 +1,57 @@
-module Foo
+module foo
 
 
-Expr A =
-	type
-		Literal Int
-		Addition{left: Expr A, right: Expr A}
-	end
+def #eval =
+	eval(self) -> Int
+
+def Literal(eval: Int)
+
+def Addition[T](left: Expr[T], right: Expr[T])
+
+for Addition[T #eval]:
+	def eval(self) -> Int =
+		self.left.eval + self.right.eval
 
 
-eval(self: Expr A) -> Int =
-	with
-		eval(A) -> Int
-	case self
-	of Literal v then v
-	of Addition{left, right} then 'eval(left) + 'eval(right)
-	end
+------
+module bar
+
+use foo: #eval, Literal, Addition
+
+def #pretty =
+	pretty(self) -> String
+
+for Literal:
+	def pretty(self) -> String =
+		self.eval.toString
+
+for Addition[T #pretty]:
+	def pretty(self) -> String =
+		"{self.left.pretty} + {self.right.pretty}"
+
+def Negation[T](subexpr: T)
+
+for Negation[T #eval]:
+	def eval(self) -> Int =
+		- self.subexpr.eval
+
+for Negation[T #pretty]:
+	def pretty(self) -> String =
+		if self.subexpr is Literal:
+			"- {self.subexpr.pretty}"
+		else:
+			"- ({self.subexpr.pretty})"
 
 
-module Bar
+------
+module main
 
+use foo: #eval, Literal, Addition
+use bar: #pretty, Negation
 
-Expr A =
-	type
-		Literal (Foo.Literal: Foo.Expr A)
-		Addition (Foo.Addition: Foo.Expr A)
-		Negation{expr: Expr A}
-	end
+def Expr = Literal | Addition[Expr] | Negation[Expr]
 
-
-Foo.eval(self: Expr A) -> Int =
-	with
-		eval(A) -> Int
-	case self
-	of Negation{expr} then -'eval(expr)
-	else 'eval(self as Foo.Expr A)
-	end
-
-
-pretty_string(expr: Foo.Expr A) -> String! =
-	with
-		pretty_string(A) -> String!
-	case expr
-	of Foo.Literal v then "{v}"
-	of Foo.Addition{left, right} then
-		l = 'pretty_string(left)
-		r = 'pretty_string(right)
-		"{l} +{r}"
-	end
-
-
-pretty_string(self: Expr A) -> String! =
-	with
-		pretty_string(A) -> String!
-	case self
-	of Negation{expr} then
-		case expr
-		of Literal v then "-{v}"
-		else
-			e = 'pretty_string(expr)
-			"-({e})"
-		end
-	else 'pretty_string(self as Foo.Expr A)
-	end
+def main!(io: Console) =
+	let e1 = Addition(Literal(77), Negation(Literal(12))
+	io.print!("{e1.pretty} = {e1.eval}")
 

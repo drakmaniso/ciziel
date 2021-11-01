@@ -1,0 +1,59 @@
+------ Standard traits for iterators
+module std/iter
+
+def #iterator =
+    has Item
+    has next!(mut self) -> Self.Item | Nil
+
+def #iterable =
+    has Iterator #iterator
+    has iter(self) -> Self.Iterator
+
+
+------ Simple iterator example
+module counter
+
+let Counter(
+        count: Int,
+        limit: Int,
+    )
+
+for Counter:
+    def new(limit: Int) -> Counter =
+        Counter(count = 0, limit = limit)
+    
+    def limit(self) -> Int =
+        self.limit
+
+    def Item = Int
+
+    def next!(self) -> Int | Nil =
+        if self.count >= self.limit then
+            return Nil
+        set self.count = self.count + 1
+        return self.count
+
+let test_Counter_traits =
+    assert Counter is std'iter'#iterator
+
+let test_Counter =
+    counter = Counter.new(6)
+    assert counter.next! == 1
+    assert counter.next! == 2
+    assert counter.next! == 3
+    assert counter.next! == 4
+    assert counter.next! == 5
+    assert counter.next! == Nil
+
+
+----
+module main
+
+use /std/iter for Iterator
+
+def foo(iterator: I #iterator, f: I.Item -> Int) -> Array[Int] =
+    mut result: Array[Int]
+    for elem in iterator loop
+        result.push!(f(elem))
+    return result
+

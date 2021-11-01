@@ -1,10 +1,10 @@
-public #test
+let foo(a: Int, b: String) -> String =
+	"{a} and {b}"
 
--- maybe a bad idea?
-extreme_example =
-	a = foo(1, 2, 3, 4)
-	b = 1.foo(2, 3, 4)
-	c = 2.(1.foo) (3, 4)
-	d = 3.(2.(1.foo))(4)
-	b == a and c == a and c == a
+let main =
+	ex1 = 123.(x => foo(x, "abc"))
+	ex2 = 123.(=> foo(_, "abc"))
 
+
+let main =
+	ex1 = 123 >> foo _ "abc";

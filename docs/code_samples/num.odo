@@ -1,0 +1,39 @@
+--( from Rust crate num_traits )--
+
+----
+module /std/num
+
+def #num =
+    #partialEq
+    #zero #add #sub
+    #one #mul #div #rem
+    has fromString(str: String) -> Self | E #error
+    has fromStringRadix(str: String, radix: UInt) -> Self | E #error
+
+def #zero =
+    #add
+    has zero: Self
+    has isZero(self) -> Bool
+    has setZero!(self)
+
+def #one =
+    #mul
+    has one: Self
+    has isOne(self) -> Bool
+    has setOne!(self)
+
+
+def #add =
+    has +(self, other: Self) -> Self
+
+def #sub =
+    has -(self, other: Self) -> Self
+
+def #mul =
+    has *(other: Self) -> Self
+
+def #div =
+    has /(other: Self) -> Self
+
+def #rem =
+    has %(other: Self) -> Self

@@ -1,10 +1,18 @@
 # About the name
 
-## Old name
+Toki simply means "language" in [toki pona](https://tokipona.org/).
+
+- toki pali (language work)
+- toki nasin (language way)
+- toki sona (language knowledge)
+- toki tawa (language moving)
+- toki ante (language different/change)
+
+## Old names
 
 I initially called the language "Grace", after Grace Hopper, the computer
 pioneer who wrote the first compiler. Unfortunately, the name was already taken
-by another language.
+by another programming language.
 
 The following quote from admiral Hopper served as a guiding line during the
 initial design of the language:
@@ -14,9 +22,7 @@ initial design of the language:
 > counter-clockwise.
 
 
-## New name
-
-I chose "Odo" as the new name in reference to the fictional character from
+I then briefly chose "Odo" as the new name in reference to the fictional character from
 Ursula Le Guin's novel "The Dispossed" (and the short story "The Day Before the
 Revolution").
 

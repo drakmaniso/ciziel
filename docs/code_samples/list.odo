@@ -1,0 +1,93 @@
+------
+module std'list
+
+use std'iter: #iterator, #asIterator
+
+
+def List[T] = Node[T] | Empty
+def Node[T] ref (item: T, tail: List[T])
+def Empty
+
+
+for List[T]:
+    def new(...items: Array[T]) -> List[T] =
+        mut result = Empty
+        for item in items.iterator.reverse do
+            result <- Node(item, result)
+        return result
+    
+for Node[T]:
+    def push(self, item: T) -> Node[T] = Node(item, self)
+    def pop(self) -> T = self.item
+for Empty:
+    def push(self, item: T) -> Node[T] = Node(item, Empty)
+    def pop(self) -> Nil = Nil
+
+
+for Empty[T #eq]:
+    def equals(self, other: List[T]) -> Bool =
+        match other
+        case Empty then True
+        case Node(...) then False
+
+for Node[T #eq]
+    def equals(self, other: List[T]) -> Bool =
+        match other
+        case Empty then False
+        case Node(item, tail) then
+            self.item == item
+                and self.tail.equals(tail)
+
+-- Note that `Node[T]` and `Empty` don't implement `#eq`!
+-- Only the union `Node[T] | Empty` implements `#eq`.
+
+
+for Empty
+    def map(self, f: T -> U) -> Empty =
+        Empty
+
+for Node[T]
+    def map(self, f: T -> U) -> Node[U] =
+        Node{
+            item: f(self.item),
+            tail: self.tail.map(f),
+        }
+
+
+for List[T]:
+    def Iterator = Iterator[T]
+    def asIter(self) -> Iterator[T] = Iterator(self)
+
+def Iterator[T](current: List[T])
+for Iterator[T]:
+    def Item = T
+
+    def next!(mut self) -> T | Nil =
+        match self.current
+        case Empty:
+            Nil
+        case Node{item, tail}:
+            self.current <- tail
+            item
+    
+
+------
+module std'list'test
+
+use std'list: List, Node, Empty
+
+def double(list: List[Int]) -> List[Int] =
+    list.map(x -> x * 2)
+
+def main! =
+    let a = ListNode(1, ListNode(2, ListNode(3, EmptyList)))
+    let b = List.new(1, 2, 3)
+
+    print!(a.type)
+    --> ListNode[Int] | EmptyList
+
+    print!(b.type)
+    --> ListNode[Int] | EmptyList
+
+    print!(a.map.type)
+    --> Func(ListNode[Int] | EmptyList, Int -> A) -> ListNode[A] | EmptyList

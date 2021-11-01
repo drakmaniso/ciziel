@@ -1,9 +1,13 @@
-module
+module main
 
-using std:Console
+def main! =
+	print!("Hello, World!")
 
-public
 
-main(io) =
-	io.print "Hello, World!"
+------
+module main
 
+use /std/console for Console
+
+def main!(io: Console) =
+	io.writeln!("Hello, World!")

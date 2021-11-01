@@ -1,0 +1,60 @@
+----
+module std'operators
+
+use std'tuples for #pair
+
+def #add =
+    #pair
+    has AddResult
+    has +(self): Self.AddResult
+
+
+----
+module vec
+
+use std'operators for #add
+
+def Vec2(x: Float, y: Float)
+
+for (Vec2, Vec2):
+    def AddResult = Vec2
+    def add(self): Vec2 =>
+        Vec2(
+            x: self.first.x + self.second.x,
+            y: self.first.y + self.second.y,
+        )
+
+for (Vec2, Float):
+    def MulResult = Vec2
+    def mul(self): Vec2 =>
+        Vec2(
+            x: self.first.x * self.second,
+            y: self.first.y * self.second,
+        )
+
+
+----
+module std'ops
+
+def #add =
+    def RightHand = Self
+    def Output = Self
+    has +(self, other: RightHand) -> Output
+
+
+module vec
+
+def Vec2(x: Float32, y: Float32)
+
+def #times =
+    has `times`(self, other: Vec2) -> Vec2
+
+for Float32:
+    def `times`(self, other: Vec2) -> Vec2 =
+        Vec2(self * other.x, self * other.y)
+
+for Vec2:
+    def *(self, other: Float32) -> Vec32 =
+        Vec2(self.x * other, self.y * other)
+
+    def `times`

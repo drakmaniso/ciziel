@@ -1,52 +1,139 @@
-module
+module /std/vec2
 
-public
+def #vec2 =
+    has Self(x: Float, y: Float)
 
-Point = type Point{x: Int, y: Int} end
+def length(a: A #vec2) -> Float =
+    math'sqrt((a.x ^ 2) + (a.y ^ 2))
 
+def normalize(a: A #vec2) -> A =
+    l = a.length
+    return A{x: a.x / l, y: a.y / l}
 
-Shape =
-	type
-		Circle{
-			center: Point
-			radius: Int
-		}
+def add(a: A #vec2, b: B #vec2) -> C #vec2 =
+    C(a.x + b.x, a.y + b.y)
 
-		Square{
-			center: Point
-			side: Int
-		}
-
-		Rectangle{
-			center: Point
-			width: Int
-			height: Int
-		}
-	end
+def sub(a: A #vec2, b: B #vec2) -> C #vec2 =
+    C(a.x - b.x, a.y - b.y)
 
 
-move_to(self: Shape, position: Point) -> Shape =
-	Shape{center: position, ...shape}
+module geom
+
+def Point(x: Float, y: Float)
+
+for Point:
+    def length(self) -> Float = vec2'length(self)
+    def normalize(self) -> Point = vec2'normalize(self)
+    def add(self, other: O #vec2) -> Point = vec2'add(self, other)
+    def zero! = Point(0, 0)
+
+test "type Point" =
+    assert Point has #vec2
+    assert Point has #length
+    assert Point has #add
+
+def Shape = Circle | Square | Rectangle
+
+def #movable =
+    has moveTo!(mut self, position: Point)
+
+def #scalable =
+    has scaleBy!(mut self, factor: Float)
 
 
-scale_by(self: Shape, scale_factor: Float) -> Shape =
-	do
-		multiply(a) = Int (Float a * scale_factor)
-		
-		case self
-		of Circle{radius, ...rest} then
-			r = multiply(radius)
-			Circle{radius: r, ...rest}
+def #center =
+    has Self(center: Point, ...)
 
-		of Square{side, ...rest} then
-			s = multiply(side)
-			Square{side: s, ...rest}
-
-		of Rectangle{width, height, ...rest} then
-			w = multiply(width)
-			h = multiply(height)
-			Rectangle{width: w, height: h, ...rest}
-		end
-	end
+let moveShapeTo!(mut shape: T #center, destination: Point) =
+    shape.center <- destination
 
 
+def Circle{
+        center: Point
+        radius: Float
+    }
+
+for Circle:
+    def diameter(self) -> Float =
+        self.radius * 2
+
+    def perimeter(self) -> Float =
+        math'pi * self.diameter
+
+    def area(self) -> Float =
+        math'pi * self.radius * self.radius
+
+    def moveTo!(mut self, destination: Point) =
+        moveShapeTo!(self, destination)
+
+    def scaleBy!(mut self, factor: Float) =
+        self.radius <- self.radius * factor
+
+
+test "type Circle" =
+    assert Circle has #movable
+    assert Circle has #scalable
+
+def Square{
+        center: Point
+        side: Int
+    }
+
+def Rectangle{
+        center: Point
+        width: Int
+        height: Int
+    }
+
+def Polygon(
+        ...points: Array[Point]
+    )
+
+
+------
+def Artist = Person | Band
+def Person(name: String)
+def Band(name: String)
+def Album{
+        artist: Artist
+        title: String
+        releaseDate: Date
+        songs: Array[Song]
+    }
+
+
+-------
+for Foo:
+    def fn1(self, arg: String | Float) -> Bool = ...
+    def fn2(self, arg: T #stringable) -> U #stringable #comparable = ...
+
+for Bar:
+    def fn1(self, arg: String | Int) -> Char = ...
+    def fn2(self, arg: T #comparable) -> U #stringable #numeric = ...
+
+-- implicitly:
+for Foo | Bar:
+    def fn1(self, arg: String) -> Bool | Char = ...
+    def fn2(self, arg: T #stringable #comparable) -> U #stringable = ...
+
+
+-------
+let PrivateFoo(privateField: Int)
+
+
+def PublicFoo(publicField: Int)
+
+
+def OpaqueFoo(privateField: Int)
+for OpaqueFoo:
+    def new(publicParameter: Float) -> OpaqueFoo =
+        OpaqueFoo(privateField: publicParameter.rounded)
+
+
+def ReadOnlyFoo(privateField: Int)
+for ReadOnlyFoo:
+    def new(publicParameter: Float) -> ReadOnlyFoo =
+        ReadOnlyFoo(privateField: publicParameter.rounded)
+
+    def readOnlyField(self) -> Int =
+        self.privateField

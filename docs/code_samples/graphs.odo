@@ -1,0 +1,7 @@
+def T #graph =
+    Node
+    Edge
+    hasEdge(self, Node, Node) -> Bool
+    ...
+
+

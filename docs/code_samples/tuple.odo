@@ -1,0 +1,38 @@
+module std'tuples
+
+-- tuples elements are accessed with:
+-- first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth,
+-- eleventh, twelfth, thirteenth, ...
+
+def #pair =
+    #pairlike
+    has Self(first: Self.First, second: Self.Second)
+
+def #pairlike =
+    has First
+    has Second
+    has first(self) -> Self.First
+    has second(self) -> Self.Second
+
+def #triple = ...
+def #quadruple = ...
+def #quintuple = ...
+def #sextuple = ...
+def #septuple = ...
+def #octuple = ...
+def #nonuple = ...
+
+def #decuple = ...
+    has Self(
+        first: Self.First,
+        second: Self.Second,
+        third: Self.Third,
+        fourth: Self.Fourth
+        fifth: Self.Fifth
+        sixth: Self.Fifth
+        seventh: Self.Fifth
+        eighth: Self.Fifth
+        ninth: Self.Fifth
+        tenth: Self.Fifth
+    )
+    ...
