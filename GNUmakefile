@@ -7,7 +7,7 @@ LINK = gcc
 
 PROGRAM = compile
 
-SOURCES = $(SRC)/main.c $(SRC)/string.c $(SRC)/token.c $(SRC)/scanner.c
+SOURCES = $(SRC)/main.c $(SRC)/string.c $(SRC)/token.c $(SRC)/lexer.c
 
 SRC = src
 BUILD = build

@@ -31,7 +31,7 @@ String str_slice(String s, USize start, USize end) {
 }
 
 
-Rune str_at(String s, USize index) {
+char str_at(String s, USize index) {
 	return s.start[index];
 }
 

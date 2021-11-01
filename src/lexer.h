@@ -12,12 +12,12 @@ typedef struct {
 	String input;
 	USize start;
 	USize pos;
-} Scanner;
+} Lexer;
 
 
-void scan_make(Scanner *s, char *filepath, String input);
-void scan_run(Scanner *s);
-void scan_print(Token t);
+void lexer_make(Lexer *s, char *filepath, String input);
+void lexer_run(Lexer *s);
+void lexer_print(Token t);
 
 
 #endif // SCANNER_H

@@ -6,42 +6,42 @@
 #include "string.h"
 
 
-typedef enum tok_Tag {
-	tok_None,
+typedef enum Token_Tag {
+	token_None,
 
 	// Keywords
-	tok_Public,
-	tok_Do,
-	tok_If,
-	tok_Then,
-	tok_Else,
-	tok_End,
+	token_Public,
+	token_Do,
+	token_If,
+	token_Then,
+	token_Else,
+	token_End,
 	
 	// Delimiters
-	tok_Semicolon,
-	tok_LeftParen,
-	tok_RightParen,
-	tok_Comma,
-	tok_Quote,
+	token_Semicolon,
+	token_LeftParen,
+	token_RightParen,
+	token_Comma,
+	token_Quote,
 
 	// Operators
-	tok_Equal,
-	tok_Arrow,
+	token_Equal,
+	token_Arrow,
 
 	// Literals and identifiers
-	tok_Number,
-	tok_Identifier,
+	token_Number,
+	token_Identifier,
 
-	tok_EOF,
-	tok_Invalid
-} tok_Tag;
+	token_EOF,
+	token_Invalid
+} Token_Tag;
 
 
 typedef struct {
 	String value;
 	int32_t line;
 	int32_t column;
-	tok_Tag tag;
+	Token_Tag tag;
 } Token;
 
 
@@ -49,14 +49,14 @@ typedef struct {
 	Token *items;
 	int32_t length;
 	int32_t capacity;
-} tok_Array;
+} Token_Array;
 
 
-Token tok_make(tok_Tag tag, int32_t line, int32_t column, String value);
-tok_Array tok_new_array(int32_t capacity);
-int32_t tok_len(tok_Array a);
-Token tok_at(tok_Array a, int32_t index);
-tok_Array tok_push(tok_Array a, Token t);
+Token token_make(Token_Tag tag, int32_t line, int32_t column, String value);
+Token_Array token_new_array(int32_t capacity);
+int32_t token_len(Token_Array a);
+Token token_at(Token_Array a, int32_t index);
+Token_Array token_push(Token_Array a, Token t);
 
 
 #endif // TOKEN_H

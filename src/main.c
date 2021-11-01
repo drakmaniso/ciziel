@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "string.h"
-#include "scanner.h"
+#include "lexer.h"
 
 
 int main(int argc, char **argv)
@@ -12,9 +12,9 @@ int main(int argc, char **argv)
 
 	String source = str_read_from(argv[1]);
 
-	Scanner scanner;
-	scan_make(&scanner, argv[1], source);
-	scan_run(&scanner);
+	Lexer lexer;
+	lexer_make(&lexer, argv[1], source);
+	lexer_run(&lexer);
 
 	str_free(&source);
 	return 0;
