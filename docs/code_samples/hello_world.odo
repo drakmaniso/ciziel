@@ -1,7 +1,9 @@
-module main
+module
 
-using std/io
+using std:Console
 
-main(io: io'Console) =
-	io.print("Hello, World!")
+public
+
+main(io) =
+	io.print "Hello, World!"
 

@@ -4,10 +4,9 @@ Odo is a simple programming language with the following features:
 
 - pure functions,
 - type inference,
-- ownership type system,
+- ownership types,
 - algebraic data types,
-- nominal typing for records,
-- structural typing for unions,
+- nominal typing,
 - explicit structural conversions,
 - zero-cost data abstractions,
 - generic programming,
@@ -24,26 +23,15 @@ aka data immutability
 full?
 
 
-## Ownership type system
+## Ownership types
 
-Two possibilities:
+### Automatic static memory management
 
-### Ownership a la Rust
+### Controlling side-effects
 
-...but with only one kind of shared reference, since everything is immutable.
+input/output via owned types rather than monads
 
-
-### Ownership with dynamic alias checking
-
-The type system tracks ownership, but in a different way than Rust:
-
-- Only reference types can be owned.
-- While the "one owner at all time" rule is statically checked, the "no shared
-  alias while moving or mutating" rule is enforced at runtime, through a
-  reference counting algorithm. See [1].
-
-[1]: https://researcher.watson.ibm.com/researcher/files/us-bacon/Dingle07Ownership.pdf
-(Adam Dingle and David F. Bacon, "Ownership You Can Count On: A Hybrid Approach to Safe Explicit Memory Management")
+### Safe concurrency
 
 
 ## Algebraic data types
@@ -51,10 +39,7 @@ The type system tracks ownership, but in a different way than Rust:
 aka sum types, tagged unions, enums
 
 
-## Nominal typing for records
-
-
-## Structural typing for variants
+## Nominal typing
 
 
 ## Explicit structural conversion

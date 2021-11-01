@@ -1,76 +1,46 @@
---(
+public
 
-# Some basic mathematical examples
-
-This file contains a few simple examples of programming in Odo.  Several
-implementations of factioral, as well as a simple gcd algorithm.
-
-)--
-module main
-
-using std/io
-
-
-main(io) =
-	getNumber(io) =
-		answer, io = io
-			.print(io, "Please enter a number: ")
-			.input
-		
-		return
-			case Int.parse(answer)
-			of Some(n) then n, io
-			of None then getNumber(io)
-			end
-
-	number, io = getNumber(io)
-
-	simple = simpleFactorial(number)
-	tail = tailFactorial(number)
-	folded = foldedFactorial(number)
-
-	return io
-		.print("simple factorial: |simple|")
-		.print("tail recursice factorial: |tail|")
-		.print("fold-based factorial: |folded|")
-
-
-private
-
-
--- A naive implementation of factorial.
-simpleFactorial(n) =
+simple_factorial(n) =
+	-- A naive implementation of factorial.
 	if n <= 1 then 1
 	else n * simple_factorial(n - 1)
+	end
 
 
--- A tail-recursive implementation of factorial.
-tailFactorial(n: Int) -> Int =
-	fact(n, previous) =
-		if n <= 1 then previous
-		else fact(n - 1, n * previous)
+better_factorial(n: Int) -> Int =
+	-- A tail-recursive implementation of factorial.
+	do
+		loop(n, accum) =
+			if n <= 1 then accum
+			else loop(n - 1, n * accum)
+			end
 
-	return fact(n, 1)
-
-
--- `foldedFactorial` is an implementation of factorial using abstracted
--- iteration pattern `fold`.
-foldedFactorial(n: Int) -> Int =
-	(1 to n + 1).fold(1, (x, y) -> x * y)
+		loop(n, 1)
+	end
 
 
--- `gcd` returns the greatest common denominator of `a` and `b`. 
--- Both arguments must be positive and non-null.
+idiomatic_factorial(n: Int) -> Int =
+	-- An implementation of factorial using abstracted
+	-- iteration pattern `fold`.
+	(1 to n + 1)
+		.fold(1, (n, accum) -> n * accum)
+
+
 gcd(a: Int, b: Int) -> Int =
+	-- Returns the greatest common denominator of `a` and `b`.
 	require
 		a > 0
 		b > 0
 	ensure
 		result > 0
+	do
+		loop(a, b) =
+			if b == 0 then a
+			else
+				(c, d) = if a > b then (b, a) else (a, b) end
+				loop(c, d .modulo c)
+			end
 
-	step(a, b) =
-		if b <= 0 then a
-		else step(b, a mod b)
-
-	return step(a, b)
+		loop(a, b)
+	end
 

@@ -4,8 +4,3 @@ compile
 build/
 build/*
 
-
-
-#Added by cargo
-
-/target

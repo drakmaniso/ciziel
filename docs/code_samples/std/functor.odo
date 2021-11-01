@@ -1,0 +1,33 @@
+module Functor
+
+public (prelude)
+
+FUNCTOR =
+	concept
+		map(self: FUNCTOR A, function: A -> B) -> FUNCTOR B
+	end
+
+
+lift(function: A -> B) -> (FUNCTOR A -> FUNCTOR B) =
+	x -> x.map(function)
+
+-- sugar for:
+
+lift(function: A -> B) -> (F A -> F B) =
+	with
+		map(F A, A -> B) -> F B
+	do
+		x -> x.map(function)
+	end
+
+
+private (test)
+
+test_lift_on_list =
+	do
+		double(xs) = Functor.lift(x -> x * 2)
+		assert_eq(
+			double [1, 2, 3, 4],
+			[2, 4, 6, 8],
+		)
+	end

@@ -1,190 +1,65 @@
---(
-
-## Solution
-
-)--
-module base
-
-Expr = Literal | Addition[Expr]
-
-Literal =
-	value: Int
-
-Addition[E] =
-	boxed
-	left: E
-	right: E
-
-
-EXPR =
-	eval(EXPR) -> Int
-
-
-eval(self: Literal) -> Int = self.value
-
-
-eval(self: Addition[E]) -> Int =
-	forall
-		eval(E) -> Int
-	
-	return self.left.eval + self.right.eval
-
-
-example: Expr =
-	Addition(
-		Literal(100),
-		Addition(Literal(20), Literal(3)),
-	)
-
-
-module extension
-
-Expr =
-	| base'Literal
-	| base'Addition[Expr]
-	| Negation[Expr]
-
-Negation[E] =
-	boxed
-	subexpr: E
-
-
-EXPR =
-	eval(EXPR) -> Int
-	pretty(EXPR) -> *String
-
-
-eval(self: Negation[E]) -> Int =
-	forall
-		E: EXPR
-	
-	return - self.subexpr
-
-
-pretty(self: base'Literal) -> String =	"|self.value|"
-
-pretty(self: base'Addition[E]) -> String =
-	forall
-		E: EXPR
-	return "|self.left.pretty| + |self.right.pretty|"
-
-pretty(self: Negation[E]) -> String =
-	forall E: EXPR
-	return "-(|self.subexpr.pretty|)"
-
-pretty(self: Negation[base'Literal]) -> String =
-	"- |self.subexpr.value.pretty|"
-
-
---(
-
-## Alternative solution 1
-
-)--
-
-
 module Foo
 
-EXPR =
-	interface
-		eval(EXPR) -> Int
+
+Expr A =
+	type
+		Literal Int
+		Addition{left: Expr A, right: Expr A}
 	end
 
-Literal = type (Int)
 
-Addition[L, R] = boxed type (L, R)
-
-eval(self: Literal) -> Int = self.0
-
-eval(self: &Addition[L, R]) -> Int =
-	forall
-		L: EXPR
-		R: EXPR
-	do
-		self.0.eval + self.1.eval
+eval(self: Expr A) -> Int =
+	with
+		eval(A) -> Int
+	case self
+	of Literal v then v
+	of Addition{left, right} then 'eval(left) + 'eval(right)
 	end
-
-example: Addition[Literal, Addition[Literal, Literal]] =
-	Addition(Literal(100), Addition(Literal(20), Literal(3)))
 
 
 module Bar
 
-EXPR =
-	interface
-		eval(EXPR) -> Int
-		pretty(EXPR) -> *String
-	end
 
-Negation[E] = type *(E)
-
-eval(self: &Negation[E]) -> Int =
-	forall
-		E: EXPR
-	do
-		- self.0
-	end
-
-pretty(self: base'Literal) -> Int =	"|self.0|"
-
-pretty(self: base'Addition[E]) -> Int =
-	forall
-		E: EXPR
-	do
-		"|self.0.pretty| + |self.1.pretty|"
-	end
-
-pretty(self: Negation[E]) -> Int =
-	forall
-		E: EXPR
-	do
-		"-(|self.0.pretty|)"
-	end
-
-
---(
-
-## Alternative solution 2
-
-)--
-
-
-module base
-
-Expr[E] =
-	| Literal(Int)
-	| boxed Addition(Expr[E], Expr[E])
-	| boxed Ext(E)
-
-End =
+Expr A =
 	type
-		End
+		Literal (Foo.Literal: Foo.Expr A)
+		Addition (Foo.Addition: Foo.Expr A)
+		Negation{expr: Expr A}
 	end
 
-eval(self: Expr[E]) -> Int =
-	forall
-		E: EXPR
-	do
-		case self
-		of Literal(v) then v
-		of Addition(l, r) then l.eval + r.eval
-		of Ext(e) then e.eval
+
+Foo.eval(self: Expr A) -> Int =
+	with
+		eval(A) -> Int
+	case self
+	of Negation{expr} then -'eval(expr)
+	else 'eval(self as Foo.Expr A)
+	end
+
+
+pretty_string(expr: Foo.Expr A) -> String! =
+	with
+		pretty_string(A) -> String!
+	case expr
+	of Foo.Literal v then "{v}"
+	of Foo.Addition{left, right} then
+		l = 'pretty_string(left)
+		r = 'pretty_string(right)
+		"{l} +{r}"
+	end
+
+
+pretty_string(self: Expr A) -> String! =
+	with
+		pretty_string(A) -> String!
+	case self
+	of Negation{expr} then
+		case expr
+		of Literal v then "-{v}"
+		else
+			e = 'pretty_string(expr)
+			"-({e})"
 		end
+	else 'pretty_string(self as Foo.Expr A)
 	end
-
-example: Expr[End] =
-	Addition(Literal(100), Addition(Literal(20), Literal(3)))
-
-
-module extension
-
-Expr[E] =
-	type
-		Negation boxed (base'Ext[E])
-		Ext boxed (E)
-	end
-
-
-example: base'Expr[Expr[End]] =
-	base'Addition(base'Literal(123), Negation(base'Addition(Literal(20), base'Literal(3))))
 
