@@ -8,30 +8,13 @@
 
 typedef enum Token_Tag {
 	Token_None,
-
-	// Keywords
-	Token_Public,
-	Token_Do,
-	Token_If,
-	Token_Then,
-	Token_Else,
-	Token_End,
-	
-	// Delimiters
-	Token_Semicolon,
-	Token_LeftParen,
-	Token_RightParen,
-	Token_Comma,
-	Token_Quote,
-
-	// Operators
+	Token_Keyword,
+	Token_Identifier,
+	Token_Operator,
+	Token_Number,
 	Token_Equal,
 	Token_Arrow,
-
-	// Literals and identifiers
-	Token_Number,
-	Token_Identifier,
-
+	Token_Semicolon,
 	Token_EOF,
 	Token_Invalid
 } Token_Tag;

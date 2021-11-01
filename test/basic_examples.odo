@@ -1,32 +1,42 @@
 public
 
 simple_factorial = n ->
-	if is_leq(n, 1) then 1;
-	else 'add(n, simple_factorial(sub(n, 1)));
+	if n <= 1 then 1
+	else n * simple_factorial(n - 1)
 	end
 
 
 better_factorial = n ->
 	do
 		loop = (n, accum) ->
-			if is_leq(n, 1) then accum;
-			else loop('add(n, 1), 'mul(n, accum));
+			if n <= 1 then accum
+			else loop(n - 1, n * accum)
 			end
 
-		loop(n, 1);
+		loop(n, 1)
 	end
 
 
-gcd = (a, b) ->
+idiomatic_factorial = n ->
+	do
+		'fold(
+			'range(1, n + 1),
+			1,
+			(n, accum) -> n * accum,
+		)
+	end
+
+
+gcd = a, b ->
 	do
 		loop = (a, b) ->
-			if 'is_eq(b, 0) then a;
+			if b == 0 then a
 			else
-				(c, d) = if 'is_gt(a, b) then (b, a) else (a, b) end
-				loop(c, 'modulo(d, c));
+				(c, d) = if a > b then (b, a) else (a, b) end
+				loop(c, 'modulo(d, c))
 			end
 
-		loop(a, b);
+		loop(a, b)
 	end
 
 

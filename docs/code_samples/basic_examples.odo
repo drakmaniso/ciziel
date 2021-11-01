@@ -1,14 +1,12 @@
 public
 
 simple_factorial(n) =
-	-- A naive implementation of factorial.
 	if n <= 1 then 1
 	else n * simple_factorial(n - 1)
 	end
 
 
 better_factorial(n: Int) -> Int =
-	-- A tail-recursive implementation of factorial.
 	do
 		loop(n, accum) =
 			if n <= 1 then accum
@@ -20,14 +18,13 @@ better_factorial(n: Int) -> Int =
 
 
 idiomatic_factorial(n: Int) -> Int =
-	-- An implementation of factorial using abstracted
-	-- iteration pattern `fold`.
-	(1 to n + 1)
-		.fold(1, (n, accum) -> n * accum)
+	do
+		(1 to n + 1)
+			.fold(1, (n, accum) -> n * accum)
+	end
 
 
 gcd(a: Int, b: Int) -> Int =
-	-- Returns the greatest common denominator of `a` and `b`.
 	require
 		a > 0
 		b > 0
