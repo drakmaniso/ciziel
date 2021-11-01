@@ -7,12 +7,12 @@ typedef struct state {
 	struct state(*func) (Scanner *s);
 } state;
 
-state lex_between(Scanner *s);
-state lex_identifier(Scanner *s);
-state lex_delimiter(Scanner *s);
-state lex_operator(Scanner *s);
-state lex_number(Scanner *s);
-state lex_invalid(Scanner *s);
+state state_between(Scanner *s);
+state state_identifier(Scanner *s);
+state state_delimiter(Scanner *s);
+state state_operator(Scanner *s);
+state state_number(Scanner *s);
+state state_invalid(Scanner *s);
 
 bool is_white_space(Rune r);
 bool is_letter(Rune r);
@@ -24,7 +24,7 @@ bool is_symbol(Rune r);
 // SCANNER
 
 
-void Scanner_make(Scanner *s, char *filepath, String input) {
+void scan_make(Scanner *s, char *filepath, String input) {
 	*s = (Scanner) {
 		.name = filepath,
 		.input = input,
@@ -34,8 +34,8 @@ void Scanner_make(Scanner *s, char *filepath, String input) {
 }
 
 
-void Scanner_run(Scanner *s) {
-	state st = (state) { .func = lex_between };
+void scan_run(Scanner *s) {
+	state st = (state) { .func = state_between };
 	for (; st.func != NULL; ) {
 		st = st.func(s);
 	}
@@ -43,10 +43,10 @@ void Scanner_run(Scanner *s) {
 
 
 Rune next(Scanner *s) {
-	if (s->pos >= String_length(s->input)) {
+	if (s->pos >= str_length(s->input)) {
 		return '\0';
 	}
-	Rune result = String_at(s->input, s->pos);
+	Rune result = str_at(s->input, s->pos);
 	s->pos++;
 	return result;
 }
@@ -69,99 +69,99 @@ Rune peek(Scanner *s) {
 }
 
 
-void emit(Scanner *s, Token_Tag tag) {
+void emit(Scanner *s, tok_Tag tag) {
 	Token token = (Token) {
-		.value = String_slice(s->input, s->start, s->pos),
+		.value = str_slice(s->input, s->start, s->pos),
 		.tag = tag,
 	};
 	s->start = s->pos;
-	Scanner_print(token);
+	scan_print(token);
 }
 
 
-void Scanner_print(Token t) {
-	if (t.tag == Token_EOF) {
+void scan_print(Token t) {
+	if (t.tag == tok_EOF) {
 		printf("EOF\n");
 		return;
 	}
 
 	switch(t.tag) {
-		case Token_Public:
+		case tok_Public:
 			printf("public");
 			break;
 
-		case Token_Do:
+		case tok_Do:
 			printf("do");
 			break;
 
-		case Token_End:
+		case tok_End:
 			printf("end");
 			break;
 
-		case Token_If:
+		case tok_If:
 			printf("if");
 			break;
 
-		case Token_Then:
+		case tok_Then:
 			printf("then");
 			break;
 
-		case Token_Else:
+		case tok_Else:
 			printf("else");
 			break;
 
-		case Token_Identifier:
+		case tok_Identifier:
 			printf("\"");
-			String_print(t.value);
-			printf("\"");
-			break;
-
-		case Token_Number:
-			printf("\"");
-			String_print(t.value);
+			str_print(t.value);
 			printf("\"");
 			break;
 
-		case Token_Equal:
+		case tok_Number:
+			printf("\"");
+			str_print(t.value);
+			printf("\"");
+			break;
+
+		case tok_Equal:
 			printf("=");
 			break;
 
-		case Token_Arrow:
+		case tok_Arrow:
 			printf("->");
 			break;
 
 		// Delimiters
 
-		case Token_Semicolon:
+		case tok_Semicolon:
 			printf(";\n");
 			return;
 			break;
 
-		case Token_LeftParen:
+		case tok_LeftParen:
 			printf("(");
 			break;
 
-		case Token_RightParen:
+		case tok_RightParen:
 			printf(")");
 			break;
 
-		case Token_Comma:
+		case tok_Comma:
 			printf(",");
 			break;
 
-		case Token_Quote:
+		case tok_Quote:
 			printf("\'");
 			break;
 
-		case Token_Invalid:
+		case tok_Invalid:
 			printf("invalid<");
-			String_print(t.value);
+			str_print(t.value);
 			printf(">");
 			break;
 
 		default:
 			printf("UNKNOWN<");
-			String_print(t.value);
+			str_print(t.value);
 			printf(">");
 	}
 	printf(" ");
@@ -172,12 +172,12 @@ void Scanner_print(Token t) {
 
 
 
-state lex_between(Scanner *s) {
+state state_between(Scanner *s) {
 	while (true) {
 		Rune r = next(s);
 
 		if (r == '\0') {
-			emit(s, Token_EOF);
+			emit(s, tok_EOF);
 			return (state) {NULL};
 		}
 
@@ -193,15 +193,15 @@ state lex_between(Scanner *s) {
 		}
 
 		if (is_delimiter(r)) {
-			return (state) {lex_delimiter};
+			return (state) {state_delimiter};
 		}
 
 		if (is_letter(r)) {
-			return (state) {lex_identifier};
+			return (state) {state_identifier};
 		}
 
 		if (is_digit(r)) {
-			return (state) {lex_number};
+			return (state) {state_number};
 		}
 
 		if (r == '-' && peek(s) == '-') {
@@ -213,16 +213,16 @@ state lex_between(Scanner *s) {
 		}
 
 		if (is_symbol(r)) {
-			return (state) {lex_operator};
+			return (state) {state_operator};
 		}
 
 		// Invalid rune in input
-		return (state) {lex_invalid};
+		return (state) {state_invalid};
 	}
 }
 
 
-state lex_identifier(Scanner *s) {
+state state_identifier(Scanner *s) {
 	while (true) {
 		Rune r = next(s);
 
@@ -232,70 +232,70 @@ state lex_identifier(Scanner *s) {
 
 		backup(s);
 
-		String text = String_slice(s->input, s->start, s->pos);
-		if (String_is(text, "public")) {
-			emit(s, Token_Public);
-		} else if (String_is(text, "do")) {
-			emit(s, Token_Do);
-		} else if (String_is(text, "end")) {
-			emit(s, Token_End);
-		} else if (String_is(text, "if")) {
-			emit(s, Token_If);
-		} else if (String_is(text, "then")) {
-			emit(s, Token_Then);
-		} else if (String_is(text, "else")) {
-			emit(s, Token_Else);
+		String text = str_slice(s->input, s->start, s->pos);
+		if (str_is(text, "public")) {
+			emit(s, tok_Public);
+		} else if (str_is(text, "do")) {
+			emit(s, tok_Do);
+		} else if (str_is(text, "end")) {
+			emit(s, tok_End);
+		} else if (str_is(text, "if")) {
+			emit(s, tok_If);
+		} else if (str_is(text, "then")) {
+			emit(s, tok_Then);
+		} else if (str_is(text, "else")) {
+			emit(s, tok_Else);
 		} else {
-			emit(s, Token_Identifier);
+			emit(s, tok_Identifier);
 		}
-		return (state) {lex_between};
+		return (state) {state_between};
 	}
 }
 
 
-state lex_operator(Scanner *s) {
+state state_operator(Scanner *s) {
 	while (is_symbol(peek(s))) {
 		next(s);
 	}
 
-	if (String_is(String_slice(s->input, s->start, s->pos), "=")) {
-		emit(s, Token_Equal);
-		return (state) {lex_between};
-	} else if (String_is(String_slice(s->input, s->start, s->pos), "->")) {
-		emit(s, Token_Arrow);
-		return (state) {lex_between};
+	if (str_is(str_slice(s->input, s->start, s->pos), "=")) {
+		emit(s, tok_Equal);
+		return (state) {state_between};
+	} else if (str_is(str_slice(s->input, s->start, s->pos), "->")) {
+		emit(s, tok_Arrow);
+		return (state) {state_between};
 	}
 
-	emit(s, Token_Invalid);
-	return (state) {lex_between};
+	emit(s, tok_Invalid);
+	return (state) {state_between};
 }
 
 
-state lex_delimiter(Scanner *s) {
-	switch(String_at(s->input, s->start)) {
+state state_delimiter(Scanner *s) {
+	switch(str_at(s->input, s->start)) {
 		case '\'':
-			emit(s, Token_Quote);
+			emit(s, tok_Quote);
 			break;
 		case '(':
-			emit(s, Token_LeftParen);
+			emit(s, tok_LeftParen);
 			break;
 		case ')':
-			emit(s, Token_RightParen);
+			emit(s, tok_RightParen);
 			break;
 		case ',':
-			emit(s, Token_Comma);
+			emit(s, tok_Comma);
 			break;
 		case ';':
-			emit(s, Token_Semicolon);
+			emit(s, tok_Semicolon);
 			break;
 		default:
-			emit(s, Token_Invalid);
+			emit(s, tok_Invalid);
 	}
-	return (state) {lex_between};
+	return (state) {state_between};
 }
 
 
-state lex_number(Scanner *s) {
+state state_number(Scanner *s) {
 	while (true) {
 		Rune r = next(s);
 
@@ -304,21 +304,21 @@ state lex_number(Scanner *s) {
 		}
 
 		backup(s);
-		emit(s, Token_Number);
-		return (state) {lex_between};
+		emit(s, tok_Number);
+		return (state) {state_between};
 	}
 }
 
 
-state lex_invalid(Scanner *s) {
+state state_invalid(Scanner *s) {
 	while (true) {
 		Rune r = next(s);
 
 		if (r == '\0' || r == '\n') {
 			backup(s);
 		}
-		emit(s, Token_Invalid);
-		return (state){lex_between};
+		emit(s, tok_Invalid);
+		return (state){state_between};
 	}
 }
 

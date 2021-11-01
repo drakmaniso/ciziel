@@ -7,26 +7,26 @@
 #include <stdbool.h>
 
 
-typedef int32_t String_Pos;
+typedef uintptr_t USize;
 
 
 typedef struct {
 	char *start;
-	String_Pos length;
+	USize length;
 } String;
 
 
 typedef char Rune;
 
 
-String String_new(size_t length);
-void String_free(String *s);
-String String_slice(String s, String_Pos start, String_Pos end);
-void String_print(String s);
-String String_read_from(char *filepath);
-bool String_is(String s, char *cs);
-String_Pos String_length(String s);
-Rune String_at(String s, String_Pos index);
+String str_new(size_t length);
+void str_free(String *s);
+String str_slice(String s, USize start, USize end);
+void str_print(String s);
+String str_read_from(char *filepath);
+bool str_is(String s, char *cs);
+USize str_length(String s);
+Rune str_at(String s, USize index);
 
 
 #endif // STRINGS_H

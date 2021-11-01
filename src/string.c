@@ -4,7 +4,7 @@
 #include "string.h"
 
 
-String String_new(size_t length)
+String str_new(size_t length)
 {
 	return (String) {
 		.start = calloc(length + 1, sizeof(char)),
@@ -13,7 +13,7 @@ String String_new(size_t length)
 }
 
 
-void String_free(String *s)
+void str_free(String *s)
 {
 	free(s->start);
 	*s = (String) {
@@ -23,7 +23,7 @@ void String_free(String *s)
 }
 
 
-String String_slice(String s, String_Pos start, String_Pos end) {
+String str_slice(String s, USize start, USize end) {
 	return (String) {
 		.start = s.start + start,
 		.length = end - start
@@ -31,23 +31,23 @@ String String_slice(String s, String_Pos start, String_Pos end) {
 }
 
 
-Rune String_at(String s, String_Pos index) {
+Rune str_at(String s, USize index) {
 	return s.start[index];
 }
 
 
-String_Pos String_length(String s) {
+USize str_length(String s) {
 	return s.length;
 }
 
 
-void String_print(String s)
+void str_print(String s)
 {
 	fwrite(s.start, sizeof(char), s.length, stdout);
 }
 
 
-String String_read_from(char *filepath) {
+String str_read_from(char *filepath) {
 	FILE *stream = fopen(filepath, "r");
 	if (stream == NULL) {
 		printf("unable to open input file\n");
@@ -57,7 +57,7 @@ String String_read_from(char *filepath) {
 	size_t size = ftell(stream);
 	rewind(stream);
 
-	String s = String_new(size);
+	String s = str_new(size);
 	fread(s.start, sizeof(char), size, stream);
 	s.start[size] = '\0';
 	fclose(stream);
@@ -66,9 +66,9 @@ String String_read_from(char *filepath) {
 }
 
 
-bool String_is(String s, char *cs) {
+bool str_is(String s, char *cs) {
 	size_t len = strlen(cs);
-	if (String_length(s) == len && strncmp(s.start, cs, len) == 0) {
+	if (str_length(s) == len && strncmp(s.start, cs, len) == 0) {
 		return true;
 	}
 	return false;

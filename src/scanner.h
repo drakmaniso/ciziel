@@ -10,14 +10,14 @@
 typedef struct {
 	char *name;
 	String input;
-	String_Pos start;
-	String_Pos pos;
+	USize start;
+	USize pos;
 } Scanner;
 
 
-void Scanner_make(Scanner *s, char *filepath, String input);
-void Scanner_run(Scanner *s);
-void Scanner_print(Token t);
+void scan_make(Scanner *s, char *filepath, String input);
+void scan_run(Scanner *s);
+void scan_print(Token t);
 
 
 #endif // SCANNER_H
