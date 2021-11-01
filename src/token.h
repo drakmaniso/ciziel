@@ -52,11 +52,11 @@ typedef struct {
 } Token_Array;
 
 
-Token Token_make (Token_Tag tag, int32_t line, int32_t column, String value);
-Token_Array Token_new_array (int32_t capacity);
-int32_t Token_len (Token_Array a);
-Token Token_at (Token_Array a, int32_t index);
-Token_Array Token_push (Token_Array a, Token t);
+Token Token_make(Token_Tag tag, int32_t line, int32_t column, String value);
+Token_Array Token_new_array(int32_t capacity);
+int32_t Token_len(Token_Array a);
+Token Token_at(Token_Array a, int32_t index);
+Token_Array Token_push(Token_Array a, Token t);
 
 
 #endif // TOKEN_H

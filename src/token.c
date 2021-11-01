@@ -3,7 +3,7 @@
 #include "token.h"
 
 
-Token Token_make (Token_Tag c, int32_t line, int32_t column, String value) {
+Token Token_make(Token_Tag c, int32_t line, int32_t column, String value) {
 	return (Token) {
 		.value = value,
 		.tag = c,
@@ -13,33 +13,33 @@ Token Token_make (Token_Tag c, int32_t line, int32_t column, String value) {
 }
 
 
-Token_Array Token_new_array (int32_t capacity) {
+Token_Array Token_new_array(int32_t capacity) {
 	return (Token_Array) {
-		.items = calloc (capacity, sizeof (Token)),
+		.items = calloc(capacity, sizeof(Token)),
 		.length = 0,
 		.capacity = capacity
 	};
 }
 
 
-int32_t Token_len (Token_Array a) {
+int32_t Token_len(Token_Array a) {
 	return a.length;
 }
 
 
-Token Token_at (Token_Array a, int32_t index) {
+Token Token_at(Token_Array a, int32_t index) {
 	if (index >= a.length) {
-		printf ("PANIC: out-of-bound Token_Array index\n");
-		exit (1);
+		printf("PANIC: out-of-bound Token_Array index\n");
+		exit(1);
 	}
 	return a.items[index];
 }
 
 
-Token_Array Token_push (Token_Array a, Token t) {
+Token_Array Token_push(Token_Array a, Token t) {
 	if (a.length >= a.capacity) {
-		printf ("NOT YET IMPLEMENTED: Token_Array growth");
-		exit (1);
+		printf("NOT YET IMPLEMENTED: Token_Array growth");
+		exit(1);
 	}
 	a.items[a.length] = t;
 	return (Token_Array) {
