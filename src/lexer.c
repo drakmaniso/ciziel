@@ -86,16 +86,8 @@ void lexer_print(Token t) {
 	}
 
 	switch(t.tag) {
-		case token_Public:
-			printf("public");
-			break;
-
-		case token_Do:
-			printf("do");
-			break;
-
-		case token_End:
-			printf("end");
+		case token_Let:
+			printf("let");
 			break;
 
 		case token_If:
@@ -108,6 +100,19 @@ void lexer_print(Token t) {
 
 		case token_Else:
 			printf("else");
+			break;
+
+		case token_While:
+			printf("while");
+			break;
+
+		case token_Do:
+			printf("do");
+			break;
+
+		case token_End:
+			printf("end\n");
+			return;
 			break;
 
 		case token_Identifier:
@@ -126,11 +131,19 @@ void lexer_print(Token t) {
 			printf("=");
 			break;
 
-		case token_Arrow:
+		case token_FwdArrow:
 			printf("->");
 			break;
 
+		case token_BackArrow:
+			printf("<-");
+			break;
+
 		// Delimiters
+
+		case token_Colon:
+			printf(":");
+			break;
 
 		case token_Semicolon:
 			printf(";\n");
@@ -154,7 +167,7 @@ void lexer_print(Token t) {
 			break;
 
 		case token_Invalid:
-			printf("invalid<");
+			printf("INVALID<");
 			str_print(t.value);
 			printf(">");
 			break;
@@ -233,18 +246,20 @@ state state_identifier(Lexer *s) {
 		backtrack(s);
 
 		String text = str_slice(s->input, s->start, s->pos);
-		if (str_is(text, "public")) {
-			emit(s, token_Public);
-		} else if (str_is(text, "do")) {
-			emit(s, token_Do);
-		} else if (str_is(text, "end")) {
-			emit(s, token_End);
+		if (str_is(text, "let")) {
+			emit(s, token_Let);
 		} else if (str_is(text, "if")) {
 			emit(s, token_If);
 		} else if (str_is(text, "then")) {
 			emit(s, token_Then);
 		} else if (str_is(text, "else")) {
 			emit(s, token_Else);
+		} else if (str_is(text, "while")) {
+			emit(s, token_Do);
+		} else if (str_is(text, "do")) {
+			emit(s, token_Do);
+		} else if (str_is(text, "end")) {
+			emit(s, token_End);
 		} else {
 			emit(s, token_Identifier);
 		}
@@ -262,7 +277,10 @@ state state_operator(Lexer *s) {
 		emit(s, token_Equal);
 		return (state) {state_between};
 	} else if (str_is(str_slice(s->input, s->start, s->pos), "->")) {
-		emit(s, token_Arrow);
+		emit(s, token_FwdArrow);
+		return (state) {state_between};
+	} else if (str_is(str_slice(s->input, s->start, s->pos), "<-")) {
+		emit(s, token_BackArrow);
 		return (state) {state_between};
 	}
 
@@ -284,6 +302,9 @@ state state_delimiter(Lexer *s) {
 			break;
 		case ',':
 			emit(s, token_Comma);
+			break;
+		case ':':
+			emit(s, token_Colon);
 			break;
 		case ';':
 			emit(s, token_Semicolon);
@@ -344,6 +365,7 @@ bool is_digit(char r) {
 
 bool is_delimiter(char r) {
 	return r == '\''
+		|| r == ':'
 		|| r == ';'
 		|| r == ','
 		|| r == '('

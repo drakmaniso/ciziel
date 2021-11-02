@@ -1,32 +1,46 @@
-public
 
-simple_factorial = n ->
-	if is_leq(n, 1) then 1;
-	else 'add(n, simple_factorial(sub(n, 1)));
-	end
-
-
-better_factorial = n ->
-	do
-		loop = (n, accum) ->
-			if is_leq(n, 1) then accum;
-			else loop('add(n, 1), 'mul(n, accum));
-			end
-
-		loop(n, 1);
-	end
+let factorial(n: Int) -> Int =
+    mut result: Int = 1;
+    mut i: Int = 2;
+    while lt(i, n) do
+        result <- mul(result, i);
+        i <- add(i, 1);
+    end
+    result;
+end
 
 
-gcd = (a, b) ->
-	do
-		loop = (a, b) ->
-			if 'is_eq(b, 0) then a;
-			else
-				(c, d) = if 'is_gt(a, b) then (b, a) else (a, b) end
-				loop(c, 'modulo(d, c));
-			end
-
-		loop(a, b);
-	end
+let recursiveFactorial(n: Int) -> Int =
+    if leq(n, 1) then
+        1;
+    else
+        add(n, recursiveFactorial(sub(n, 1)));
+    end
+end
 
 
+let tailFactorial(n: Int) -> Int =
+    let fact(n: Int, accum: Int) -> Int =
+        if leq(n, 1) then
+            accum;
+        else 
+            fact(add(n, 1), mul(n, accum));
+        end
+    end
+
+    fact(n, 1);
+end
+
+
+
+
+let gcd(n: Int, m: Int) -> Int =
+    mut a = n;
+    mut b = m;
+    while gt(b, 0) do
+        t = b;
+        b <- mod(a, b);
+        a <- t;
+    end
+    a;
+end

@@ -10,14 +10,16 @@ typedef enum Token_Tag {
 	token_None,
 
 	// Keywords
-	token_Public,
-	token_Do,
+	token_Let,
 	token_If,
 	token_Then,
 	token_Else,
+	token_While,
+	token_Do,
 	token_End,
 	
 	// Delimiters
+	token_Colon,
 	token_Semicolon,
 	token_LeftParen,
 	token_RightParen,
@@ -26,7 +28,8 @@ typedef enum Token_Tag {
 
 	// Operators
 	token_Equal,
-	token_Arrow,
+	token_FwdArrow,
+	token_BackArrow,
 
 	// Literals and identifiers
 	token_Number,

@@ -75,16 +75,12 @@ let genericFactorial(n: N #num #range) -> N =
 	result
 
 
-let gcd(a: Int, b: Int) -> Int =
-	require a > 0
-	require b > 0
+let gcd(n: Int, m: Int) -> Int =
+	require n > 0
+	require m > 0
 	ensure result > 0
- 	
-	 let loop(a, b) =
-		if b == 0 then
-			return a
-		let (c, d) = if a <= b then (a, b) else (b, a)
-		return loop(c, d mod c)
 
-	return loop(a, b)
-
+	mut (a, b) = (n, m)
+	while b > 0 do
+		(a, b) <- (b, a % b)
+	a
