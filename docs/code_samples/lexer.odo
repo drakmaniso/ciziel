@@ -1,0 +1,38 @@
+module lexer
+
+let Lexer{
+        filepath: String
+        input: String
+        start: UInt
+        pos: UInt
+    }
+
+let State! = Func![mut Lexer -> State!] | Nil
+
+for Lexer:
+    def new(filepath: String, input: String) -> Lexer =
+        Lexer{
+            filepath
+            input
+            start: 0
+            pos: 0
+        }
+
+    def run!(mut self) =
+        mut state! = state_between
+        while state! =/= Nil:
+            state! <- state!(self)
+
+    let next!(mut self) -> Char | OutOfBounds =
+        result = self.input.at(self.pos)?
+        self.pos <- self.pos++
+        result
+
+    let ignore!(mut self) =
+        self.start <- self.pos
+    
+    let backtrack!(mut self) =
+        self.pos <- self.pos - 1
+    
+    let peek(self) -> Char | OutOfBounds =
+        self.input.at(self.pos + 1)?

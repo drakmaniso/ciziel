@@ -6,7 +6,7 @@ def main! =
 	def getNumber! =
 		loop:
 			print!("Please enter a number: \!")
-			answer = Int.parse(input!)
+			answer = input!.toInt
 			if answer is Int:
 				return answer
 
@@ -21,6 +21,27 @@ def main! =
 	print!("tail recursice factorial: |tail|")
 	print!("fold-based factorial: |folded|")
 
+-- or:
+
+def main!(mut io: Console) =
+	def getNumber! =
+		loop:
+			io.print!("Please enter a number: \!")
+			answer = Int.fromString(io.input!)
+			if answer is Int:
+				return answer
+
+	number = getNumber!
+	simple = factorial(number)
+	recursive = recursiveFactorial(number)
+	tail = tailFactorial(number)
+	folded = foldedFactorial(number)
+
+	io.print!("simple factorial: |simple|")
+	io.print!("recursive factorial: |recursive|")
+	io.print!("tail recursice factorial: |tail|")
+	io.print!("fold-based factorial: |folded|")
+
 
 let factorial(n: Int) -> Int =
 	mut result = 1
@@ -33,7 +54,7 @@ let recursiveFactorial(n) =
 	if n <= 1 then
 		1
 	else
-		n * simple_factorial(n - 1)
+		n * recursiveFactorial(n - 1)
 
 
 let tailFactorial(n: Int) -> Int =
