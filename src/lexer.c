@@ -2,30 +2,12 @@
 #include <stdio.h>
 #include "lexer.h"
 
-typedef struct state {
-	// The type is recursive, so it must be embedded in a struct
-	struct state(*func) (Lexer *s);
-} state;
-
-state state_between(Lexer *s);
-state state_identifier(Lexer *s);
-state state_delimiter(Lexer *s);
-state state_operator(Lexer *s);
-state state_number(Lexer *s);
-state state_invalid(Lexer *s);
-
-bool is_white_space(char r);
-bool is_letter(char r);
-bool is_digit(char r);
-bool is_delimiter(char r);
-bool is_symbol(char r);
-
 
 // LEXER
 
 
-void lexer_make(Lexer *s, char *filepath, String input) {
-	*s = (Lexer) {
+void lexer_new(Lexer *self, char *filepath, String input) {
+	*self = (Lexer) {
 		.name = filepath,
 		.input = input,
 		.start = 0,
@@ -34,317 +16,216 @@ void lexer_make(Lexer *s, char *filepath, String input) {
 }
 
 
-void lexer_run(Lexer *s) {
-	state st = (state) { .func = state_between };
-	for (; st.func != NULL; ) {
-		st = st.func(s);
+void lexer_run(Lexer *self) {
+	self->start = 0;
+	self->pos = 0;
+
+	Token_Tag tag = scan(self);
+	while(tag != token_EOF) {
+		String value = str_slice(self->input, self->start, self->pos);
+		Token token = token_new(self->start, value, tag);
+		self->start = self->pos;
+		token_print(token);
+		tag = scan(self);
 	}
 }
 
 
-char next(Lexer *s) {
-	if (s->pos >= str_length(s->input)) {
+char next(Lexer *self) {
+	if (self->pos >= str_length(self->input)) {
 		return '\0';
 	}
-	char result = str_at(s->input, s->pos);
-	s->pos++;
+	char result = str_at(self->input, self->pos);
+	self->pos++;
 	return result;
 }
 
 
-void ignore(Lexer *s) {
-	s->start = s->pos;
+void ignore(Lexer *self) {
+	self->start = self->pos;
 }
 
 
-void backtrack(Lexer *s) {
-	s->pos--;
+void backtrack(Lexer *self) {
+	self->pos--;
 }
 
 
-char peek(Lexer *s) {
-	char r = next(s);
-	backtrack(s);
+char peek(Lexer *self) {
+	char r = next(self);
+	backtrack(self);
 	return r;
 }
 
 
-void emit(Lexer *s, Token_Tag tag) {
-	Token token = (Token) {
-		.value = str_slice(s->input, s->start, s->pos),
-		.tag = tag,
-	};
-	s->start = s->pos;
-	lexer_print(token);
-}
+// SCANNER
 
 
-void lexer_print(Token t) {
-	if (t.tag == token_EOF) {
-		printf("EOF\n");
-		return;
-	}
+Token_Tag scan_between(Lexer *self);
+Token_Tag scan_identifier(Lexer *self);
+Token_Tag scan_delimiter(Lexer *self);
+Token_Tag scan_operator(Lexer *self);
+Token_Tag scan_number(Lexer *self);
+Token_Tag scan_invalid(Lexer *self);
 
-	switch(t.tag) {
-		case token_Let:
-			printf("let");
-			break;
-
-		case token_If:
-			printf("if");
-			break;
-
-		case token_Then:
-			printf("then");
-			break;
-
-		case token_Else:
-			printf("else");
-			break;
-
-		case token_While:
-			printf("while");
-			break;
-
-		case token_Do:
-			printf("do");
-			break;
-
-		case token_End:
-			printf("end\n");
-			return;
-			break;
-
-		case token_Identifier:
-			printf("\"");
-			str_print(t.value);
-			printf("\"");
-			break;
-
-		case token_Number:
-			printf("\"");
-			str_print(t.value);
-			printf("\"");
-			break;
-
-		case token_Equal:
-			printf("=");
-			break;
-
-		case token_FwdArrow:
-			printf("->");
-			break;
-
-		case token_BackArrow:
-			printf("<-");
-			break;
-
-		// Delimiters
-
-		case token_Colon:
-			printf(":");
-			break;
-
-		case token_Semicolon:
-			printf(";\n");
-			return;
-			break;
-
-		case token_LeftParen:
-			printf("(");
-			break;
-
-		case token_RightParen:
-			printf(")");
-			break;
-
-		case token_Comma:
-			printf(",");
-			break;
-
-		case token_Quote:
-			printf("\'");
-			break;
-
-		case token_Invalid:
-			printf("INVALID<");
-			str_print(t.value);
-			printf(">");
-			break;
-
-		default:
-			printf("UNKNOWN<");
-			str_print(t.value);
-			printf(">");
-	}
-	printf(" ");
-}
+bool is_white_space(char r);
+bool is_letter(char r);
+bool is_digit(char r);
+bool is_delimiter(char r);
+bool is_symbol(char r);
 
 
-// LEXICAL STATES
-
-
-
-state state_between(Lexer *s) {
+Token_Tag scan(Lexer *self) {
 	while (true) {
-		char r = next(s);
+		char r = next(self);
 
 		if (r == '\0') {
-			emit(s, token_EOF);
-			return (state) {NULL};
+			return token_EOF;
 		}
 
 		if (r == '\n') {
-			ignore(s);
+			ignore(self);
 			continue;
-			//return (state) {lexNewLine};
+			//return (Token_Tag) {lexNewLine};
 		}
 
 		if (is_white_space(r)) {
-			ignore(s);
+			ignore(self);
 			continue;
 		}
 
 		if (is_delimiter(r)) {
-			return (state) {state_delimiter};
+			return scan_delimiter(self);
 		}
 
 		if (is_letter(r)) {
-			return (state) {state_identifier};
+			return scan_identifier(self);
 		}
 
 		if (is_digit(r)) {
-			return (state) {state_number};
+			return scan_number(self);
 		}
 
-		if (r == '-' && peek(s) == '-') {
-			while (peek(s) != '\n' && peek(s) != '\0') {
-				next(s);
+		if (r == '-' && peek(self) == '-') {
+			while (peek(self) != '\n' && peek(self) != '\0') {
+				next(self);
 			}
-			ignore(s);
+			ignore(self);
 			continue;
 		}
 
 		if (is_symbol(r)) {
-			return (state) {state_operator};
+			return scan_operator(self);
 		}
 
 		// Invalid rune in input
-		return (state) {state_invalid};
+		return scan_invalid(self);
 	}
 }
 
 
-state state_identifier(Lexer *s) {
+Token_Tag scan_identifier(Lexer *self) {
 	while (true) {
-		char r = next(s);
+		char r = next(self);
 
 		if (is_letter(r) || is_digit(r)) {
 			continue;
 		}
 
-		backtrack(s);
+		backtrack(self);
 
-		String text = str_slice(s->input, s->start, s->pos);
+		String text = str_slice(self->input, self->start, self->pos);
 		if (str_is(text, "let")) {
-			emit(s, token_Let);
+			return token_Let;
 		} else if (str_is(text, "if")) {
-			emit(s, token_If);
+			return token_If;
 		} else if (str_is(text, "then")) {
-			emit(s, token_Then);
+			return token_Then;
 		} else if (str_is(text, "else")) {
-			emit(s, token_Else);
+			return token_Else;
 		} else if (str_is(text, "while")) {
-			emit(s, token_Do);
+			return token_Do;
 		} else if (str_is(text, "do")) {
-			emit(s, token_Do);
+			return token_Do;
 		} else if (str_is(text, "end")) {
-			emit(s, token_End);
-		} else {
-			emit(s, token_Identifier);
+			return token_End;
 		}
-		return (state) {state_between};
+
+		return token_Identifier;
 	}
 }
 
 
-state state_operator(Lexer *s) {
-	while (is_symbol(peek(s))) {
-		next(s);
+Token_Tag scan_operator(Lexer *self) {
+	while (is_symbol(peek(self))) {
+		next(self);
 	}
 
-	if (str_is(str_slice(s->input, s->start, s->pos), "=")) {
-		emit(s, token_Equal);
-		return (state) {state_between};
-	} else if (str_is(str_slice(s->input, s->start, s->pos), "->")) {
-		emit(s, token_FwdArrow);
-		return (state) {state_between};
-	} else if (str_is(str_slice(s->input, s->start, s->pos), "<-")) {
-		emit(s, token_BackArrow);
-		return (state) {state_between};
+	if (str_is(str_slice(self->input, self->start, self->pos), "=")) {
+		return token_Equal;
+	} else if (str_is(str_slice(self->input, self->start, self->pos), "->")) {
+		return token_FwdArrow;
+	} else if (str_is(str_slice(self->input, self->start, self->pos), "<-")) {
+		return token_BackArrow;
 	}
 
-	emit(s, token_Invalid);
-	return (state) {state_between};
+	return token_Invalid;
 }
 
 
-state state_delimiter(Lexer *s) {
-	switch(str_at(s->input, s->start)) {
+Token_Tag scan_delimiter(Lexer *self) {
+	switch(str_at(self->input, self->start)) {
 		case '\'':
-			emit(s, token_Quote);
+			return token_Quote;
 			break;
 		case '(':
-			emit(s, token_LeftParen);
+			return token_LeftParen;
 			break;
 		case ')':
-			emit(s, token_RightParen);
+			return token_RightParen;
 			break;
 		case ',':
-			emit(s, token_Comma);
+			return token_Comma;
 			break;
 		case ':':
-			emit(s, token_Colon);
+			return token_Colon;
 			break;
 		case ';':
-			emit(s, token_Semicolon);
+			return token_Semicolon;
 			break;
 		default:
-			emit(s, token_Invalid);
+			return token_Invalid;
 	}
-	return (state) {state_between};
 }
 
 
-state state_number(Lexer *s) {
+Token_Tag scan_number(Lexer *self) {
 	while (true) {
-		char r = next(s);
+		char r = next(self);
 
 		if (is_digit(r)) {
 			continue;
 		}
 
-		backtrack(s);
-		emit(s, token_Number);
-		return (state) {state_between};
+		backtrack(self);
+		return token_Number;
 	}
 }
 
 
-state state_invalid(Lexer *s) {
+Token_Tag scan_invalid(Lexer *self) {
 	while (true) {
-		char r = next(s);
+		char r = next(self);
 
 		if (r == '\0' || r == '\n') {
-			backtrack(s);
+			backtrack(self);
 		}
-		emit(s, token_Invalid);
-		return (state){state_between};
+		return token_Invalid;
 	}
 }
 
 
-// UTILS
+// CHARACTER CLASSES
 
 bool is_white_space(char r) {
 	return r == ' ' || r == '\t';

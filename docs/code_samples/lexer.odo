@@ -1,5 +1,55 @@
 module lexer
 
+
+let Lexer{
+        filepath: String
+        input: String
+        start: UInt
+        pos: UInt
+    }
+
+def new_lexer(filepath: String, input: String) -> Lexer =
+    Lexer{
+        filepath
+        input
+        start: 0
+        pos: 0
+    }
+
+def lexer_run!(mut self: Lexer) =
+    self.start <- 0
+    self.pos <- 0
+
+    mut tag: TokenTag = scan!(self)
+    while tag =/= token'EndOfFile do
+        token = Token{
+            value: strSlice(self.input, self.start, self.pos)
+            tag,
+            self.start
+        }
+        self.start <- self.pos
+        token'print(token)
+        tag = scan(self)
+
+let next!(mut self: Lexer) -> Char | OutOfBounds =
+    result = self.input.at(self.pos)?
+    self.pos <- self.pos++
+    result
+
+let ignore!(mut self: Lexer) =
+    self.start <- self.pos
+
+let backtrack!(mut self: Lexer) =
+    self.pos <- self.pos - 1
+
+let peek(self: Lexer) -> Char | OutOfBounds =
+    self.input.at(self.pos + 1)?
+
+
+-- Old version:
+
+module lexer
+
 let Lexer{
         filepath: String
         input: String

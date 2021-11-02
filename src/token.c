@@ -3,13 +3,57 @@
 #include "token.h"
 
 
-Token token_make(Token_Tag c, int32_t line, int32_t column, String value) {
+Token token_new(USize pos, String value, Token_Tag tag) {
 	return (Token) {
+		.pos = pos,
 		.value = value,
-		.tag = c,
-		.line = line,
-		.column = column
+		.tag = tag
 	};
+}
+
+void token_print(Token self) {
+	switch (self.tag) {
+		case token_Let: printf("Let"); break;
+		case token_If: printf("If"); break;
+		case token_Then: printf("Then"); break;
+		case token_Else: printf("Else"); break;
+		case token_While: printf("While"); break;
+		case token_Do: printf("Do"); break;
+		case token_End: printf("End"); break;
+
+		case token_Identifier: printf("Id"); break;
+		case token_Number: printf("Num"); break;
+
+		// Operators
+
+		case token_Equal: printf("Equal"); break;
+		case token_FwdArrow: printf("FwdArrow"); break;
+		case token_BackArrow: printf("BackArrow"); break;
+
+		// Delimiters
+
+		case token_Colon: printf("Colon"); break;
+		case token_Semicolon: printf("Semicolon"); break;
+		case token_LeftParen: printf("LeftParen"); break;
+		case token_RightParen: printf("RightParen"); break;
+		case token_Comma: printf("Comma"); break;
+		case token_Quote: printf("Quote"); break;
+
+		case token_Invalid: printf("INVALID"); break;
+
+		default:
+			printf("UNKNOWN");
+	}
+	if (self.tag == token_Identifier || self.tag == token_Number) {
+		printf("<");
+		str_print(self.value);
+		printf(">");
+	}
+	if (self.tag == token_End || self.tag == token_Semicolon) {
+		printf("\n");
+	} else {
+		printf(" ");
+	}
 }
 
 

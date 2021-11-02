@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 	String source = str_read_from(argv[1]);
 
 	Lexer lexer;
-	lexer_make(&lexer, argv[1], source);
+	lexer_new(&lexer, argv[1], source);
 	lexer_run(&lexer);
 
 	str_free(&source);

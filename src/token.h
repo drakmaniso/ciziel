@@ -41,9 +41,8 @@ typedef enum Token_Tag {
 
 
 typedef struct {
+	USize pos;
 	String value;
-	int32_t line;
-	int32_t column;
 	Token_Tag tag;
 } Token;
 
@@ -55,7 +54,8 @@ typedef struct {
 } Token_Array;
 
 
-Token token_make(Token_Tag tag, int32_t line, int32_t column, String value);
+Token token_new(USize pos, String value, Token_Tag tag);
+void token_print(Token self);
 Token_Array token_new_array(int32_t capacity);
 int32_t token_len(Token_Array a);
 Token token_at(Token_Array a, int32_t index);

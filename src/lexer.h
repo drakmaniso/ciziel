@@ -15,9 +15,8 @@ typedef struct {
 } Lexer;
 
 
-void lexer_make(Lexer *s, char *filepath, String input);
-void lexer_run(Lexer *s);
-void lexer_print(Token t);
+void lexer_new(Lexer *self, char *filepath, String input);
+void lexer_run(Lexer *self);
 
 
 #endif // SCANNER_H
