@@ -62,7 +62,8 @@ char peek(Lexer *self) {
 
 
 TokenTag scan_between(Lexer *self);
-TokenTag scan_identifier(Lexer *self);
+TokenTag scan_id(Lexer *self);
+TokenTag scan_type_id(Lexer *self);
 TokenTag scan_delimiter(Lexer *self);
 TokenTag scan_operator(Lexer *self);
 TokenTag scan_number(Lexer *self);
@@ -102,11 +103,11 @@ TokenTag scan(Lexer *self) {
 		}
 
 		if (is_uppercase(r)) {
-			return scan_type_name(self);
+			return scan_type_id(self);
 		}
 
 		if (is_lowercase(r)) {
-			return scan_name(self);
+			return scan_id(self);
 		}
 
 		if (is_digit(r)) {
@@ -131,7 +132,7 @@ TokenTag scan(Lexer *self) {
 }
 
 
-TokenTag scan_name(Lexer *self) {
+TokenTag scan_id(Lexer *self) {
 	while (true) {
 		char r = next(self);
 
@@ -162,12 +163,12 @@ TokenTag scan_name(Lexer *self) {
 			return token_End;
 		}
 
-		return token_Name;
+		return token_Id;
 	}
 }
 
 
-TokenTag scan_type_name(Lexer *self) {
+TokenTag scan_type_id(Lexer *self) {
 	while (true) {
 		char r = next(self);
 
@@ -176,7 +177,7 @@ TokenTag scan_type_name(Lexer *self) {
 		}
 
 		backtrack(self);
-		return token_TypeName;
+		return token_TypeId;
 	}
 }
 
@@ -189,9 +190,9 @@ TokenTag scan_operator(Lexer *self) {
 	if (str_is(str_slice(self->input, self->start, self->pos), "=")) {
 		return token_Equal;
 	} else if (str_is(str_slice(self->input, self->start, self->pos), "->")) {
-		return token_FwdArrow;
+		return token_RightArrow;
 	} else if (str_is(str_slice(self->input, self->start, self->pos), "<-")) {
-		return token_BackArrow;
+		return token_LeftArrow;
 	}
 
 	return token_Invalid;

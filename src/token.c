@@ -14,34 +14,34 @@ Token token_new(USize pos, String value, TokenTag tag) {
 
 void token_print(Token self) {
 	switch (self.tag) {
-		case token_Let: printf("Let"); break;
-		case token_Def: printf("Def"); break;
-		case token_Mut: printf("Mut"); break;
-		case token_If: printf("If"); break;
-		case token_Then: printf("Then"); break;
-		case token_Else: printf("Else"); break;
-		case token_While: printf("While"); break;
-		case token_Do: printf("Do"); break;
-		case token_End: printf("End"); break;
+		case token_Let: printf("LET"); break;
+		case token_Def: printf("DEF"); break;
+		case token_Mut: printf("MUT"); break;
+		case token_If: printf("IF"); break;
+		case token_Then: printf("THEN"); break;
+		case token_Else: printf("ELSE"); break;
+		case token_While: printf("WHILE"); break;
+		case token_Do: printf("DO"); break;
+		case token_End: printf("END"); break;
 
-		case token_Number: printf("Num"); break;
-		case token_Name: printf("Name"); break;
-		case token_TypeName: printf("TypeName"); break;
+		case token_Number: printf("NUM"); break;
+		case token_Id: printf("ID"); break;
+		case token_TypeId: printf("TYPEID"); break;
 
 		// Operators
 
-		case token_Equal: printf("Equal"); break;
-		case token_FwdArrow: printf("FwdArrow"); break;
-		case token_BackArrow: printf("BackArrow"); break;
+		case token_Equal: printf("EQUAL"); break;
+		case token_RightArrow: printf("RARROW"); break;
+		case token_LeftArrow: printf("LARROW"); break;
 
 		// Delimiters
 
-		case token_Colon: printf("Colon"); break;
-		case token_Semicolon: printf("Semicolon"); break;
-		case token_LeftParen: printf("LeftParen"); break;
-		case token_RightParen: printf("RightParen"); break;
-		case token_Comma: printf("Comma"); break;
-		case token_Quote: printf("Quote"); break;
+		case token_Colon: printf("COLON"); break;
+		case token_Semicolon: printf("SEMICOLON"); break;
+		case token_LeftParen: printf("LPAREN"); break;
+		case token_RightParen: printf("RPAREN"); break;
+		case token_Comma: printf("COMMA"); break;
+		case token_Quote: printf("QUOTE"); break;
 
 		case token_Invalid: printf("INVALID"); break;
 
@@ -49,7 +49,7 @@ void token_print(Token self) {
 			printf("***UNKNOWN***");
 	}
 	if (self.tag == token_Invalid || self.tag == token_Number 
-			|| self.tag == token_Name || self.tag == token_TypeName) {
+			|| self.tag == token_Id || self.tag == token_TypeId) {
 		printf("(");
 		str_print(self.value);
 		printf(")");

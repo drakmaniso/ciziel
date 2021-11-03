@@ -45,6 +45,11 @@ let test_Counter =
     assert counter.next! == 5
     assert counter.next! == Nil
 
+let example! =
+    counter = Counter.new(7)
+    while counter.next! is n::Int do
+        print!(n)
+
 
 ----
 module main

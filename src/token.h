@@ -28,13 +28,13 @@ typedef enum TokenTag {
 
 	// Operators
 	token_Equal,
-	token_FwdArrow,
-	token_BackArrow,
+	token_RightArrow,
+	token_LeftArrow,
 
 	// Literals and identifiers
 	token_Number,
-	token_Name,
-	token_TypeName,
+	token_Id,
+	token_TypeId,
 
 	token_EOF,
 	token_Invalid

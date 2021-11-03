@@ -21,11 +21,10 @@ module geom
 
 def Point(x: Float, y: Float)
 
-for Point:
-    def length(self) -> Float = vec2'length(self)
-    def normalize(self) -> Point = vec2'normalize(self)
-    def add(self, other: O #vec2) -> Point = vec2'add(self, other)
-    def zero! = Point(0, 0)
+def length(self: Point) -> Float = vec2'length(self)
+def normalize(self: Point) -> Point = vec2'normalize(self)
+def add(self: Point, other: O #vec2) -> Point = vec2'add(self, other)
+def Point.zero! = Point(0, 0)
 
 test "type Point" =
     assert Point has #vec2
@@ -53,22 +52,20 @@ def Circle{
         radius: Float
     }
 
-for Circle:
-    def diameter(self) -> Float =
-        self.radius * 2
+def diameter(self: Circle) -> Float =
+    self.radius * 2
 
-    def perimeter(self) -> Float =
-        math'pi * self.diameter
+def perimeter(self: Circle) -> Float =
+    math'pi * self.diameter
 
-    def area(self) -> Float =
-        math'pi * self.radius * self.radius
+def area(self: Circle) -> Float =
+    math'pi * self.radius * self.radius
 
-    def moveTo!(mut self, destination: Point) =
-        moveShapeTo!(self, destination)
+def moveTo!(mut self: Circle, destination: Point) =
+    moveShapeTo!(self, destination)
 
-    def scaleBy!(mut self, factor: Float) =
-        self.radius <- self.radius * factor
-end: Circle
+def scaleBy!(mut self: Circle, factor: Float) =
+    self.radius <- self.radius * factor
 
 
 test "type Circle" =

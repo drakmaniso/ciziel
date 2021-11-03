@@ -63,10 +63,10 @@ for Iterator[T]:
     def Item = T
 
     def next!(mut self) -> T | Nil =
-        match self.current
-        case Empty:
+        when self.current
+        is Empty then
             Nil
-        case Node{item, tail}:
+        is Node{item, tail} then
             self.current <- tail
             item
     

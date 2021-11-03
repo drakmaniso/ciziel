@@ -29,21 +29,27 @@ let example! =
     --> Ash hisses at owner!
 
 
--- NOTE: only instance methods are generalized.
--- Type methods (aka static methods) cannot be generalized
--- (since there is no way to tell at runtime which version to call)
+-- Static methods are also generalized, but they're only accessible
+-- through variables. In other words, it's impossible to call a static
+-- method directly on the name of a union type.
+
 for Cat:
     def sounds: String = ["meow", "purr", "yowl", "hiss"]
 for Dog:
     def sounds: String = ["bark", "growl", "whimper", "howl"]
 
---- The following does not compile:
+-- This is the correct way to call a static method on a union:
+let example! =
+    my-pet: Pet = Cat("Whiskers")
+    print!(my-pet.sounds)
+
+-- But he following does not compile:
 --(
 let incorrect_example =
     print!(Pet.sounds)
 )--
 
--- Instead, you must define the method on the union type directly:
+-- Instead, you can define the method on the union type directly:
 for Cat | Dog:
     def petSounds: String = ["meow", "bark", ...]
 
