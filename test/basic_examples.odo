@@ -1,5 +1,8 @@
+def incr!(mut n: Int) -> Nothing =
+    n <- add(n, 1);
+end
 
-let factorial(n: Int) -> Int =
+def factorial(n: Int) -> Int =
     mut result: Int = 1;
     mut i: Int = 2;
     while lt(i, n) do
@@ -10,11 +13,11 @@ let factorial(n: Int) -> Int =
 end
 
 
-let recursiveFactorial(n: Int) -> Int =
+let recursive-factorial(n: Int) -> Int =
     if leq(n, 1) then
         1;
     else
-        add(n, recursiveFactorial(sub(n, 1)));
+        add(n, recursive-factorial(sub(n, 1)));
     end
 end
 

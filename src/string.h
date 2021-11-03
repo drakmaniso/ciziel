@@ -1,13 +1,7 @@
 #ifndef STRINGS_H
 #define STRINGS_H
 
-
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-
-typedef uintptr_t USize;
+#include "global.h"
 
 
 typedef struct {

@@ -1,16 +1,16 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-
-#include <stddef.h>
-#include "string.h"
+#include "global.h"
 
 
-typedef enum Token_Tag {
+typedef enum TokenTag {
 	token_None,
 
 	// Keywords
 	token_Let,
+	token_Def,
+	token_Mut,
 	token_If,
 	token_Then,
 	token_Else,
@@ -33,17 +33,18 @@ typedef enum Token_Tag {
 
 	// Literals and identifiers
 	token_Number,
-	token_Identifier,
+	token_Name,
+	token_TypeName,
 
 	token_EOF,
 	token_Invalid
-} Token_Tag;
+} TokenTag;
 
 
 typedef struct {
 	USize pos;
 	String value;
-	Token_Tag tag;
+	TokenTag tag;
 } Token;
 
 
@@ -51,15 +52,15 @@ typedef struct {
 	Token *items;
 	int32_t length;
 	int32_t capacity;
-} Token_Array;
+} TokenArray;
 
 
-Token token_new(USize pos, String value, Token_Tag tag);
+Token token_new(USize pos, String value, TokenTag tag);
 void token_print(Token self);
-Token_Array token_new_array(int32_t capacity);
-int32_t token_len(Token_Array a);
-Token token_at(Token_Array a, int32_t index);
-Token_Array token_push(Token_Array a, Token t);
+TokenArray token_new_array(int32_t capacity);
+int32_t token_len(TokenArray a);
+Token token_at(TokenArray a, int32_t index);
+TokenArray token_push(TokenArray a, Token t);
 
 
 #endif // TOKEN_H

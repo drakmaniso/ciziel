@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "string.h"
+#include "global.h"
 #include "lexer.h"
 
 
@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 
 	Lexer lexer;
 	lexer_new(&lexer, argv[1], source);
-	lexer_run(&lexer);
+	lexer_tokenize(&lexer);
 
 	str_free(&source);
 	return 0;

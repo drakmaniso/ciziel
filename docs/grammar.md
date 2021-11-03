@@ -3,27 +3,18 @@
 ## Keywords
 
     module
-
-Definitions:
-
-    let
-
-Signatures:
-
-    mut ->
-
-Control-flow:
-
-    if then else
-    while do
-
-End:
-
+    let def
+    mut
+    if then else while do
     end
+
+## Operators
+
+    ->
 
 ## PEG Grammar
 
     Program <- Definition*
     Definition <- FuncDef / ConstDef
-    FuncDef <- 'let' FuncName '(' Parameter (',' Parameter)* ')' '->' Type '=' ExpressionSeq 'end'
-    Parameter <- 'mut'? ParamName ':' Type
+    FuncDef <- ('let' / 'def') Name '(' Parameter (',' Parameter)* ')' '->' Type '=' ExprSequence 'end'
+    Parameter <- 'mut'? Name ':' Type

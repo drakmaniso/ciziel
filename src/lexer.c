@@ -1,5 +1,5 @@
-#include <stdbool.h>
 #include <stdio.h>
+#include "global.h"
 #include "lexer.h"
 
 
@@ -16,11 +16,11 @@ void lexer_new(Lexer *self, char *filepath, String input) {
 }
 
 
-void lexer_run(Lexer *self) {
+void lexer_tokenize(Lexer *self) {
 	self->start = 0;
 	self->pos = 0;
 
-	Token_Tag tag = scan(self);
+	TokenTag tag = scan(self);
 	while(tag != token_EOF) {
 		String value = str_slice(self->input, self->start, self->pos);
 		Token token = token_new(self->start, value, tag);
@@ -61,21 +61,24 @@ char peek(Lexer *self) {
 // SCANNER
 
 
-Token_Tag scan_between(Lexer *self);
-Token_Tag scan_identifier(Lexer *self);
-Token_Tag scan_delimiter(Lexer *self);
-Token_Tag scan_operator(Lexer *self);
-Token_Tag scan_number(Lexer *self);
-Token_Tag scan_invalid(Lexer *self);
+TokenTag scan_between(Lexer *self);
+TokenTag scan_identifier(Lexer *self);
+TokenTag scan_delimiter(Lexer *self);
+TokenTag scan_operator(Lexer *self);
+TokenTag scan_number(Lexer *self);
+TokenTag scan_invalid(Lexer *self);
 
 bool is_white_space(char r);
+bool is_uppercase(char r);
+bool is_lowercase(char r);
 bool is_letter(char r);
 bool is_digit(char r);
+bool is_valid_for_names(char r);
 bool is_delimiter(char r);
 bool is_symbol(char r);
 
 
-Token_Tag scan(Lexer *self) {
+TokenTag scan(Lexer *self) {
 	while (true) {
 		char r = next(self);
 
@@ -86,7 +89,7 @@ Token_Tag scan(Lexer *self) {
 		if (r == '\n') {
 			ignore(self);
 			continue;
-			//return (Token_Tag) {lexNewLine};
+			//return (TokenTag) {lexNewLine};
 		}
 
 		if (is_white_space(r)) {
@@ -98,8 +101,12 @@ Token_Tag scan(Lexer *self) {
 			return scan_delimiter(self);
 		}
 
-		if (is_letter(r)) {
-			return scan_identifier(self);
+		if (is_uppercase(r)) {
+			return scan_type_name(self);
+		}
+
+		if (is_lowercase(r)) {
+			return scan_name(self);
 		}
 
 		if (is_digit(r)) {
@@ -124,11 +131,11 @@ Token_Tag scan(Lexer *self) {
 }
 
 
-Token_Tag scan_identifier(Lexer *self) {
+TokenTag scan_name(Lexer *self) {
 	while (true) {
 		char r = next(self);
 
-		if (is_letter(r) || is_digit(r)) {
+		if (is_valid_for_names(r)) {
 			continue;
 		}
 
@@ -137,6 +144,10 @@ Token_Tag scan_identifier(Lexer *self) {
 		String text = str_slice(self->input, self->start, self->pos);
 		if (str_is(text, "let")) {
 			return token_Let;
+		} else if (str_is(text, "def")) {
+			return token_Def;
+		} else if (str_is(text, "mut")) {
+			return token_Mut;
 		} else if (str_is(text, "if")) {
 			return token_If;
 		} else if (str_is(text, "then")) {
@@ -151,12 +162,26 @@ Token_Tag scan_identifier(Lexer *self) {
 			return token_End;
 		}
 
-		return token_Identifier;
+		return token_Name;
 	}
 }
 
 
-Token_Tag scan_operator(Lexer *self) {
+TokenTag scan_type_name(Lexer *self) {
+	while (true) {
+		char r = next(self);
+
+		if (is_valid_for_names(r)) {
+			continue;
+		}
+
+		backtrack(self);
+		return token_TypeName;
+	}
+}
+
+
+TokenTag scan_operator(Lexer *self) {
 	while (is_symbol(peek(self))) {
 		next(self);
 	}
@@ -173,7 +198,7 @@ Token_Tag scan_operator(Lexer *self) {
 }
 
 
-Token_Tag scan_delimiter(Lexer *self) {
+TokenTag scan_delimiter(Lexer *self) {
 	switch(str_at(self->input, self->start)) {
 		case '\'':
 			return token_Quote;
@@ -199,7 +224,7 @@ Token_Tag scan_delimiter(Lexer *self) {
 }
 
 
-Token_Tag scan_number(Lexer *self) {
+TokenTag scan_number(Lexer *self) {
 	while (true) {
 		char r = next(self);
 
@@ -213,7 +238,7 @@ Token_Tag scan_number(Lexer *self) {
 }
 
 
-Token_Tag scan_invalid(Lexer *self) {
+TokenTag scan_invalid(Lexer *self) {
 	while (true) {
 		char r = next(self);
 
@@ -232,15 +257,28 @@ bool is_white_space(char r) {
 }
 
 
+bool is_lowercase(char r) {
+	return (r >= 'a' && r <= 'z');
+}
+
+
+bool is_uppercase(char r) {
+	return (r >= 'A' && r <= 'Z');
+}
+
+
 bool is_letter(char r) {
-	return (r >= 'A' && r <= 'Z')
-		|| (r >= 'a' && r <= 'z')
-		|| r == '_';
+	return is_uppercase(r) || is_lowercase(r);
 }
 
 
 bool is_digit(char r) {
 	return r >= '0' && r <= '9';
+}
+
+bool is_valid_for_names(char r) {
+	return is_letter(r) || is_digit(r)
+		|| r == '_' || r == '!' || r == '-';
 }
 
 

@@ -2,8 +2,7 @@
 #define SCANNER_H
 
 
-#include <stdint.h>
-#include "string.h"
+#include "global.h"
 #include "token.h"
 
 
@@ -16,7 +15,7 @@ typedef struct {
 
 
 void lexer_new(Lexer *self, char *filepath, String input);
-void lexer_run(Lexer *self);
+void lexer_tokenize(Lexer *self);
 
 
 #endif // SCANNER_H

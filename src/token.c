@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "global.h"
 #include "token.h"
 
 
-Token token_new(USize pos, String value, Token_Tag tag) {
+Token token_new(USize pos, String value, TokenTag tag) {
 	return (Token) {
 		.pos = pos,
 		.value = value,
@@ -14,6 +15,8 @@ Token token_new(USize pos, String value, Token_Tag tag) {
 void token_print(Token self) {
 	switch (self.tag) {
 		case token_Let: printf("Let"); break;
+		case token_Def: printf("Def"); break;
+		case token_Mut: printf("Mut"); break;
 		case token_If: printf("If"); break;
 		case token_Then: printf("Then"); break;
 		case token_Else: printf("Else"); break;
@@ -21,8 +24,9 @@ void token_print(Token self) {
 		case token_Do: printf("Do"); break;
 		case token_End: printf("End"); break;
 
-		case token_Identifier: printf("Id"); break;
 		case token_Number: printf("Num"); break;
+		case token_Name: printf("Name"); break;
+		case token_TypeName: printf("TypeName"); break;
 
 		// Operators
 
@@ -42,14 +46,15 @@ void token_print(Token self) {
 		case token_Invalid: printf("INVALID"); break;
 
 		default:
-			printf("UNKNOWN");
+			printf("***UNKNOWN***");
 	}
-	if (self.tag == token_Identifier || self.tag == token_Number) {
-		printf("<");
+	if (self.tag == token_Invalid || self.tag == token_Number 
+			|| self.tag == token_Name || self.tag == token_TypeName) {
+		printf("(");
 		str_print(self.value);
-		printf(">");
+		printf(")");
 	}
-	if (self.tag == token_End || self.tag == token_Semicolon) {
+	if (self.tag == token_End || self.tag == token_Semicolon || self.tag == token_Equal) {
 		printf("\n");
 	} else {
 		printf(" ");
@@ -57,8 +62,8 @@ void token_print(Token self) {
 }
 
 
-Token_Array token_new_array(int32_t capacity) {
-	return (Token_Array) {
+TokenArray token_new_array(int32_t capacity) {
+	return (TokenArray) {
 		.items = calloc(capacity, sizeof(Token)),
 		.length = 0,
 		.capacity = capacity
@@ -66,27 +71,27 @@ Token_Array token_new_array(int32_t capacity) {
 }
 
 
-int32_t token_len(Token_Array a) {
+int32_t token_len(TokenArray a) {
 	return a.length;
 }
 
 
-Token token_at(Token_Array a, int32_t index) {
+Token token_at(TokenArray a, int32_t index) {
 	if (index >= a.length) {
-		printf("PANIC: out-of-bound Token_Array index\n");
+		printf("PANIC: out-of-bound TokenArray index\n");
 		exit(1);
 	}
 	return a.items[index];
 }
 
 
-Token_Array token_push(Token_Array a, Token t) {
+TokenArray token_push(TokenArray a, Token t) {
 	if (a.length >= a.capacity) {
-		printf("NOT YET IMPLEMENTED: Token_Array growth");
+		printf("NOT YET IMPLEMENTED: TokenArray growth");
 		exit(1);
 	}
 	a.items[a.length] = t;
-	return (Token_Array) {
+	return (TokenArray) {
 		.items = a.items,
 		.length = a.length + 1,
 		.capacity = a.capacity
