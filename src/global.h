@@ -6,10 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
-typedef uintptr_t USize;
-
-#include "string.h"
+void panic(char *msg);
 
 
 #endif GLOBAL

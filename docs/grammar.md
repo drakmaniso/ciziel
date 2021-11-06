@@ -17,21 +17,26 @@
     ID = [a-z][A-Za-z0-9!-]*
     TYPEID = [A-Z][A-Za-z0-9!-]*
 
-    Program <- TopLevelDefinition*
-    TopLevelDefinition <- FuncDef / ConstDef
+    Program <- TopLevelDef*
+    TopLevelDef <- FuncDef / ConstDef
     FuncDef <- (LET / DEF) ID LPAREN Parameter (COMMA Parameter)* RPAREN RARROW Type EQUAL ExprSequence END
     Parameter <- MUT? ID COLON Type
 
-    ExprSequence <- (OpenExpr SEMICOLON / ClosedExpr)* OpenExpr?
+    Expr <- ControlExpr / SimpleExpr
+    ExprSequence <- ((SeqOnlyExpr / ControlExpr / SimpleExpr) SEMICOLON?)+
 
-    Expr <- OpenExpr / ClosedExpr
-    OpenExpr <- LocalDef / CallChain / TupleExpr
-    ClosedExpr <- IfExpr / WhileExpr / DoExpr
-
+    SeqOnlyExpr <- LocalDef / ReturnExpr
     LocalDef <- MUT? ID EQUAL Expr
-    CallChain <- ID (DOT ID)* TupleExpr*
-    TupleExpr <- LPAREN Label? Expr (COMMA Expr)* RPAREN
+    ReturnExpr <- RETURN Expr
 
+    ControlExpr <- IfExpr / WhileExpr / DoExpr
     IfExpr <- IF ExprSequence THEN ExprSequence (ELSE ExprSequence)? END
     WhileExpr <- WHILE ExprSequence DoExpr
     DoExpr <- DO ExprSequence END
+
+    SimpleExpr <- AtomExpr (FuncCallTail / DotAccessTail)*
+    FuncCallTail <- TupleExpr
+    DotAccessTail <- DOT ID
+    AtomExpr <- ID / NUMBER / TupleExpr
+    TupleExpr <- LPAREN Expr (COMMA Expr)* RPAREN
+

@@ -24,7 +24,7 @@ void str_free(String *s)
 }
 
 
-String str_slice(String s, USize start, USize end) {
+String str_slice(String s, size_t start, size_t end) {
 	return (String) {
 		.start = s.start + start,
 		.length = end - start
@@ -32,12 +32,12 @@ String str_slice(String s, USize start, USize end) {
 }
 
 
-char str_at(String s, USize index) {
+char str_at(String s, size_t index) {
 	return s.start[index];
 }
 
 
-USize str_length(String s) {
+size_t str_length(String s) {
 	return s.length;
 }
 

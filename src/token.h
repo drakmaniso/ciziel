@@ -2,6 +2,7 @@
 #define TOKEN_H
 
 #include "global.h"
+#include "string.h"
 
 
 typedef enum TokenTag {
@@ -42,25 +43,14 @@ typedef enum TokenTag {
 
 
 typedef struct {
-	USize pos;
+	size_t pos;
 	String value;
 	TokenTag tag;
 } Token;
 
 
-typedef struct {
-	Token *items;
-	int32_t length;
-	int32_t capacity;
-} TokenArray;
-
-
-Token token_new(USize pos, String value, TokenTag tag);
+Token token_new(size_t pos, String value, TokenTag tag);
 void token_print(Token self);
-TokenArray token_new_array(int32_t capacity);
-int32_t token_len(TokenArray a);
-Token token_at(TokenArray a, int32_t index);
-TokenArray token_push(TokenArray a, Token t);
 
 
 #endif // TOKEN_H

@@ -27,7 +27,7 @@ for Point:
     def add(self, other: O #vec2) -> Point = vec2'add(self, other)
     def zero! = Point(0, 0)
 
-test "type Point" =
+let test_Point =
     assert Point has #vec2
     assert Point has #length
     assert Point has #add
@@ -71,7 +71,7 @@ for Circle:
 end: Circle
 
 
-test "type Circle" =
+let test_Circle =
     assert Circle has #movable
     assert Circle has #scalable
 

@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "global.h"
+#include "array.h"
 #include "lexer.h"
+#include "token.h"
 
 
 int main(int argc, char **argv)
@@ -14,7 +16,12 @@ int main(int argc, char **argv)
 
 	Lexer lexer;
 	lexer_new(&lexer, argv[1], source);
-	lexer_tokenize(&lexer);
+	Array tokens = lexer_tokenize(&lexer);
+
+	for(size_t i = 0; i < array_length(tokens); i++) {
+		Token tok = array_at(Token, tokens, i);
+		token_print(tok);
+	}
 
 	str_free(&source);
 	return 0;

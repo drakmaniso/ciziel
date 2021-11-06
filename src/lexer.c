@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include "global.h"
+#include "string.h"
+#include "array.h"
 #include "lexer.h"
+#include "token.h"
 
 
 // LEXER
@@ -16,7 +19,8 @@ void lexer_new(Lexer *self, char *filepath, String input) {
 }
 
 
-void lexer_tokenize(Lexer *self) {
+Array lexer_tokenize(Lexer *self) {
+	Array tokens = array_new(Token, 8);
 	self->start = 0;
 	self->pos = 0;
 
@@ -25,9 +29,10 @@ void lexer_tokenize(Lexer *self) {
 		String value = str_slice(self->input, self->start, self->pos);
 		Token token = token_new(self->start, value, tag);
 		self->start = self->pos;
-		token_print(token);
+		array_push(Token, tokens, token);
 		tag = scan(self);
 	}
+	return tokens;
 }
 
 

@@ -3,19 +3,20 @@
 
 
 #include "global.h"
-#include "token.h"
+#include "string.h"
+#include "array.h"
 
 
 typedef struct {
 	char *name;
 	String input;
-	USize start;
-	USize pos;
+	size_t start;
+	size_t pos;
 } Lexer;
 
 
 void lexer_new(Lexer *self, char *filepath, String input);
-void lexer_tokenize(Lexer *self);
+Array lexer_tokenize(Lexer *self);
 
 
 #endif // SCANNER_H

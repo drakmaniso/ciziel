@@ -4,7 +4,7 @@
 #include "token.h"
 
 
-Token token_new(USize pos, String value, TokenTag tag) {
+Token token_new(size_t pos, String value, TokenTag tag) {
 	return (Token) {
 		.pos = pos,
 		.value = value,
@@ -60,41 +60,3 @@ void token_print(Token self) {
 		printf(" ");
 	}
 }
-
-
-TokenArray token_new_array(int32_t capacity) {
-	return (TokenArray) {
-		.items = calloc(capacity, sizeof(Token)),
-		.length = 0,
-		.capacity = capacity
-	};
-}
-
-
-int32_t token_len(TokenArray a) {
-	return a.length;
-}
-
-
-Token token_at(TokenArray a, int32_t index) {
-	if (index >= a.length) {
-		printf("PANIC: out-of-bound TokenArray index\n");
-		exit(1);
-	}
-	return a.items[index];
-}
-
-
-TokenArray token_push(TokenArray a, Token t) {
-	if (a.length >= a.capacity) {
-		printf("NOT YET IMPLEMENTED: TokenArray growth");
-		exit(1);
-	}
-	a.items[a.length] = t;
-	return (TokenArray) {
-		.items = a.items,
-		.length = a.length + 1,
-		.capacity = a.capacity
-	};
-}
-
