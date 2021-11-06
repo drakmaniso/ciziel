@@ -16,10 +16,10 @@ int main(int argc, char **argv)
 
 	Lexer lexer;
 	lexer_new(&lexer, argv[1], source);
-	Array tokens = lexer_tokenize(&lexer);
+	TokenArray tokens = lexer_tokenize(&lexer);
 
 	for(size_t i = 0; i < array_length(tokens); i++) {
-		Token tok = array_at(Token, tokens, i);
+		Token tok = array_at(tokens, i);
 		token_print(tok);
 	}
 

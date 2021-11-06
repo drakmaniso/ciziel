@@ -5,6 +5,7 @@
 #include "global.h"
 #include "string.h"
 #include "array.h"
+#include "token.h"
 
 
 typedef struct {
@@ -16,7 +17,7 @@ typedef struct {
 
 
 void lexer_new(Lexer *self, char *filepath, String input);
-Array lexer_tokenize(Lexer *self);
+TokenArray lexer_tokenize(Lexer *self);
 
 
 #endif // SCANNER_H

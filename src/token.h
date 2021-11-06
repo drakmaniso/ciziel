@@ -48,6 +48,8 @@ typedef struct {
 	TokenTag tag;
 } Token;
 
+array_def(Token);
+
 
 Token token_new(size_t pos, String value, TokenTag tag);
 void token_print(Token self);

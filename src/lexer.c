@@ -19,8 +19,8 @@ void lexer_new(Lexer *self, char *filepath, String input) {
 }
 
 
-Array lexer_tokenize(Lexer *self) {
-	Array tokens = array_new(Token, 8);
+TokenArray lexer_tokenize(Lexer *self) {
+	TokenArray tokens = array_new(Token, 8);
 	self->start = 0;
 	self->pos = 0;
 
@@ -29,7 +29,7 @@ Array lexer_tokenize(Lexer *self) {
 		String value = str_slice(self->input, self->start, self->pos);
 		Token token = token_new(self->start, value, tag);
 		self->start = self->pos;
-		array_push(Token, tokens, token);
+		array_push(tokens, token);
 		tag = scan(self);
 	}
 	return tokens;
