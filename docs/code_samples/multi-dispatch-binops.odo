@@ -20,7 +20,7 @@ def encounter(a: Pet, b: Pet) -> String =
 -- Note: would a generic version of encounter be possible?
 
 def #pet =
-    has name(self) -> String
+    has Self(name: String, ...)
     has `meets`(self, other: O #pet) -> String
 
 def genericEncounter(a: A #pet, b: B #pet) -> String =
@@ -32,7 +32,7 @@ def genericEncounter(a: A #pet, b: B #pet) -> String =
 module pets
 
 def #pet =
-    has name(self) -> String
+    has Self(name: String, ...)
     has `meets`(self, other: O #pet) -> String
     has `meets`(other: O #pet, self) -> String
 
@@ -59,9 +59,9 @@ for Dog:
 
 module test
 
-use pets for #pet
-use dogs for Dog
-use cats fot Cat
+use pets: #pet
+use dogs: Dog
+use cats: Cat
 
 let example_encounter! =
     fido = Dog("Fido")

@@ -6,11 +6,12 @@
     let def
     mut
     if then else while do
+    return
     end
 
 ## Operators
 
-    ->
+    -> = <-
 
 ## PEG Grammar
 
@@ -30,8 +31,8 @@
     ReturnExpr <- RETURN Expr
 
     ControlExpr <- IfExpr / WhileExpr / DoExpr
-    IfExpr <- IF ExprSequence THEN ExprSequence (ELSE ExprSequence)? END
-    WhileExpr <- WHILE ExprSequence DoExpr
+    IfExpr <- IF SimpleExpr THEN ExprSequence (ELSE ExprSequence)? END
+    WhileExpr <- WHILE SimpleExpr DoExpr
     DoExpr <- DO ExprSequence END
 
     SimpleExpr <- AtomExpr (FuncCallTail / DotAccessTail)*

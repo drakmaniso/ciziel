@@ -1,0 +1,13 @@
+module main
+
+def main!(mut) =
+	print!("Hello, World!")
+
+
+------
+module main
+
+use /std/console: Console
+
+def main!(mut io: Console) =
+	io.print!("Hello, World!")

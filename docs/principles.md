@@ -1,28 +1,35 @@
 # Principles
 
 
-## A tool for reasoning
+## Make thinking easier
 
-- Programs need to be easy to read and reason about, more than convenient to write.
-- The language should help the programmer to build a mental model of the codebase.
+The main activity of a programmer is to think about code and data. The language
+design should reflect that: programs should be easy to read and reason about,
+more than convenient to write. In other words, the language should help build a
+mental model of the codebase.
 
 Corresponding characteristics:
+- supports both imperative and functional style;
+- functions associated with types (aka methods);
+- encapsulation at module-level only;
 - orthogonality of features;
 - low noise syntax;
+
+
+## Focus on data
+
+Ultimately, data is what matters: the only purpose of code is to manipulate data.
+
+Correspongind characteristics:
+- zero-cost data abstractions;
 - functions associated with types (aka methods);
 
 
-## 
+## Embrace change
 
-- Exploratory programming and refactoring are important.
+Exploratory programming and refactoring are important.
 
 Corresponding characteristics:
-- static type checking, but with type inference
-- immutability by default, but with optional mutability
-
-## 
-
-- Data is more important than code.
-
-Correspongind characteristics:
-- zero-cost data abstractions
+- static type checking with type inference;
+- immutability with optional mutability;
+- structural unions (no inheritance);

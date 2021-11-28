@@ -1,0 +1,59 @@
+def Nil
+
+def Bool = False | True
+def False
+def True
+
+--- The "maybe" monad
+def Option[T] = Some[T] | None
+def Some[T](item: T)
+def None
+
+for Option[T]:
+    def wrap(item: T) -> Option[T] =
+        Some(item)
+    
+    def map(self, f: Func[T -> U]) -> Some[U] =
+        match self
+        case Some(item) then
+            Some(f(item))
+        case None then
+            None
+    
+    def bind(self, f: Func[T -> Option[U]]) -> Option[U] =
+        match self
+        case Some(item) then
+            f(item)
+        case None then
+            None
+
+
+------
+let Map[T #next, U](
+        iterator: T,
+        function: Func[T.Item -> U],
+    )
+
+for Map[T #next, U]:
+    def new(iterator: T, function: Func[T.Item -> U]) -> Map[T, U] =
+        Map(iterator, function)
+
+for Map[T #next, U] as #next:
+    def Item = U
+
+    def next!(self) -> Option[U] =
+        match self.iterator.next!
+        case None then None
+        case Some(item) then Some(self.function(item))
+
+    def next!(self) -> Option[U] =
+        item = self.iterator.next!?
+        return self.function(item)
+
+
+
+------
+for Array[T]:
+    def fold(self, accum: A, function: Func[A, T -> A]) -> A = ...
+
+    def unfold(function: Func[A -> Option[(B, A)], first: A) -> Array[B] = ...

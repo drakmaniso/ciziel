@@ -1,54 +1,68 @@
 ------ Standard traits for iterators
 module std/iter
 
-def #iterator =
+def #next =
     has Item
-    has next!(mut self) -> Self.Item | Nil
+    has next!(mut self) -> Option[Self.Item]
 
-def #iterable =
-    has Iterator #iterator
+def #iter =
+    has Iterator #next
     has iter(self) -> Self.Iterator
 
 
 ------ Simple iterator example
 module counter
 
-let Counter(
+let Counter{
         count: Int,
         limit: Int,
-    )
+    }
 
 for Counter:
     def new(limit: Int) -> Counter =
-        Counter(count = 0, limit = limit)
+        Counter{count: 0, limit: limit}
     
     def limit(self) -> Int =
         self.limit
 
     def Item = Int
 
-    def next!(self) -> Int | Nil =
+    def next!(self) -> Option[Int] =
         if self.count >= self.limit then
-            return Nil
-        set self.count = self.count + 1
-        return self.count
+            return None
+        self.count <- self.count + 1
+        return Some(self.count)
 
-let test_Counter_traits =
+let test_Counter_traits() =
     assert Counter is std'iter'#iterator
 
-let test_Counter =
+let test_Counter() =
     counter = Counter.new(6)
-    assert counter.next! == 1
-    assert counter.next! == 2
-    assert counter.next! == 3
-    assert counter.next! == 4
-    assert counter.next! == 5
-    assert counter.next! == Nil
+    assert counter.next! == Some(1)
+    assert counter.next! == Some(2)
+    assert counter.next! == Some(3)
+    assert counter.next! == Some(4)
+    assert counter.next! == Some(5)
+    assert counter.next! == None
 
-let example! =
+let example-for!() =
     counter = Counter.new(7)
-    while counter.next! is n::Int do
+    for n in counter do
         print!(n)
+
+let example-while!() =
+    counter = Counter.new(7)
+    while counter.next! case Some(n) do
+        print!(n)
+
+let example-desugared!() =
+    counter = Counter.new(7)
+    repeat
+        match counter.next!
+        case Some(n) then
+            print!(n)
+        case None then
+            break 
 
 
 ----
@@ -56,9 +70,17 @@ module main
 
 use /std/iter for Iterator
 
-def foo(iterator: I #iterator, f: I.Item -> Int) -> Array[Int] =
-    mut result: Array[Int]
-    for elem in iterator loop
+def foo(iterator: I #next, f: I.Item -> Int) -> Array[Int] =
+    let mut result: Array[Int]
+    for elem in iterator do
         result.push!(f(elem))
     return result
 
+def compare(first: I #next, second: J[Item = I.Item] #next) -> Bool =
+    mut first = first
+    mut second = second
+    repeat
+        match (first.next!, second.next!)
+        case (Some, Some) then continue
+        case (None, None) then return True
+        case _ then return False

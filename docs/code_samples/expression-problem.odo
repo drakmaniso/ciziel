@@ -23,7 +23,7 @@ def #pretty =
 
 for Literal:
 	def pretty(self) -> String =
-		self.eval.toString
+		self.eval.as-string
 
 for Addition[T #pretty]:
 	def pretty(self) -> String =
@@ -37,9 +37,10 @@ for Negation[T #eval]:
 
 for Negation[T #pretty]:
 	def pretty(self) -> String =
-		if self.subexpr is Literal:
-			"- {self.subexpr.pretty}"
-		else:
+		match self.subexpr
+		case e::Literal then
+			"-{e.pretty}"
+		case _ then
 			"- ({self.subexpr.pretty})"
 
 

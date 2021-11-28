@@ -4,23 +4,23 @@
 module /std/num
 
 def #num =
-    #partialEq
-    #zero #add #sub
-    #one #mul #div #rem
-    has fromString(str: String) -> Self | E #error
-    has fromStringRadix(str: String, radix: UInt) -> Self | E #error
+    has #partial-eq
+    has #zero #add #sub
+    has #one #mul #div #rem
+    has from-string(str: String) -> Self | E #error
+    has from-string-radix(str: String, radix: UInt) -> Self | E #error
 
 def #zero =
-    #add
+    has #add
     has zero: Self
-    has isZero(self) -> Bool
-    has setZero!(self)
+    has is-zero(self) -> Bool
+    has set-zero!(self)
 
 def #one =
-    #mul
+    has #mul
     has one: Self
-    has isOne(self) -> Bool
-    has setOne!(self)
+    has is-one(self) -> Bool
+    has set-one!(self)
 
 
 def #add =

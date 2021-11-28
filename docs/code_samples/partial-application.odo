@@ -1,0 +1,18 @@
+let foo(a: Int, b: String) -> String =
+	"{a} and {b}"
+
+let example-partial-application!() =
+	print!(foo(_, "abc").type-info)
+	--> "Int -> String"
+	print!(foo(123, _).type-info)
+	--> "String -> String"
+
+let main() =
+	ex1 = 123.(x => foo(x, "abc"))
+	ex2 = 123.(=> foo(_, "abc"))
+	ex3 = "abc".(=> foo(123, _))
+
+let main() =
+	ex1 = 123 |> (x => foo(x, "abc"))
+	ex2 = 123 |> foo(_, "abc")
+	ex3 = "abc" |> foo(123, _)

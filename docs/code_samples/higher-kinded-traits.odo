@@ -2,7 +2,7 @@ def Self[T] #functor =
     has map(self, f: T -> U) -> Self[U]
 
     def lift(function: A -> B) -> (F[A] #functor -> F[B]) =
-        func(x: F[A]) => x.map(function)
+        (x: F[A]) -> x.map(function)
 
 
 def #map = #functor

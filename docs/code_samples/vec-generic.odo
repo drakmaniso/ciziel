@@ -2,17 +2,18 @@ module vec
 
 
 def #vec2 =
-    has Self(x: Float, y: Float)
+    has Scalar #num
+    has Self(x: Self.Scalar, y: Self.Scalar)
 
     def zero = Self(0, 0)
     
     def +(self, other: Self) -> Self =
         Self(self.x + other.y, self.y + other.y)
     
-    def +(self, scalar: Float) -> Self =
+    def +(self, scalar: Self.Scalar) -> Self =
         Self(self.x + scalar, self.y + scalar)
     
-    def +(scalar: Float, self) -> Self =
+    def +(scalar: Self.Scalar, self) -> Self =
         self + scalar
 
 

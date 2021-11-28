@@ -26,4 +26,4 @@ let fibonacci(x: Int) -> Int =
 let Dog(name: String)
 
 -- Type constructors
-let fido = Dog(name: "Fido")
+let fido = Dog(name = "Fido")

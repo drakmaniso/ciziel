@@ -1,0 +1,42 @@
+def #any =
+    has type-info: TypeInfo
+
+def #to-string =
+    has to-string(self) -> String
+
+def #from-string =
+    has from-string(s: String) -> Self
+
+------
+def #parse =
+    has parse(String) -> Self
+
+def #show =
+    has show(self) -> String
+
+def #format =
+    has format-length(self, format: Array[String]) -> USize
+    has format!(self, format: Array[String], mut buffer: String)
+
+---
+def #iter =
+    has Iterator #next
+    has iter(self) -> Self.Iterator
+
+def #next =
+    has Item
+    has next!(self) -> Self.Item | Nil
+
+
+---
+def #map =
+    has Self[T]
+    has map(self, transform: T -> U) -> Self[U]
+
+def #fold =
+    has Self[T]
+    has fold(self, initial: A, operation: (A, T) -> A) -> A
+
+def #unfold =
+    has Self[T]
+    has unfold(initial: A, operation: A -> Option[(T, A)]) -> Self[T]

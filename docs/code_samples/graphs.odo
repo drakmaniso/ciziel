@@ -1,7 +1,7 @@
-def T #graph =
-    Node
-    Edge
-    hasEdge(self, Node, Node) -> Bool
+def #graph =
+    has Node
+    has Edge
+    has has-edge(self, Node, Node) -> Bool
     ...
 
 

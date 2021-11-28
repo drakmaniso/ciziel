@@ -8,7 +8,7 @@ def length(a: A #vec2) -> Float =
 
 def normalize(a: A #vec2) -> A =
     l = a.length
-    return A{x: a.x / l, y: a.y / l}
+    A(x = a.x / l, y = a.y / l)
 
 def add(a: A #vec2, b: B #vec2) -> C #vec2 =
     C(a.x + b.x, a.y + b.y)
@@ -25,7 +25,7 @@ for Point:
     def length(self) -> Float = vec2'length(self)
     def normalize(self) -> Point = vec2'normalize(self)
     def add(self, other: O #vec2) -> Point = vec2'add(self, other)
-    def zero! = Point(0, 0)
+    def zero = Point(0, 0)
 
 let test_Point =
     assert Point has #vec2
@@ -35,22 +35,22 @@ let test_Point =
 def Shape = Circle | Square | Rectangle
 
 def #movable =
-    has moveTo!(mut self, position: Point)
+    has move-to!(mut self, position: Point)
 
 def #scalable =
-    has scaleBy!(mut self, factor: Float)
+    has scale-by!(mut self, factor: Float)
 
 
 def #center =
-    has Self(center: Point, ...)
+    has Self{center: Point, ...}
 
-let moveShapeTo!(mut shape: T #center, destination: Point) =
+let move-shape-to!(mut shape: T #center, destination: Point) =
     shape.center <- destination
 
 
 def Circle{
-        center: Point
-        radius: Float
+        center: Point,
+        radius: Float,
     }
 
 for Circle:
@@ -63,32 +63,33 @@ for Circle:
     def area(self) -> Float =
         math'pi * self.radius * self.radius
 
-    def moveTo!(mut self, destination: Point) =
-        moveShapeTo!(self, destination)
+for Circle #movable:
+    def move-to!(mut self, destination: Point) =
+        move-shape-to!(self, destination)
 
-    def scaleBy!(mut self, factor: Float) =
+for Circle #scalable:
+    def scale-by!(mut self, factor: Float) =
         self.radius <- self.radius * factor
-end: Circle
 
 
-let test_Circle =
+let test-circle() =
     assert Circle has #movable
     assert Circle has #scalable
 
 def Square{
-        center: Point
-        side: Int
+        center: Point,
+        side: Int,
     }
 
 def Rectangle{
-        center: Point
-        width: Int
-        height: Int
+        center: Point,
+        width: Int,
+        height: Int,
     }
 
-def Polygon(
+def Polygon{
         ...points: Array[Point]
-    )
+    }
 
 
 ------
@@ -96,10 +97,10 @@ def Artist = Person | Band
 def Person(name: String)
 def Band(name: String)
 def Album{
-        artist: Artist
-        title: String
-        releaseDate: Date
-        songs: Array[Song]
+        artist: Artist,
+        title: String,
+        release-date: Date,
+        songs: Array[Song],
     }
 
 
@@ -119,22 +120,24 @@ for Foo | Bar:
 
 
 -------
-let PrivateFoo(privateField: Int)
+
+-- A type is public if its constructor is public.
+def PublicFoo{public-field: Int}
 
 
-def PublicFoo(publicField: Int)
+-- A type is private if its constructor definition is private,
+-- and no public functions in the module return it.
+let PrivateFoo{private-field: Int}
 
 
-def OpaqueFoo(privateField: Int)
+-- A type is opaque (publicly visible but fields are private) if
+-- its constructor is private but some public functions in the
+-- module return it.
+let OpaqueFoo{private-field: Int}
+
 for OpaqueFoo:
-    def new(publicParameter: Float) -> OpaqueFoo =
-        OpaqueFoo(privateField: publicParameter.rounded)
-
-
-def ReadOnlyFoo(privateField: Int)
-for ReadOnlyFoo:
-    def new(publicParameter: Float) -> ReadOnlyFoo =
-        ReadOnlyFoo(privateField: publicParameter.rounded)
-
-    def readOnlyField(self) -> Int =
-        self.privateField
+    def new(public-parameter: Float) -> OpaqueFoo =
+        OpaqueFoo{private-field: public-parameter.rounded}
+    
+    def public-field(self) -> Int =
+        self.private-field

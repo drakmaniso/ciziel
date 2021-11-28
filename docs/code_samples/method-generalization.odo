@@ -1,4 +1,4 @@
-module trivial_generalization
+module trivial-generalization
 
 def Pet = Cat | Dog
 
@@ -7,25 +7,25 @@ def Dog(name: String)
 
 for Cat:
     def happy(self) -> String = "{self.name} purrs!"
-    def unhappyWith(self, intruder: String) -> String = "{self.name} hisses at {intruder}!"
+    def unhappy-with(self, intruder: String) -> String = "{self.name} hisses at {intruder}!"
 
 for Dog:
     def happy(self) -> String = "{self.name} wags their tail!"
-    def unhappyWith(self, intruder: String) -> String = "{self.name} barks at {intruder}!"
+    def unhappy-with(self, intruder: String) -> String = "{self.name} barks at {intruder}!"
 
 let example! =
-    mut pet: Cat | Dog
+    let mut pet: Cat | Dog
 
     pet <- Cat("Spot")
     print!(pet.happy)
     --> Spot purrs!
-    print!(pet.unhappyWith("owner"))
+    print!(pet.unhappy-with("owner"))
     --> Spot hisses at owner!
 
     pet <- Dog("Ash")
     print!(pet.happy)
     --> Ash wags their tail!
-    print!(pet.unhappyWith("owner"))
+    print!(pet.unhappy-with("owner"))
     --> Ash hisses at owner!
 
 
@@ -35,6 +35,7 @@ let example! =
 
 for Cat:
     def sounds: String = ["meow", "purr", "yowl", "hiss"]
+
 for Dog:
     def sounds: String = ["bark", "growl", "whimper", "howl"]
 
@@ -49,25 +50,26 @@ let incorrect_example =
     print!(Pet.sounds)
 )--
 
--- Instead, you can define the method on the union type directly:
+-- Instead, you can define the method on the union type directly. However
+-- this prevents you to define the same method on the individual types.
 for Cat | Dog:
     def petSounds: String = ["meow", "bark", ...]
 
 
 ------
-module simple_generalization
+module simple-generalization
 
 def Foo
 def Bar
 
 for Foo:
     def generalized(self, x: Int) -> Int = 2 * x
-    def notGeneralized(self, x: Int) -> Int = 3 * x
+    def not-generalized(self, x: Int) -> Int = 3 * x
 
 
 for Bar:
     def generalized(self, x: Int) -> String = "4 * {x}"
-    def notGeneralized(self, x: String) -> Int = 5 * x.toInt
+    def not-generalized(self, x: String) -> Int = 5 * x.toInt
 
 let example! =
     mut a: Foo | Bar
@@ -78,7 +80,7 @@ let example! =
     a <- Bar
     print!(a.generalized(10))
     --> 4 * 10
-    print!(a.generalized.type)
+    print!(a.generalized.type-info)
     --> Func(Bar | Foo, Int) -> Int | String
 
     -- But the following cannot compile:

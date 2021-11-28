@@ -1,0 +1,41 @@
+module
+
+use std'console: Console
+
+def main!(mut io: Console) =
+	say-hello!(io)
+	count-to-ten!(io)
+
+
+def say-hello!(mut io: Console) =
+	io.print!("Welcome,")
+	io.print!("Please enter your name: ")
+	name = io.input!
+	io.print!("Hello, {name}!")
+
+
+def count-to-ten!(mut io: Console) =
+	for i in 1 to 11 do
+		io.print!("{n}")
+
+
+-- or:
+module
+
+use std'console
+
+def main!() mut =
+	say-hello!()
+	count-to-ten!()
+
+
+def say-hello!() mut =
+	print!("Welcome,")
+	print!("Please enter your name: ")
+	name = input!()
+	print!("Hello, {name}!")
+
+
+def count-to-ten!() mut =
+	for i in 1 to 11 do
+		print!("{n}")

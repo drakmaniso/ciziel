@@ -30,8 +30,10 @@ for Succ: def eval(self) -> Int = self.arg.eval + 1
 for Pred: def eval(self) -> Int = self.arg.eval - 1
 for IsZero: def eval(self) -> Int = self.arg.eval == 0
 for If[T]: def eval(self) -> T =
-    if self.condition.eval: self.thenBranch.eval
-    else: self.elseBranch.eval
+    if self.condition.eval then
+        self.thenBranch.eval
+    else
+        self.elseBranch.eval
 
 
 -------------------------------------------------------------------------------
@@ -44,24 +46,24 @@ def Lift[T](eval: T)
 def Pair[T, U](first: T, second: U)
 for Pair[T, U]:
     def eval(self) -> (T, U) =
-        (self.first.eval, self,second.eval)
+        (self.first.eval, self.second.eval)
 
-def Lambda[T, U](function: T -> U)
+def Lambda[T, U](function: Func[T -> U])
 for Lambda[T, U]:
-    def eval(self) -> (T -> U) =
+    def eval(self) -> Func[T -> U] =
         x => self.function(Lift(x)).eval
 
-def App[T, U](function: Lam[T, U], argument: U)
-for App[T, U]:
+def Apply[T, U](function: Lambda[T, U], argument: U)
+for Apply[T, U]:
     def eval(self) -> U =
-        self.f.eval(self.argument.eval)
+        self.function.eval(self.argument.eval)
 
-def Fix[T](function: Lam[T, T])
+def Fix[T](function: Lambda[T, T])
 for Fix[T]:
     def eval(self) -> T =
         self.function.eval(Fix(self.function).eval)
 
 
-let example! =
+let example!() =
     factorial = Fix(Lam(f => Lam(y => Lift(if y.eval == 0 then 1 else y.eval * f.eval(y.eval - 1)))))
     print!(factorial.eval(10))

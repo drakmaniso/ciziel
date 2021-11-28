@@ -15,58 +15,66 @@ for List[T]:
         for item in items.iterator.reverse do
             result <- Node(item, result)
         return result
-    
-for Node[T]:
-    def push(self, item: T) -> Node[T] = Node(item, self)
-    def pop(self) -> T = self.item
-for Empty:
-    def push(self, item: T) -> Node[T] = Node(item, Empty)
-    def pop(self) -> Nil = Nil
 
 
-for Empty[T #eq]:
+for List[T] as #eq:
     def equals(self, other: List[T]) -> Bool =
-        match other
-        case Empty then True
-        case Node(...) then False
+    match (self, other)
+    case (Empty, Empty) then
+        True
 
-for Node[T #eq]
-    def equals(self, other: List[T]) -> Bool =
-        match other
-        case Empty then False
-        case Node(item, tail) then
-            self.item == item
-                and self.tail.equals(tail)
+    case (Node as s, Node as o) then
+        s.item == o.item
+        and s.tail.equals(o.tail)
+
+    case (Empty, Node) then
+        False
+
+    case (Node, Empty) then
+        False
 
 -- Note that `Node[T]` and `Empty` don't implement `#eq`!
 -- Only the union `Node[T] | Empty` implements `#eq`.
 
+    
+for Node[T]:
+    def push(self, item: T) -> Node[T] = Node(item, self)
+
+    def pop(self) -> T = self.item
+
+
+for Empty:
+    def push(self, item: T) -> Node[T] = Node(item, Empty)
+
+    def pop(self) -> Nil = Nil
+
 
 for Empty
-    def map(self, f: T -> U) -> Empty =
+    def map(self, f: Func[T -> U]) -> Empty =
         Empty
 
 for Node[T]
-    def map(self, f: T -> U) -> Node[U] =
+    def map(self, f: Func[T -> U]) -> Node[U] =
         Node{
-            item: f(self.item),
-            tail: self.tail.map(f),
+            item = f(self.item),
+            tail = self.tail.map(f),
         }
 
 
-for List[T]:
+for List[T] as #iter:
     def Iterator = Iterator[T]
-    def asIter(self) -> Iterator[T] = Iterator(self)
+
+    def iter(self) -> Iterator[T] = Iterator(self)
 
 def Iterator[T](current: List[T])
-for Iterator[T]:
+for Iterator[T] as #next:
     def Item = T
 
     def next!(mut self) -> T | Nil =
-        when self.current
-        is Empty then
+        match self.current
+        case Empty then
             Nil
-        is Node{item, tail} then
+        case Node{item, tail} then
             self.current <- tail
             item
     
@@ -79,7 +87,7 @@ use std'list: List, Node, Empty
 def double(list: List[Int]) -> List[Int] =
     list.map(x -> x * 2)
 
-def main! =
+def main!() =
     let a = ListNode(1, ListNode(2, ListNode(3, EmptyList)))
     let b = List.new(1, 2, 3)
 

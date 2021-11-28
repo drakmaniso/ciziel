@@ -18,7 +18,7 @@ def Vec2(x: Float, y: Float)
 
 for (Vec2, Vec2):
     def AddResult = Vec2
-    def add(self): Vec2 =>
+    def add(self): Vec2 =
         Vec2(
             x: self.first.x + self.second.x,
             y: self.first.y + self.second.y,
