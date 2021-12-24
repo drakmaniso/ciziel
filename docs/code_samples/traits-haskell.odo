@@ -1,10 +1,11 @@
 def [T] #functor =
     has map(self, transform: T -> A) -> Self[A]
     def replace(self, constant: A) -> Self[A] =
-        self.fmap(_ -> constant)
+        self.map(_ -> constant)
 
 def [T] #applicative =
     has #functor
+    -- `wrap` instead of `return`
     has wrap(value: T) -> Self[T]
     has apply(self, operation: Self[T -> A]) -> Self[A]
     def and-then(self, other: Self[A]) -> Self[A] =
@@ -14,7 +15,15 @@ def [T] #applicative =
 
 def [T] #monad =
     has #applicative
-    has bind(self, operation: T -> Self[A]) -> Self[A]
+    -- `chain` instead of `flat-map` or `bind` 
+    has chain(self, operation: T -> Self[A]) -> Self[A]
+    -- `merge` instead of `flatten` instead of `join`
+    def merge(nested-monad: Self[Self[T]]) -> Self[T] =
+        nested-monad.chain(identity)
+
+def [T] #chain =
+    has #functor
+    has chain(self, operation: T -> Self[A]) -> Self[A]
 
 def [T] #monad-fail =
     has #monad
@@ -23,6 +32,18 @@ def [T] #monad-fail =
 --TODO: is this correct?
 def [T[U]] #monad-trans =
     has lift(monad: T[U]) -> Self[T[U]]
+
+
+def [T] #comonad =
+    has #functor
+    -- `unwrap` instead of `extract`
+    has unwrap(self) -> T
+    -- `co-merge` (or `nest`?) instead of `duplicate`
+    def co-merge(self) -> Self[Self[T]] =
+        self.extend(identity)
+    -- `co-chain` instead of `co-flat-map` of `extend`
+    def co-chain(self, f: Self[T] -> A) -> Self[A] =
+        self.duplicate.map(f)
 
 
 ------

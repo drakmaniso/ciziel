@@ -2,10 +2,10 @@ module main
 
 use /std/console: Console
 
-def main!() =
+def main!(mut io: Console) =
 	number = repeat
-		print!("Please enter a number: \!")
-		if input!().to-int case Some(n) then
+		io.print!("Please enter a number: \!")
+		if io.input!.to-int case Some(n) then
 			break n
 	
 	simple = factorial(number)
@@ -13,30 +13,30 @@ def main!() =
 	tail = tail-factorial(number)
 	folded = folded-factorial(number)
 
-	print!("simple factorial: {simple}")
-	print!("recursive factorial: {recursive}")
-	print!("tail recursice factorial: {tail}")
-	print!("fold-based factorial: {folded}")
+	io.print!("simple factorial: {simple}")
+	io.print!("recursive factorial: {recursive}")
+	io.print!("tail recursice factorial: {tail}")
+	io.print!("fold-based factorial: {folded}")
 
 -- or:
 
-def main!() =
-	let get-number!() =
-		print!("Please enter a number: \!")
-		if input!().to-int case Some(n) then
-			return n
-		get-number!()
+def main!(mut io: Console) =
+	let get-number!(mut io) =
+		io.print!("Please enter a number: \!")
+		match io.input!.to-int
+		case Some(n) then n
+		else get-number!(io)
 
-	number = get-number!()
+	number = get-number!(io)
 	simple = factorial(answer)
 	recursive = recursive-factorial(answer)
 	tail = tail-factorial(answer)
 	folded = folded-factorial(answer)
 
-	print!("simple factorial: {simple}")
-	print!("recursive factorial: {recursive}")
-	print!("tail recursice factorial: {tail}")
-	print!("fold-based factorial: {folded}")
+	io.print!("simple factorial: {simple}")
+	io.print!("recursive factorial: {recursive}")
+	io.print!("tail recursice factorial: {tail}")
+	io.print!("fold-based factorial: {folded}")
 
 
 let factorial(n: Int) -> Int =
@@ -63,6 +63,10 @@ let tail-factorial(n: Int) -> Int =
 
 let fold-factorial(n: Int) -> Int =
 	(2 to n + 1).fold(1, (i, accum) -> i * accum)
+
+
+let fold-factorial(n: Int) -> Int =
+	(2 to n + 1).fold(1, \(i, accum) -> i * accum)
 
 
 let generic-factorial(n: N #num #range) -> N =
@@ -100,16 +104,16 @@ let fibonacci(n: Int) -> Int =
 	b
 
 
-let iterator-example!() =
+let iterator-example!(mut io) =
 	my-pets = ["Spot", "Bella", "Bubbles"]
 
 	for pet in pets do
-		print!(pet)
+		io.print!(pet)
 
 
-let iterator-example-unsugared!() =
+let iterator-example-unsugared!(mut io) =
 	my-pets = ["Spot", "Bella", "Bubbles"]
 
 	i = my-pets.iterator
 	while i.next! case Some(pet) do
-		print!(pet)
+		io.print!(pet)

@@ -32,8 +32,9 @@ def lexer-run!(mut self: Lexer) =
         tag = scan(self)
 
 let next!(mut self: Lexer) -> Option[Char] =
-    result = self.input[self.pos]?
-    self.pos <- self.pos + 1
+    result = self.input[self.pos]
+    if result is Some then
+        self.pos <- self.pos + 1
     return result
 
 let ignore!(mut self: Lexer) =
@@ -43,7 +44,7 @@ let backtrack!(mut self: Lexer) =
     self.pos <- self.pos - 1
 
 let peek(self: Lexer) -> Option[Char] =
-    self.input[self.pos + 1]?
+    self.input[self.pos + 1]
 
 
 -- Old version:

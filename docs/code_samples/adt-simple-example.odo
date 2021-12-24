@@ -8,7 +8,7 @@ def length(a: A #vec2) -> Float =
 
 def normalize(a: A #vec2) -> A =
     l = a.length
-    A(x = a.x / l, y = a.y / l)
+    A(x: a.x / l, y: a.y / l)
 
 def add(a: A #vec2, b: B #vec2) -> C #vec2 =
     C(a.x + b.x, a.y + b.y)
@@ -27,7 +27,7 @@ for Point:
     def add(self, other: O #vec2) -> Point = vec2'add(self, other)
     def zero = Point(0, 0)
 
-let test_Point =
+let test_Point() =
     assert Point has #vec2
     assert Point has #length
     assert Point has #add
@@ -63,11 +63,11 @@ for Circle:
     def area(self) -> Float =
         math'pi * self.radius * self.radius
 
-for Circle #movable:
+for Circle as #movable:
     def move-to!(mut self, destination: Point) =
         move-shape-to!(self, destination)
 
-for Circle #scalable:
+for Circle as #scalable:
     def scale-by!(mut self, factor: Float) =
         self.radius <- self.radius * factor
 

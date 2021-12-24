@@ -1,0 +1,99 @@
+def #setoid =
+    has equals(self, other: Self) -> Bool
+
+def #ord =
+    has lte(self, other: Self) -> Bool
+
+---
+
+def [T, U] #semigroupoid =
+    has compose(self, other: Self[U, A]) -> Self[T, A]
+
+def [_, _] #category =
+    has #semigroupoid
+    has id() -> Self[A, A]
+
+---
+
+def #semigroup =
+    has concat(self, other: Self) -> Self
+
+def #monoid =
+    has #semigroup
+    has empty() -> Self
+
+def #group =
+    has #monoid
+    has invert(self) -> Self
+
+---
+
+def [T] #filterable =
+    has filter(self, test: T -> Bool) -> Self[T]
+
+---
+
+def [T] #contravariant =
+    has contramap(self, operation: B -> A) -> Self[B]
+
+---
+
+def [T] #functor =
+    has map(self, operation: T -> A) -> Self[A]
+
+def [T] #apply =
+    has #functor
+    has ap(self, Self[T -> A]) -> Self[A]
+
+def [T] #applicative =
+    has #apply
+    has of(value: T) -> Self[T]
+
+def [T] #alt =
+    has #functor
+    has alt(self, other: Self[T]) -> Self[T]
+
+def [T] #plus =
+    has #alt
+    has zero() -> Self[T]
+
+def [T] #alternative =
+    has #applicative
+    has #plus
+
+def [T] #foldable =
+    has reduce(self, operation: (A, T) -> A, init: A) -> Self[A]
+
+def [T] #traversable =
+    has #functor
+    has #foldable
+    has traverse(self, operation: T -> A[B] #applicative) -> A[Self[B]]
+
+def [T] #chain =
+    has #apply
+    has chain(self, operation: T -> Self[A]) -> Self[A]
+
+def [T] #chain-rec =
+    has #chain
+    has chain-rec(operation: (A -> C, B -> C, A) -> Self[C], init: A) -> Self[B]
+        --what???
+
+def [T] #monad =
+    has #applicative
+    has #chain
+
+def [T] #extend =
+    has #functor
+    has extend(self, operation: Self[T] -> A) -> Self[A]
+
+def [T] #comonad =
+    has #extend
+    has extract(self) -> T
+
+def [T, U] #bifunctor =
+    has #functor
+    has bimap(self, operation-1: T -> A, operation-2: U -> B) -> Self[A, B]
+
+def [T, U] #profunctor =
+    has #functor
+    has promap(self, operation-1: A -> T, operation-2: U -> B) -> Self[A, B]
