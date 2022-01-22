@@ -15,13 +15,15 @@
 
 ## PEG Grammar
 
-    ID = [a-z][A-Za-z0-9!-]*
-    TYPEID = [A-Z][A-Za-z0-9!-]*
+    ID = [a-z][a-z0-9!_-]*
+    TYPEID = [A-Z][A-Za-z0-9!_-]*
+    TYPEVARID = [A-Z][A-Z0-9!_-]*
+    TRAITID = [#][a-z][a-z0-9_-]*
 
-    Program <- TopLevelDef*
+    Module <- TopLevelDef*
     TopLevelDef <- FuncDef / ConstDef
-    FuncDef <- (LET / DEF) ID LPAREN Parameter (COMMA Parameter)* RPAREN RARROW Type EQUAL ExprSequence END
-    Parameter <- MUT? ID COLON Type
+    FuncDef <- (LET / DEF) ID LPAREN Parameter (COMMA Parameter)* RPAREN RARROW TypeExpr EQUAL ExprSequence END
+    Parameter <- MUT? ID COLON TypeExpr
 
     Expr <- ControlExpr / SimpleExpr
     ExprSequence <- ((SeqOnlyExpr / ControlExpr / SimpleExpr) SEMICOLON?)+
@@ -38,6 +40,17 @@
     SimpleExpr <- AtomExpr (FuncCallTail / DotAccessTail)*
     FuncCallTail <- TupleExpr
     DotAccessTail <- DOT ID
-    AtomExpr <- ID / NUMBER / TupleExpr
+    AtomExpr <- Identifier / Literal / TupleExpr
     TupleExpr <- LPAREN Expr (COMMA Expr)* RPAREN
+    Identifier <- ID
+    Literal <- NUMBER
 
+
+    TypeExpr <- FuncType / TupleType / NamedType
+    FuncType <- TypeExpr RARROW TypeExpr
+    TupleType <- LPAREN TypeExpr (COMMA TypeExpr)* COMMA? RPAREN
+    NamedType <- TypeName TypeParams? TypeTraits?
+    TypeTraits <- TraitIdentifier+
+    TypeParams <- LBRACKET TypeExpr (COMMA TypeExpr)* COMMA? RBRACKET
+    TypeName <- TYPEID / TYPEVARID
+    TraitIdentifier <- TRAITID
