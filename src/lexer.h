@@ -3,8 +3,6 @@
 
 
 #include "global.h"
-#include "string.h"
-#include "array.h"
 #include "token.h"
 
 

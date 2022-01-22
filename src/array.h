@@ -1,6 +1,7 @@
 #ifndef ARRAY
 #define ARRAY
 
+
 #include <stdlib.h>
 #include "global.h"
 

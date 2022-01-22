@@ -1,8 +1,8 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+
 #include "global.h"
-#include "string.h"
 
 
 typedef enum TokenTag {

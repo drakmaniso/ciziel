@@ -6,6 +6,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "string.h"
+#include "array.h"
+
+
 void panic(char *msg);
 
 

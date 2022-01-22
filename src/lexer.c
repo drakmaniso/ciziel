@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include "global.h"
-#include "string.h"
-#include "array.h"
 #include "lexer.h"
 #include "token.h"
 
