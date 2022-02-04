@@ -68,15 +68,16 @@ let example-desugared!() =
 ----
 module main
 
-use /std/iter for Iterator
+use
+    std'iter for Iterator
 
-def foo(iterator: I #next, f: I.Item -> Int) -> Array[Int] =
-    let mut result: Array[Int]
+func foo(iterator: I#iterator, f: I.Item -> Int) -> Array[Int] =
+    result: mut []
     for elem in iterator do
         result.push!(f(elem))
-    return result
+    result
 
-def compare(first: I #next, second: J[Item = I.Item] #next) -> Bool =
+func compare(first: I#iterator, second: J[Item = I.Item]#iterator) -> Bool =
     mut first = first
     mut second = second
     repeat

@@ -1,13 +1,13 @@
 module main
 
-def main!(mut) =
+func main!() =
 	print!("Hello, World!")
 
 
 ------
 module main
 
-use /std/console: Console
+use std'console (Console)
 
-def main!(mut io: Console) =
+def main!(io: Console) -> () =
 	io.print!("Hello, World!")

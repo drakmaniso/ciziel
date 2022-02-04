@@ -5,22 +5,21 @@ use std'iter: #iterator, #asIterator
 
 
 union List[T] =
-    Empty | ref Node[T]
+    ref Node[T] | Empty
 
 
-ensure
+check
     List[#eq] is #eq
     List[_] is #functor
     List[_] is #iterable
 
 
-forall T #any
-struct Node[T] =
+struct Node[T #any] =
     item: T
     tail: List[T]
 
 
-ensure
+check
     Node[#eq] is #eq
     Node[_] is #functor #iterable
 
@@ -28,14 +27,14 @@ ensure
 struct Empty
 
 
-ensure
+check
     Empty is #eq #functor #iterable
 
 
-func List[T].new(...items: Array[T]) -> List[T] =
+method List[T]'new(...items: Array[T]) -> List[T] =
     items.fold-rev(
         Empty,
-        lambda(item, acc) => Node(item, acc)
+        func (item, acc) => Node(item, acc)
     )
 
 
@@ -91,10 +90,17 @@ func (Node[T]).map(f: T -> U) -> Node[U] =
 -- Iterator stuff
 
 
-alias List[T].Iterator = Iterator[T]
+alias Empty.Iterator = Iterator[_]
 
 
-func (List[T]).iter -> Iterator[T] =
+alias Node[T].Iterator = Iterator[T]
+
+
+func (Empty).iter -> Iterator[_] =
+    Iterator(Empty)
+
+
+func (Node[T]).iter -> Iterator[T] =
     Iterator(self)
 
 
@@ -102,7 +108,7 @@ struct Iterator[T] =
     current: List[T]
 
 
-ensure
+check
     Iterator[_] is #iterator
 
 

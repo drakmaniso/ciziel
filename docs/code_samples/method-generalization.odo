@@ -1,31 +1,29 @@
 module trivial-generalization
 
-def Pet = Cat | Dog
+union Pet = Cat | Dog
 
-def Cat(name: String)
-def Dog(name: String)
+struct Cat = name: String
+struct Dog = name: String
 
-for Cat:
-    def happy(self) -> String = "{self.name} purrs!"
-    def unhappy-with(self, intruder: String) -> String = "{self.name} hisses at {intruder}!"
+func (Cat).happy -> String = "{self.name} purrs!"
+func (Cat).unhappy-with(intruder: String) -> String = "{self.name} hisses at {intruder}!"
 
-for Dog:
-    def happy(self) -> String = "{self.name} wags their tail!"
-    def unhappy-with(self, intruder: String) -> String = "{self.name} barks at {intruder}!"
+func (Dog).happy -> String = "{self.name} wags their tail!"
+func (Dog).unhappy-with(intruder: String) -> String = "{self.name} barks at {intruder}!"
 
-let example! =
-    let mut pet: Cat | Dog
+func example!(io: sole Console) =
+    pet: mut Pet
 
     pet <- Cat("Spot")
-    print!(pet.happy)
+    io.print!(pet.happy)
     --> Spot purrs!
-    print!(pet.unhappy-with("owner"))
+    io.print!(pet.unhappy-with("owner"))
     --> Spot hisses at owner!
 
     pet <- Dog("Ash")
-    print!(pet.happy)
+    io.print!(pet.happy)
     --> Ash wags their tail!
-    print!(pet.unhappy-with("owner"))
+    io.print!(pet.unhappy-with("owner"))
     --> Ash hisses at owner!
 
 
@@ -33,16 +31,14 @@ let example! =
 -- through variables. In other words, it's impossible to call a static
 -- method directly on the name of a union type.
 
-for Cat:
-    def sounds: String = ["meow", "purr", "yowl", "hiss"]
+const Cat.sounds: String = ["meow", "purr", "yowl", "hiss"]
 
-for Dog:
-    def sounds: String = ["bark", "growl", "whimper", "howl"]
+const Dog.sounds: String = ["bark", "growl", "whimper", "howl"]
 
 -- This is the correct way to call a static method on a union:
-let example! =
+func example!(io: sole Console) =
     my-pet: Pet = Cat("Whiskers")
-    print!(my-pet.sounds)
+    io.print!(my-pet.sounds)
 
 -- But he following does not compile:
 --(
@@ -50,26 +46,30 @@ let incorrect_example =
     print!(Pet.sounds)
 )--
 
--- Instead, you can define the method on the union type directly. However
--- this prevents you to define the same method on the individual types.
-for Cat | Dog:
-    def petSounds: String = ["meow", "bark", ...]
-
 
 ------
 module simple-generalization
 
-def Foo
-def Bar
+union FooBar = Foo | Bar
+struct Foo
+struct Bar
 
-for Foo:
-    def generalized(self, x: Int) -> Int = 2 * x
-    def not-generalized(self, x: Int) -> Int = 3 * x
+-- Methods with the same parameter list are generalized
+-- (even if the return type is different)
 
+func (Foo).generalized(x: Int) -> Int =
+    2 * x
 
-for Bar:
-    def generalized(self, x: Int) -> String = "4 * {x}"
-    def not-generalized(self, x: String) -> Int = 5 * x.toInt
+func (Bar).generalized(x: Int) -> String =
+    "4 * {x}"
+
+-- Methods with different parameter list are *not* generalized
+
+func (Foo).not-generalized(x: Int) -> Int =
+    3 * x
+func (Bar).not-generalized(x: String) -> Int =
+    5 * x.toInt
+
 
 let example! =
     mut a: Foo | Bar

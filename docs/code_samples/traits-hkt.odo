@@ -1,49 +1,22 @@
-trait #functor =
-    func (Self[A]).fmap(transform: A -> B) -> Self[B]
+def [T] #functor =
+    has map(self, transform: T -> A) -> Self[A]
+    def replace(self, constant: A) -> Self[A] =
+        self.map(_ -> constant)
 
-    -- aka `replace` (with arguments swapped)?
-    func (B) <$ (functor: Self[B]) -> Self[A] =
-        functor.map(_ => self)
-    
-    func Self[_].lift(transform: A -> B) -> (Self[A] -> Self[B]) =
-        lambda(fa) => fa.map(transform)
+def [T] #applicative =
+    has #functor
+    -- `wrap` instead of `return`
+    has wrap(value: T) -> Self[T]
+    has apply(self, operation: Self[T -> A]) -> Self[A]
+    def and-then(self, other: Self[A]) -> Self[A] =
+        ...
+    def or-else(self, other: Self[A]) -> Self[T] =
+        ...
 
----
-
-trait #applicative =
-    #functor
-
-    -- aka `wrap`
-    func Self[A].pure(value: A) -> Self[A]
-
-    -- aka `apply`
-    func (Self[A -> B]) <*> (functor: Self[A]) -> Self[B]
-
-    -- aka `and-then`?
-    func (Self[A]) *> (other: Self[B]) -> Self[B] =
-        (identity <$ a) <*> b
-
-    -- aka `discard`? `when-also`?
-    func (Self[A]) <* (other: Self[B]) -> Self[A] =
-        const = lambda(x, _) => x
-        Self.lift-2(const)
-    
-    func Self[_].lift-2(f: (A, B) -> C) -> ((F[A], F[B]) -> F[C]) =
-        curried-f: A -> (B -> C) =
-            a -> (b -> f(a, b))
-        lambda(a, b) =>
-            Self.pure(curried-f) <*> Self.pure(a) <*> Self.pure(b)
-
----
-
-trait #monad =
-    #applicative
-    -- aka `chain`, `flat-map`, `bind`...
-    func (Self[A]) >>= (operation: A -> Self[B]) -> Self[B]
-
-    func (Self[A]) >> (other: Self[B]) -> Self[B] =
-        self >>= (_ => other)
-
+def [T] #monad =
+    has #applicative
+    -- `chain` instead of `flat-map` or `bind` 
+    has chain(self, operation: T -> Self[A]) -> Self[A]
     -- `merge` instead of `flatten` instead of `join`
     def merge(nested-monad: Self[Self[T]]) -> Self[T] =
         nested-monad.chain(identity)

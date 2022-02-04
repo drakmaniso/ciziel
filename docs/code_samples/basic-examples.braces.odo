@@ -1,0 +1,197 @@
+module main
+
+use /std/console: Console
+
+func main!(inout io: Console) {
+	number = 
+		loop {
+			io.print!("Please enter a number: \!")
+			if io.input!.to-int case Some(n) {
+				break n
+			}
+		}
+	
+	simple = factorial(number)
+	recursive = recursive-factorial(number)
+	tail = tail-factorial(number)
+	folded = folded-factorial(number)
+
+	io.print!("simple factorial: {simple}")
+	io.print!("recursive factorial: {recursive}")
+	io.print!("tail recursice factorial: {tail}")
+	io.print!("fold-based factorial: {folded}")
+}
+
+-- or:
+
+func main!(inout io: Console) {
+	func get-number!(mut io) {
+		io.print!("Please enter a number: \!")
+		match io.input!.to-int {
+		case Some(n):
+			n
+		else
+			get-number!(io)
+		}
+	}
+
+	number = get-number!(io)
+	simple = factorial(answer)
+	recursive = recursive-factorial(answer)
+	tail = tail-factorial(answer)
+	folded = folded-factorial(answer)
+
+	io.print!("simple factorial: {simple}")
+	io.print!("recursive factorial: {recursive}")
+	io.print!("tail recursice factorial: {tail}")
+	io.print!("fold-based factorial: {folded}")
+}
+
+
+func factorial(n: Int) -> Int {
+	mut f = 1
+	for i in (2 `up-to` n) {
+		f <- f * i
+	}
+	f
+}
+
+
+func recursive-factorial(n) {
+	if n <= 1 {
+		1
+	} else {
+		n * recursive-factorial(n - 1)
+	}
+}
+
+
+func tail-factorial(n: Int) -> Int {
+	func fact(n, accum) {
+		if n <= 1 {
+			accum
+		} else {
+			fact(n - 1, n * accum)
+		}
+	}
+
+	fact(n, 1)
+}
+
+
+func tail-factorial(n: Int) -> Int {
+	fact(n, 1)
+where
+	func fact(n, accum) {
+		if n <= 1 {
+			accum
+		} else {
+			fact(n - 1, n * accum)
+        }
+    }
+}
+
+
+func fold-factorial(n: Int) -> Int {
+	range(2, n + 1).fold(1) { i, accum => i * accum }
+}
+
+
+func fold-factorial(n: Int) -> Int {
+	range(2, n + 1).fold(1) {
+		i, accum =>
+        	i * accum
+	}
+}
+
+
+func fold-factorial(n: Int) -> Int {
+	range(2, n + 1).fold(1) \ i, accum { i * accum }
+}
+
+
+func fold-factorial(n: Int) -> Int {
+	range(2, n + 1).fold(1) \ i, accum {
+        i * accum
+	}
+}
+
+
+
+func generic-factorial(n: N #num #range) -> N {
+	mut f = N.one
+	for i in N.range(N.one, n + N.one) {
+		f <- f * i
+	}
+	f
+}
+
+
+func gcd(n: Int, m: Int) -> Int {
+	require n > 0
+	require m > 0
+	ensure result > 0
+
+	mut a = n
+	mut b = m
+	while b > 0 {
+		temp = a % b
+		a <- b
+		b <- temp
+	}
+	a
+}
+
+	
+func fibonacci(n: Int) -> Int {
+	require n > 0
+	ensure result > 0
+
+	mut a = 1
+	mut b = 1
+	for _ in range(2, n) {
+		temp = a + b
+		a <- b
+		b <- temp
+	}
+	b
+}
+
+
+func iterator-example!(mut io) {
+	my-pets = ["Spot", "Bella", "Bubbles"]
+
+	for pet in pets {
+		io.print!(pet)
+	}
+}
+
+
+func iterator-example-unsugared!(mut io) {
+	my-pets = ["Spot", "Bella", "Bubbles"]
+
+	i = my-pets.iterator
+	while i.next! case Some(pet) {
+		io.print!(pet)
+	}
+}
+
+
+func pipeline-example() {
+	my-array = [1, 2, 3, 4, 5, 6, 7]
+	my-array
+		.filter { n => n `mod` 2 == 0 }
+		.map { n => n * 2 }
+		.fold("") {
+			string, number =>
+				string ++ number.to-string
+		}
+		.map {
+			rune =>
+				if rune.is-letter {
+					rune.to-upper
+				} else {
+					"?".to-rune
+				}
+		}
+}

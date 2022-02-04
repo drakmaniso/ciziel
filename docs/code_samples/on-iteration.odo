@@ -1,0 +1,59 @@
+-- From https://www.informit.com/articles/printerfriendly/1407357
+
+trait #one-pass-range =
+    alias Self.Item
+    func (Self).empty -> Bool
+    func (Self).front -> Self.Item
+    func (Self).pop-front -> Self
+
+
+func find(range: R #one-pass-range, value: R.Item) -> R =
+    if range.empty or range.front == value then
+        range
+    else
+        find(range.pop-front, value)
+
+
+forall A #one-pass-range, B #one-pass-range #writable, A.Item == B.Item
+func copy(source: A #one-pass-range, target: B #one-pass-range[Item == A.Item]) -> B =
+    if source.empty or target.empty then
+        target
+    else
+        src = source.pop-front
+        tgt = target.pop-front.replace-front(source.front)
+        copy(src, tgt)
+
+
+trait #forward-range =
+    trait #one-pass-range
+    func (Self).save -> Self
+
+
+trait #double-ended-range =
+    trait #forward-range
+    func (Self).back -> Self.Item
+    func (Self).pop-back -> Self
+
+
+trait #random-access-range =
+    trait #forward-range
+    func (Self).at(index: Size) -> Self.Item
+    func (Self).slice(from: Size, to: Size) -> Self
+
+
+trait #length =
+    func (Self).length -> Size
+
+
+trait #is-infinite =
+    const Self.is-infinite: Bool
+
+
+trait #infinite =
+    trait #is-infinite
+    const Self.is-infinite: True
+
+
+trait #finite =
+    trait #is-infinite
+    const Self.is-infinite: False

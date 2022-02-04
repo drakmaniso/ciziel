@@ -10,20 +10,21 @@
 module main
 
 -- Constant definition
-let salute: String = "Hello!"
-let shorter = "Hi!" -- the type can be ommited
+const salute: String = "Hello!"
+const shorter = "Hi!" -- the type can be ommited
 
 -- Function definition
-let greetings(name: String) -> String =
+func greetings(name: String) -> String =
     "Hello, " ++ name ++ "!"
 
-let fibonacci(x: Int) -> Int =
+func fibonacci(x: Int) -> Int =
     if x < 2 then 1
     else fibonacci(x - 1) + fibonacci(x - 2)
 
 
 -- Type definition (records)
-let Dog(name: String)
+struct Dog =
+    name: String
 
 -- Type constructors
-let fido = Dog(name = "Fido")
+const fido = Dog(name: "Fido")

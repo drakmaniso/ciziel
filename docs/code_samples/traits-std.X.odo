@@ -1,0 +1,49 @@
+trait #any =
+    func type-info(Self) -> TypeInfo
+end
+
+trait #to-string =
+    func to-string(Self) -> String
+end
+
+trait #from-string =
+    func from-string(type Self, s: String) -> Self
+end
+
+------
+def #parse =
+    has parse(String) -> Self
+
+def #show =
+    has show(self) -> String
+
+def #format =
+    has format-length(self, format: Array[String]) -> USize
+    has format!(self, format: Array[String], mut buffer: String)
+
+---
+
+trait I #iterable =
+    func Iterator(type I) -> type #next
+    func iter(self: I) -> I.Iterator
+end
+
+
+trait I #iterator =
+    func Item(type I) -> type
+    func next!(self: mut I) -> Option[I.Item]
+end
+
+---
+
+trait F[_] #functor =
+    func map(self: F[T], transform: T -> U) -> F[U]
+end
+
+trait F[_] #foldable =
+    func fold(self: F[T], initial: U, operation: (U, T) -> U) -> U
+end
+
+def #unfold =
+    has Self[T]
+    has unfold(initial: A, operation: A -> Option[(T, A)]) -> Self[T]

@@ -19,12 +19,14 @@ ensure
 	Addition[#eval] is #eval
 
 
-func (Literal).eval -> Int =
-	self.value
+for Literal
+    func .eval -> Int =
+        self.value
 
 
-func (Addition[#eval]).eval -> Int =
-	self.left.eval + self.right.eval
+for Addittion[#eval]
+    func .eval -> Int =
+        self.left.eval + self.right.eval
 
 
 ------
@@ -48,24 +50,28 @@ ensure
 	Negation[#pretty] is #pretty
 
 
-func (Negation[#eval]).eval -> Int =
-	- self.subexpr.eval
+for Negation[#eval]
+    func .eval -> Int =
+        - self.subexpr.eval
 
 
-func (Literal).pretty -> String =
-	self.eval.as-string
+for Literal
+    func .pretty -> String =
+        self.eval.as-string
 
 
-func (Addition[#pretty]).pretty -> String =
-	"{self.left.pretty} + {self.right.pretty}"
+for Addition[#pretty]
+    func .pretty -> String =
+        "{self.left.pretty} + {self.right.pretty}"
 
 
-func (Negation[#pretty]).pretty -> String =
-	match self.subexpr
-	case e = Literal(...) then
-		"-{e.pretty}"
-	else
-		"- ({self.subexpr.pretty})"
+for Negation[#pretty]
+    func .pretty -> String =
+        match self.subexpr
+        case e = Literal(...) then
+            "-{e.pretty}"
+        else
+            "- ({self.subexpr.pretty})"
 
 
 ------

@@ -4,25 +4,24 @@ module std'list
 use std'iter: #iterator, #asIterator
 
 
-union List[T] =
-    Empty | ref Node[T]
+union List<T> =
+    ref Node<T> | Empty
 
 
 ensure
-    List[#eq] is #eq
-    List[_] is #functor
-    List[_] is #iterable
+    List<#eq> is #eq
+    List<_> is #functor
+    List<_> is #iterable
 
 
-forall T #any
-struct Node[T] =
+struct Node<T #any> =
     item: T
-    tail: List[T]
+    tail: List<T>
 
 
 ensure
-    Node[#eq] is #eq
-    Node[_] is #functor #iterable
+    Node<#eq> is #eq
+    Node<_> is #functor #iterable
 
 
 struct Empty
@@ -32,7 +31,7 @@ ensure
     Empty is #eq #functor #iterable
 
 
-func List[T].new(...items: Array[T]) -> List[T] =
+func List<T>.new(...items: Array<T>) -> List<T> =
     items.fold-rev(
         Empty,
         lambda(item, acc) => Node(item, acc)
@@ -43,30 +42,30 @@ func (Empty) == (other: Empty) -> Bool =
     True
 
 
-func (Empty) == (other: Node[_]) -> Bool =
+func (Empty) == (other: Node<_>) -> Bool =
     False
 
 
-func (Node[_]) == (other: Empty) -> Bool =
+func (Node<_>) == (other: Empty) -> Bool =
     False
 
 
-func (Node[T #eq]) == (other: Node[T]) -> Bool =
+func (Node<T #eq>) == (other: Node<T>) -> Bool =
     self.item == other.item and self.tail == other.tail
 
 
 -- Pushing and poping
 
     
-func (Node[T]).push(item: T) -> Node[T] =
+func (Node<T>).push(item: T) -> Node<T> =
     Node(item, self)
 
 
-func (Empty).push(item: T) -> Node[T] =
+func (Empty).push(item: T) -> Node<T> =
     Node(item, Empty)
 
 
-func (Node[T]).pop -> Some[T] =
+func (Node<T>).pop -> Some<T> =
     Some(self.item)
 
 
@@ -81,7 +80,7 @@ func (Empty).map(f: T -> U) -> Empty =
     Empty
 
 
-func (Node[T]).map(f: T -> U) -> Node[U] =
+func (Node<T>).map(f: T -> U) -> Node<U> =
     Node(
         item: f(self.item),
         tail: self.tail.map(f))
@@ -91,25 +90,25 @@ func (Node[T]).map(f: T -> U) -> Node[U] =
 -- Iterator stuff
 
 
-alias List[T].Iterator = Iterator[T]
+alias List<T>.Iterator = Iterator<T>
 
 
-func (List[T]).iter -> Iterator[T] =
+func (List<T>).iter -> Iterator<T> =
     Iterator(self)
 
 
-struct Iterator[T] =
-    current: List[T]
+struct Iterator<T> =
+    current: List<T>
 
 
 ensure
-    Iterator[_] is #iterator
+    Iterator<_> is #iterator
 
 
-alias Iterator[T].Item = T
+alias Iterator<T>.Item = T
 
 
-func (Iterator[T]).next -> (Iterator[T], Option[T]) =
+func (Iterator<T>).next -> (Iterator<T>, Option<T>) =
     match self.current
     case Empty then
         (self, None)
@@ -124,7 +123,7 @@ module std'list'test
 use std'list (List, Node, Empty)
 
 
-func double(list: List[Int]) -> List[Int] =
+func double(list: List<Int>) -> List<Int> =
     list.map(x => x * 2)
 
 
@@ -133,10 +132,10 @@ func main!(io: Console) =
     b = List.new(1, 2, 3)
 
     io.print!(a.type)
-    --> ListNode[Int] | EmptyList
+    --> ListNode<Int> | EmptyList
 
     io.print!(b.type)
-    --> ListNode[Int] | EmptyList
+    --> ListNode<Int> | EmptyList
 
     io.print!(a.map.type)
-    --> Func(ListNode[Int] | EmptyList, Int -> A) -> ListNode[A] | EmptyList
+    --> Func(ListNode<Int> | EmptyList, Int -> A) -> ListNode<A> | EmptyList

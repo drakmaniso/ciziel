@@ -1,27 +1,28 @@
-def #any =
-    has type-info: TypeInfo
+trait #any =
+    func Self.type-info: TypeInfo
 
-def #to-string =
-    has to-string(self) -> String
+trait #to-string =
+    func (Self).to-string -> String
 
-def #from-string =
-    has from-string(s: String) -> Self
+trait #from-string =
+    func Self.from-string(s: String) -> Self
 
 ------
+
 def #parse =
     has parse(String) -> Self
 
 def #show =
     has show(self) -> String
 
-def #format =
-    has format-length(self, format: Array[String]) -> USize
-    has format!(self, format: Array[String], mut buffer: String)
+trait #format =
+    func Self.format-size(format: Format) -> Size
+    func (Self).format(format: Format, buffer: String) -> String
 
 ---
-def #iter =
-    has Iterator #next
-    has iter(self) -> Self.Iterator
+trait #iter =
+    alias Self.Iterator #next
+    func (Self).iter -> Self.Iterator
 
 def #next =
     has Item

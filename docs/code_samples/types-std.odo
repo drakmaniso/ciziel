@@ -1,59 +1,72 @@
 def Nil
 
-def Bool = False | True
-def False
-def True
+union Bool = False | True
+struct False
+struct True
 
 --- The "maybe" monad
-def Option[T] = Some[T] | None
-def Some[T](item: T)
-def None
+union Option[T] = Some[T] | None
+struct Some[T] = item: T
+struct None
 
-for Option[T]:
-    def wrap(item: T) -> Option[T] =
-        Some(item)
-    
-    def map(self, f: Func[T -> U]) -> Some[U] =
-        match self
-        case Some(item) then
-            Some(f(item))
-        case None then
-            None
-    
-    def bind(self, f: Func[T -> Option[U]]) -> Option[U] =
-        match self
-        case Some(item) then
-            f(item)
-        case None then
-            None
+func (Some[T]).map(f: Func[T -> U]) -> Some[U] =
+    Some(f(self.item))
 
+func (None).map(f: Func[_ -> _]) -> None =
+    None
 
-------
-let Map[T #next, U](
-        iterator: T,
-        function: Func[T.Item -> U],
-    )
+func Some[T].wrap(item: T) -> Some[T] =
+    Some(item)
 
-for Map[T #next, U]:
-    def new(iterator: T, function: Func[T.Item -> U]) -> Map[T, U] =
-        Map(iterator, function)
+func None.wrap(item: T) -> Some[T] =
+    Some(item)
 
-for Map[T #next, U] as #next:
-    def Item = U
+func (Some[T]).chain(f: Func[T -> Option[U]]) -> Option[U] =
+    f(self.item)
 
-    def next!(self) -> Option[U] =
-        match self.iterator.next!
-        case None then None
-        case Some(item) then Some(self.function(item))
+func (None).chain(f: Func[_ -> Option[_]]) -> None =
+    None
 
-    def next!(self) -> Option[U] =
-        item = self.iterator.next!?
-        return self.function(item)
+---
+
+union Result[A, E #error] = Ok[A] | Error[E]
+struct Ok[A] = value: A
+struct Error[E #error] = error: E
+
+check Result[A, E] is #monad
+
+func Result[A, E].wrap(value: A) -> Result[A, E] =
+    Ok(value)
+
+func (Result[A, E]).chain(operation: A -> Result[A, E]) -> Result[A, E] =
+    match self
+    case Ok(value) then operation(value)
+    case e = Error(...) then e
 
 
+---
 
-------
-for Array[T]:
-    def fold(self, accum: A, function: Func[A, T -> A]) -> A = ...
+struct Map[T#iterator, U] =
+    iterator: T
+    function: Func[T.Item -> U]
+with
+    #iterator
 
-    def unfold(function: Func[A -> Option[(B, A)], first: A) -> Array[B] = ...
+func Map[T#iterator, U].new(iterator: T, function: Func[T.Item -> U]) -> Map[T, U] =
+    Map(iterator, function)
+
+alias Map[T#iterator, U].Item = U
+
+func (mut Map[T#iterator, U]).next! -> Option[U] =
+    match self.iterator.next!
+    case None then None
+    case Some(item) then Some(self.function(item))
+
+
+---
+
+func (Array[A]).fold(accum: B, function: Func(B, T) -> B]) -> B =
+    ...
+
+func Array[B].unfold(first: A, function: Func[A -> Option[(B, A)]) -> Array[B] =
+    ...

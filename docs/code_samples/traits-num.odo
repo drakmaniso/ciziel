@@ -3,37 +3,37 @@
 ----
 module /std/num
 
-def #num =
-    has #partial-eq
-    has #zero #add #sub
-    has #one #mul #div #rem
-    has from-string(str: String) -> Self | E #error
-    has from-string-radix(str: String, radix: UInt) -> Self | E #error
+trait #num =
+    trait #partial-eq
+    trait #zero #add #sub
+    trait #one #mul #div #rem
+    func Self.from-string(str: String) -> Result[Self, E #error]
+    func from-string-radix(str: String, radix: UInt) -> Self | E #error
 
-def #zero =
-    has #add
-    has zero: Self
-    has is-zero(self) -> Bool
-    has set-zero!(self)
+trait #zero =
+    trait #add
+    func zero: Self
+    func is-zero(self) -> Bool
+    func set-zero!(self)
 
-def #one =
-    has #mul
-    has one: Self
-    has is-one(self) -> Bool
-    has set-one!(self)
+trait #one =
+    trait #mul
+    func one: Self
+    func is-one(self) -> Bool
+    func set-one!(self)
 
 
-def #add =
-    has +(self, other: Self) -> Self
+trait #add =
+    func +(self, other: Self) -> Self
 
-def #sub =
-    has -(self, other: Self) -> Self
+trait #sub =
+    func -(self, other: Self) -> Self
 
-def #mul =
-    has *(other: Self) -> Self
+trait #mul =
+    func *(other: Self) -> Self
 
-def #div =
-    has /(other: Self) -> Self
+trait #div =
+    func /(other: Self) -> Self
 
-def #rem =
-    has %(other: Self) -> Self
+trait #rem =
+    func %(other: Self) -> Self

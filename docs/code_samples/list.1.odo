@@ -5,22 +5,21 @@ use std'iter: #iterator, #asIterator
 
 
 union List[T] =
-    Empty | ref Node[T]
+    ref Node[T] | Empty
 
 
-ensure
+check
     List[#eq] is #eq
     List[_] is #functor
     List[_] is #iterable
 
 
-forall T #any
-struct Node[T] =
+struct Node[T #any] =
     item: T
     tail: List[T]
 
 
-ensure
+check
     Node[#eq] is #eq
     Node[_] is #functor #iterable
 
@@ -28,60 +27,60 @@ ensure
 struct Empty
 
 
-ensure
+check
     Empty is #eq #functor #iterable
 
 
-func List[T].new(...items: Array[T]) -> List[T] =
+method List[T].new(...items: Array[T]) -> List[T] =
     items.fold-rev(
         Empty,
-        lambda(item, acc) => Node(item, acc)
+        func (item, acc) => Node(item, acc)
     )
 
 
-func (Empty) == (other: Empty) -> Bool =
+method (Empty) == (other: Empty) -> Bool =
     True
 
 
-func (Empty) == (other: Node[_]) -> Bool =
+method (Empty) == (other: Node[_]) -> Bool =
     False
 
 
-func (Node[_]) == (other: Empty) -> Bool =
+method (Node[_]) == (other: Empty) -> Bool =
     False
 
 
-func (Node[T #eq]) == (other: Node[T]) -> Bool =
+method (Node[T #eq]) == (other: Node[T]) -> Bool =
     self.item == other.item and self.tail == other.tail
 
 
 -- Pushing and poping
 
     
-func (Node[T]).push(item: T) -> Node[T] =
+method (Node[T]).push(item: T) -> Node[T] =
     Node(item, self)
 
 
-func (Empty).push(item: T) -> Node[T] =
+method (Empty).push(item: T) -> Node[T] =
     Node(item, Empty)
 
 
-func (Node[T]).pop -> Some[T] =
+method (Node[T]).pop -> Some[T] =
     Some(self.item)
 
 
-func (Empty).pop -> None =
+method (Empty).pop -> None =
     None
 
 
 -- Functor implementation
 
 
-func (Empty).map(f: T -> U) -> Empty =
+method (Empty).map(f: T -> U) -> Empty =
     Empty
 
 
-func (Node[T]).map(f: T -> U) -> Node[U] =
+method (Node[T]).map(f: T -> U) -> Node[U] =
     Node(
         item: f(self.item),
         tail: self.tail.map(f))
@@ -91,10 +90,17 @@ func (Node[T]).map(f: T -> U) -> Node[U] =
 -- Iterator stuff
 
 
-alias List[T].Iterator = Iterator[T]
+alias Empty.Iterator = Iterator[_]
 
 
-func (List[T]).iter -> Iterator[T] =
+alias Node[T].Iterator = Iterator[T]
+
+
+method (Empty).iter -> Iterator[_] =
+    Iterator(Empty)
+
+
+method (Node[T]).iter -> Iterator[T] =
     Iterator(self)
 
 
@@ -102,14 +108,14 @@ struct Iterator[T] =
     current: List[T]
 
 
-ensure
+check
     Iterator[_] is #iterator
 
 
 alias Iterator[T].Item = T
 
 
-func (Iterator[T]).next -> (Iterator[T], Option[T]) =
+method (Iterator[T]).next -> (Iterator[T], Option[T]) =
     match self.current
     case Empty then
         (self, None)

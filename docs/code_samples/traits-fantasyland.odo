@@ -1,99 +1,100 @@
-def #setoid =
-    has equals(self, other: Self) -> Bool
+trait #setoid =
+    func (Self).equals(other: Self) -> Bool
 
-def #ord =
-    has lte(self, other: Self) -> Bool
-
----
-
-def [T, U] #semigroupoid =
-    has compose(self, other: Self[U, A]) -> Self[T, A]
-
-def [_, _] #category =
-    has #semigroupoid
-    has id() -> Self[A, A]
+trait #ord =
+    trait #ord
+    func (Self).lte(other: Self) -> Bool
 
 ---
 
-def #semigroup =
-    has concat(self, other: Self) -> Self
+trait #semigroupoid =
+    func (Self[I, J]).compose(other: Self[J, K]) -> Self[I, K]
 
-def #monoid =
-    has #semigroup
-    has empty() -> Self
-
-def #group =
-    has #monoid
-    has invert(self) -> Self
+trait #category =
+    trait #semigroupoid
+    func Self[A, A].id() -> Self[A, A]
 
 ---
 
-def [T] #filterable =
-    has filter(self, test: T -> Bool) -> Self[T]
+trait #semigroup =
+    func (Self).concat(other: Self) -> Self
+
+trait #monoid =
+    trait #semigroup
+    func Self.empty() -> Self
+
+trait #group =
+    trait #monoid
+    func (Self).invert -> Self
 
 ---
 
-def [T] #contravariant =
-    has contramap(self, operation: B -> A) -> Self[B]
+trait #filterable =
+    func (Self[A]).filter(test: A -> Bool) -> Self[A]
 
 ---
 
-def [T] #functor =
-    has map(self, operation: T -> A) -> Self[A]
+trait #contravariant =
+    func (Self[A]).contramap(operation: B -> A) -> Self[B]
 
-def [T] #apply =
-    has #functor
-    has ap(self, Self[T -> A]) -> Self[A]
+---
 
-def [T] #applicative =
-    has #apply
-    has of(value: T) -> Self[T]
+trait #functor =
+    func (Self[A]).map(operation: A -> B) -> Self[B]
 
-def [T] #alt =
-    has #functor
-    has alt(self, other: Self[T]) -> Self[T]
+trait #apply =
+    trait #functor
+    func (Self[A]).ap(self, Self[A -> B]) -> Self[B]
 
-def [T] #plus =
-    has #alt
-    has zero() -> Self[T]
+trait #applicative =
+    trait #apply
+    func Self[A].of(value: A) -> Self[A]
 
-def [T] #alternative =
-    has #applicative
-    has #plus
+trait #alt =
+    trait #functor
+    func (Self[A]).alt(other: Self[A]) -> Self[A]
 
-def [T] #foldable =
-    has reduce(self, operation: (A, T) -> A, init: A) -> Self[A]
+trait #plus =
+    trait #alt
+    func Self[A].zero() -> Self[A]
 
-def [T] #traversable =
-    has #functor
-    has #foldable
-    has traverse(self, operation: T -> A[B] #applicative) -> A[Self[B]]
+trait #alternative =
+    trait #applicative
+    trait #plus
 
-def [T] #chain =
-    has #apply
-    has chain(self, operation: T -> Self[A]) -> Self[A]
+trait #foldable =
+    func (Self[A]).reduce(operation: (B, A) -> B, init: B) -> B
 
-def [T] #chain-rec =
-    has #chain
-    has chain-rec(operation: (A -> C, B -> C, A) -> Self[C], init: A) -> Self[B]
+trait #traversable =
+    trait #functor
+    trait #foldable
+    func (Self[A]).traverse(operation: A -> F[B] #applicative) -> F[Self[B]]
+
+trait #chain =
+    trait #apply
+    func (Self[A]).chain(operation: A -> Self[B]) -> Self[B]
+
+trait #chain-rec =
+    trait #chain
+    func Self[_].chain-rec(operation: (A -> C, B -> C, A) -> Self[C], init: A) -> Self[B]
         --what???
 
-def [T] #monad =
-    has #applicative
-    has #chain
+trait #monad =
+    trait #applicative
+    trait #chain
 
-def [T] #extend =
-    has #functor
-    has extend(self, operation: Self[T] -> A) -> Self[A]
+trait #extend =
+    trait #functor
+    func (Self[A]).extend(operation: Self[A] -> B) -> Self[B]
 
-def [T] #comonad =
-    has #extend
-    has extract(self) -> T
+trait #comonad =
+    trait #extend
+    func (Self[A]).extract -> A
 
-def [T, U] #bifunctor =
-    has #functor
-    has bimap(self, operation-1: T -> A, operation-2: U -> B) -> Self[A, B]
+trait #bifunctor =
+    trait #functor
+    func (Self[A, C]).bimap(operation-1: A -> B, operation-2: C -> D) -> Self[B, D]
 
-def [T, U] #profunctor =
-    has #functor
-    has promap(self, operation-1: A -> T, operation-2: U -> B) -> Self[A, B]
+trait #profunctor =
+    trait #functor
+    func (Self[B, C]).promap(operation-1: A -> B, operation-2: C -> D) -> Self[A, D]

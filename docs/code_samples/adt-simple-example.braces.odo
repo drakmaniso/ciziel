@@ -1,0 +1,264 @@
+module /std/vec2
+
+
+trait #vec2 {
+    struct Self {
+        x: Float
+        y: Float
+    }
+    -- func Self(x: Float, y: Float)
+    -- func (Self).x -> Float
+    -- func (Self).y -> Float
+    const Self.zero: Point
+    func (Self).length -> Float
+    func (Self).normalize -> Self
+    func (Self) + (other: #vec2) -> Self
+    func (Self) - (other: #vec2) -> Self
+    func (Self) * (other: Float) -> Self
+    func (Float) * (other: Self) -> Self
+}
+
+
+func length(vector: #vec2) -> Float {
+    math'sqrt((vector.x ^ 2) + (vector.y ^ 2))
+}
+
+
+func normalize(vector: A #vec2) -> A {
+    l = self.length
+    A(x: self.x / l, y: self.y / l)
+}
+
+
+func add(vector: A #vec2, other: B #vec2) -> A {
+    A(x: vector.x + other.x, y: vector.y + other.y)
+}
+
+
+func sub(vector: A #vec2) - (other: B #vec2) -> A {
+    A(x: vector.x - other.x, y: vector.y - other.y)
+}
+
+
+func mul(vector: A #vec2, scalar: Float) -> A {
+    A(x: vector.x * scalar, y: vector.y * scalar)
+}
+
+
+module geom
+
+
+struct Point {
+    x: Float
+    y: Float
+}
+
+
+ensure {
+    Point is #tuple
+    Point is #vec2
+}
+
+
+const Point.zero = Point(0, 0)
+
+
+func (Point).length -> Float {
+    vec2'length(self)
+}
+
+
+func (Point).normalize -> Point {
+    vec2'normalize(self)
+}
+
+
+func (Point) + (other: #vec2) -> Point {
+    vec2'add(self, other)
+}
+
+
+func (Point) - (other: #vec2) -> Point {
+    vec2'sub(self, other)
+}
+
+
+func (Point) * (other: Float) -> Point {
+    vec2'mul(self, other)
+}
+
+
+func (Float) * (other: Point) -> Point {
+    vec2'mul(other, self)
+}
+
+
+union Shape {
+    Circle | Square | Rectangle
+}
+
+
+ensure {
+    Shape is #movable
+    Shape is #scalable
+}
+
+
+trait #movable {
+    func (Self).move-to(destination: Point) -> Self
+}
+
+
+trait #scalable {
+    func (Self).scale-by(factor: Float) -> Self
+}
+
+
+trait #with-center {
+    struct Self {
+        center: Point
+        ...
+    }
+}
+
+
+func move-shape-to(shape: mut T #with-center, destination: Point) {
+    shape with (center: destination)
+}
+
+
+struct Circle {
+    center: Point
+    radius: Float
+}
+
+
+ensure {
+    Circle is #with-center
+    Circle is #movable
+    Circle is #scalable
+}
+
+
+func (Circle).diameter -> Float {
+    self.radius * 2
+}
+
+
+func (Circle).perimeter -> Float {
+    math'pi * self.diameter
+}
+
+
+func (Circle).area -> Float {
+    math'pi * self.radius * self.radius
+}
+
+
+func (Circle).move-to(destination: Point) -> Circle {
+    move-shape-to(self, destination)
+}
+
+
+func (Circle).scale-by(factor: Float) -> Circle {
+    self with (radius: self.radius * factor)
+}
+
+
+struct Square {
+    center: Point
+    side: Int
+}
+
+
+struct Rectangle {
+    center: Point
+    width: Int
+    height: Int
+}
+
+
+struct Polygon {
+    ...points: Array[Point]
+}
+
+
+------
+
+
+union Artist {
+    Person | Band
+}
+
+
+struct Person {
+    name: String
+}
+
+
+struct Band {
+    name: String
+}
+
+
+struct Album {
+    artist: Artist
+    title: String
+    release-date: Date
+    songs: Array[Song]
+}
+
+
+-------
+
+
+func (Foo).fn1(arg: String | Float) -> Bool { ... }
+func (Foo).fn2(arg: T #stringable) -> U #stringable #comparable { ... }
+
+
+func (Bar).fn1(arg: String | Int) -> Char { ... }
+func (Bar).fn2(arg: T #comparable) -> U #stringable #numeric { ... }
+
+
+-- implicitly:
+func (Foo | Bar).fn1(arg: String) -> Bool | Char { ... }
+func (Foo | Bar).fn2(arg: T #stringable #comparable) -> U #stringable #comparable | V #stringable #numeric { ... }
+
+
+-------
+
+struct PrivateFoo {
+    private-field: Int
+}
+
+---
+
+public
+struct TransparentFoo {
+    public-field: Int
+}
+
+---
+
+struct OpaqueFoo {
+    private-field: Int
+}
+
+
+public
+func OpaqueFoo.new(public-parameter: Float) -> OpaqueFoo {
+    OpaqueFoo(private-field: public-parameter.rounded)
+}
+
+---
+
+struct TranslucenFoo {
+    public public-field: Int
+    private-field: Int
+}
+
+
+public
+func TranslucentFoo.new(public-field: Int) -> TranslucentFoo {
+    TranslucentFoo(public-field: public-field, private-field: 0)
+}

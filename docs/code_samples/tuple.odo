@@ -4,15 +4,15 @@ module std'tuples
 -- first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth,
 -- eleventh, twelfth, thirteenth, ...
 
-def #pair =
-    #pairlike
-    has Self(first: Self.First, second: Self.Second)
+trait #pair =
+    #pair-like
+    func Self(first: Self.First, second: Self.Second)
 
-def #pairlike =
-    has First
-    has Second
-    has first(self) -> Self.First
-    has second(self) -> Self.Second
+trait #pair-like =
+    alias Self.First
+    alias Self.Second
+    func (Self).first -> Self.First
+    func (Self).second -> Self.Second
 
 def #triple = ...
 def #quadruple = ...

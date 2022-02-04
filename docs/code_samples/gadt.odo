@@ -1,35 +1,50 @@
 --- From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type)
 module gadt_example_1
 
-def Expr = Boolean | Integer | Equality | Addition
-def IntegerExpr = Integer | Addition
-def BooleanExpr = Boolean | Equality
+union Expr = Boolean | Integer | Equality | Addition
+union IntegerExpr = Integer | Addition
+union BooleanExpr = Boolean | Equality
 
-def Boolean(eval: Bool)
-def Integer(eval: Int)
-def Equality(left: IntegerExpr, right: IntegerExpr)
-def Addition(left: IntegerExpr, right: IntegerExpr)
+struct Boolean =
+    eval: Bool
 
+struct Integer = 
+    eval: Int
+
+struct Equality =
+    left: IntegerExpr
+    right: IntegerExpr
+
+struct Addition =
+    left: IntegerExpr
+    right: IntegerExpr
+
+func (Equality).eval -> Bool = self.left.eval == self.right.eval
+func (Addition).eval -> Int = self.left.eval + self.right.eval
 
 -------------------------------------------------------------------------------
 --- GADT example: phantom types
 --- From "Fun with phantom types" by R. Hinze
 module
 
-def TermInt = Zero | Succ | Pred | If[TermInt]
-def TermBool = IsZero | If[TermBool]
+union TermInt = Zero | Succ | Pred | If[TermInt]
+union TermBool = IsZero | If[TermBool]
 
-def Zero
-def Succ(arg: TermInt)
-def Pred(arg: TermInt)
-def IsZero(arg: TermInt)
-def If[T](condition: TermBool, thenBranch: T, elseBranch: T)
+struct Zero
+struct Succ = arg: TermInt
+struct Pred = arg: TermInt
+struct IsZero = arg: TermInt
+struct If[T] =
+    condition: TermBool
+    thenBranch: T
+    elseBranch: T
 
-for Zero: def eval(self) -> Int = 0
-for Succ: def eval(self) -> Int = self.arg.eval + 1
-for Pred: def eval(self) -> Int = self.arg.eval - 1
-for IsZero: def eval(self) -> Int = self.arg.eval == 0
-for If[T]: def eval(self) -> T =
+func (Zero).eval -> Int = 0
+func (Succ).eval -> Int = self.arg.eval + 1
+func (Pred).eval -> Int = self.arg.eval - 1
+func (IsZero).eval -> Int = self.arg.eval == 0
+
+func (If[T]).eval -> T =
     if self.condition.eval then
         self.thenBranch.eval
     else
@@ -41,29 +56,35 @@ for If[T]: def eval(self) -> T =
 --- From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
 module
 
-def Lift[T](eval: T)
+struct Lift[T] =
+    eval: T
 
-def Pair[T, U](first: T, second: U)
-for Pair[T, U]:
-    def eval(self) -> (T, U) =
-        (self.first.eval, self.second.eval)
+struct Pair[T, U] =
+    first: T
+    second: U
 
-def Lambda[T, U](function: Func[T -> U])
-for Lambda[T, U]:
-    def eval(self) -> Func[T -> U] =
-        x => self.function(Lift(x)).eval
+struct Lambda[T, U] =
+    function: Func[T -> U]
 
-def Apply[T, U](function: Lambda[T, U], argument: U)
-for Apply[T, U]:
-    def eval(self) -> U =
-        self.function.eval(self.argument.eval)
+struct Apply[T, U] =
+    function: Lambda[T, U]
+    argument: U
 
-def Fix[T](function: Lambda[T, T])
-for Fix[T]:
-    def eval(self) -> T =
-        self.function.eval(Fix(self.function).eval)
+struct Fix[T] =
+    function: Lambda[T, T]
 
+func (Pair[T, U]).eval -> (T, U) =
+    (self.first.eval, self.second.eval)
+    
+func (Lambda[T, U]).eval -> Func[T -> U] =
+    x => self.function(Lift(x)).eval
 
-let example!() =
+func (Apply[T, U]).eval -> U =
+    self.function.eval(self.argument.eval)
+
+func (Fix[T]).eval(self) -> T =
+    self.function.eval(Fix(self.function).eval)
+
+func example!(io: sole Console) =
     factorial = Fix(Lam(f => Lam(y => Lift(if y.eval == 0 then 1 else y.eval * f.eval(y.eval - 1)))))
-    print!(factorial.eval(10))
+    io.print!(factorial.eval(10))

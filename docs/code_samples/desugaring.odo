@@ -1,0 +1,19 @@
+--( Everything is a constant )--
+
+func (Foo[T#eq]).bar(a: Int) -> String =
+    ...
+
+-- becomes:
+
+const Foo.bar: Func[Foo[T#eq], Int, String] =
+    func(self, a) =>
+        ...
+
+
+--( Everything is a function )--
+
+const Foo[T#eq].bar: String = ...
+
+-- becomes:
+
+func bar[Foo[T#eq]]() -> String = ...

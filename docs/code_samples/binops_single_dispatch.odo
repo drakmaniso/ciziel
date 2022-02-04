@@ -1,28 +1,38 @@
 ------
 module std'ops
 
-def #add =
-    def RightHand = Self
-    def Output = Self
-    has +(self, other: RightHand) -> Output
 
-def #mul =
-    def RightHand = Self
-    def Output = Self
-    has +(self, other: RightHand) -> Output
+trait #add =
+    alias Self.RightHand = Self
+    alias Self.Output = Self
+    func (Self) + (other: Self.RightHand) -> Self.Output
+
+
+trait #mul =
+    alias Self.RightHand = Self
+    alias Self.Output = Self
+    func (Self) * (other: Self.RightHand) -> Self.Output
+
 
 ------
 module vec
 
 use std'ops for #add, #mul
 
-def Vec2(x: Float, y: Float)
 
-for Vec2 #add:
-    def +(self, other: Vector) -> Vec2 =
-        Vec2(self.x + other.x, self.y + other.y)
+struct Vec2 =
+    x: Float
+    y: Float
+with
+    #add, #mul
 
-for Vec2 #mul:
-    def RightHand = Float
-    def *(self, other: Float) -> Vec2 =
-        Vec2(self.x * other, self.y * other)
+
+func (Vec2) + (other: Vector) -> Vec2 =
+    Vec2(self.x + other.x, self.y + other.y)
+
+
+alias Vec2#mul.RightHand = Float
+
+
+func (Self) * (other: Float) -> Vec2 =
+    Vec2(self.x * other, self.y * other)

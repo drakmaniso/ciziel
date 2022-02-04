@@ -1,12 +1,20 @@
 ----
 module std'operators
 
+
 use std'tuples for #pair
 
-def #add =
-    #pair
-    has AddResult
-    has +(self): Self.AddResult
+
+trait #add =
+    trait #pair
+    alias Self.AddOutput
+    has (Self).add -> Self.AddOutput
+
+
+trait #add =
+    trait #pair
+    alias Self.MulOutput
+    has (Self).add -> Self.MulOutput
 
 
 ----
@@ -14,47 +22,37 @@ module vec
 
 use std'operators for #add
 
-def Vec2(x: Float, y: Float)
 
-for (Vec2, Vec2):
-    def AddResult = Vec2
-    def add(self): Vec2 =
-        Vec2(
-            x: self.first.x + self.second.x,
-            y: self.first.y + self.second.y,
-        )
-
-for (Vec2, Float):
-    def MulResult = Vec2
-    def mul(self): Vec2 =>
-        Vec2(
-            x: self.first.x * self.second,
-            y: self.first.y * self.second,
-        )
+struct Vec2 =
+    x: Float
+    y: Float
 
 
-----
-module std'ops
-
-def #add =
-    def RightHand = Self
-    def Output = Self
-    has +(self, other: RightHand) -> Output
+alias Tuple[Vec2, Vec2].AddResult = Vec2
 
 
-module vec
+func (Tuple[Vec2, Vec2]).add =
+    Vec2(
+        x: self.first.x + self.second.x,
+        y: self.first.y + self.second.y,
+    )
 
-def Vec2(x: Float32, y: Float32)
 
-def #times =
-    has `times`(self, other: Vec2) -> Vec2
+alias Tuple[Vec2, Float]#mul.Output = Vec2
 
-for Float32:
-    def `times`(self, other: Vec2) -> Vec2 =
-        Vec2(self * other.x, self * other.y)
 
-for Vec2:
-    def *(self, other: Float32) -> Vec32 =
-        Vec2(self.x * other, self.y * other)
+func (Tuple[Vec2, Floar]).mul -> Vec2 =
+    Vec2(
+        x: self.first.x * self.second,
+        y: self.first.y * self.second,
+    )
 
-    def `times`
+
+alias Tuple[Float, Vec2]#mul.Output = Vec2
+
+
+func (Tuple[Vec2, Floar]).mul -> Vec2 =
+    Vec2(
+        x: self.first * self.second.x,
+        y: self.first * self.second.y,
+    )
