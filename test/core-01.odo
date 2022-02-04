@@ -1,0 +1,4 @@
+const main =
+    lambda() =>
+        42;
+    end

@@ -109,7 +109,7 @@ TokenTag scan(Lexer *self) {
 			return scan_type_id(self);
 		}
 
-		if (is_lowercase(r)) {
+		if (is_lowercase(r) || r == '_') {
 			return scan_id(self);
 		}
 
@@ -146,22 +146,16 @@ TokenTag scan_id(Lexer *self) {
 		backtrack(self);
 
 		String text = str_slice(self->input, self->start, self->pos);
-		if (str_is(text, "let")) {
-			return token_Let;
-		} else if (str_is(text, "def")) {
-			return token_Def;
-		} else if (str_is(text, "mut")) {
-			return token_Mut;
+		if (str_is(text, "const")) {
+			return token_Const;
+		} else if (str_is(text, "lambda")) {
+			return token_Lambda;
 		} else if (str_is(text, "if")) {
 			return token_If;
 		} else if (str_is(text, "then")) {
 			return token_Then;
 		} else if (str_is(text, "else")) {
 			return token_Else;
-		} else if (str_is(text, "while")) {
-			return token_Do;
-		} else if (str_is(text, "do")) {
-			return token_Do;
 		} else if (str_is(text, "end")) {
 			return token_End;
 		}
@@ -192,6 +186,8 @@ TokenTag scan_operator(Lexer *self) {
 
 	if (str_is(str_slice(self->input, self->start, self->pos), "=")) {
 		return token_Equal;
+	} else if (str_is(str_slice(self->input, self->start, self->pos), "=>")) {
+		return token_DoubleArrow;
 	} else if (str_is(str_slice(self->input, self->start, self->pos), "->")) {
 		return token_RightArrow;
 	} else if (str_is(str_slice(self->input, self->start, self->pos), "<-")) {

@@ -14,14 +14,11 @@ Token token_new(size_t pos, String value, TokenTag tag) {
 
 void token_print(Token self) {
 	switch (self.tag) {
-		case token_Let: printf("LET"); break;
-		case token_Def: printf("DEF"); break;
-		case token_Mut: printf("MUT"); break;
+		case token_Const: printf("CONST"); break;
+		case token_Lambda: printf("LAMBDA"); break;
 		case token_If: printf("IF"); break;
 		case token_Then: printf("THEN"); break;
 		case token_Else: printf("ELSE"); break;
-		case token_While: printf("WHILE"); break;
-		case token_Do: printf("DO"); break;
 		case token_End: printf("END"); break;
 
 		case token_Number: printf("NUM"); break;
@@ -31,6 +28,7 @@ void token_print(Token self) {
 		// Operators
 
 		case token_Equal: printf("EQUAL"); break;
+		case token_DoubleArrow: printf("DBARROW"); break;
 		case token_RightArrow: printf("RARROW"); break;
 		case token_LeftArrow: printf("LARROW"); break;
 
