@@ -2,23 +2,31 @@
 
 ## Keywords
 
-    module
-    let def
-    mut
-    if then else while do
-    return
-    end
+    module use
+    public forall
+    unique struct trait alias
+    const func where
+    match case if then else
+
+    and or not
 
 ## Operators
 
-    -> = <-
+    -> =>
+    = :=
+    |
+    + - * /
+
 
 ## PEG Grammar
 
-    ID = [a-z][a-z0-9!_-]*
-    TYPEID = [A-Z][A-Za-z0-9!_-]*
-    TYPEVARID = [A-Z][A-Z0-9!_-]*
-    TRAITID = [#][a-z][a-z0-9_-]*
+(Out of date)
+
+    ID = [a-z][a-z0-9-]*
+    TYPEID = [A-Z][A-Za-z0-9-]*
+    TYPEVARID = [A-Z][A-Z0-9-]*
+    SOURCEVARID = [&][a-z0-9-]*
+    TRAITID = [#][a-z][a-z0-9-]*
 
     Module <- TopLevelDef*
     TopLevelDef <- FuncDef / ConstDef
@@ -54,3 +62,8 @@
     TypeParams <- LBRACKET TypeExpr (COMMA TypeExpr)* COMMA? RBRACKET
     TypeName <- TYPEID / TYPEVARID
     TraitIdentifier <- TRAITID
+
+
+
+---
+[Back to index](index.md)
