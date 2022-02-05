@@ -21,4 +21,4 @@ The project is still in the design phase, nothing is implemented.
 
 [Index](docs/index.md)
 
-[Code samples](docs/code-samples/)
+[Code samples](docs/code-samples/index.md)
