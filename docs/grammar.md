@@ -6,6 +6,7 @@
     public forall
     unique struct trait alias
     const func where
+    require ensure
     match case if then else
 
     and or not

@@ -6,6 +6,7 @@ to maintain, and have predictable performance.
 
 - [Goals](goals.md)
 - [Characteristics](characteristics.md)
+- [Ownership system](ownership-system.md)
 - [Code samples](code-samples/index.md)
 - [Grammar](grammar.md)
 - [About the name](about-the-name.md)
