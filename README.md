@@ -11,14 +11,10 @@ The project is still in the design phase, nothing is implemented.
 
 ## Motivation
 
-- Functional programming, but using arrays as the main collection type (instead
+- Functional programming, but closer to the hardware (with strict evaluation,
+  type-classes, unboxed values and arrays as the main collection type, instead
   of linked lists).
-- An ownership system like Rust, but without the hyper-focus on performance (and
-  all the complexity that come with it).
+- An ownership system similar to Rust, but without the focus on zero-cost
+  abstractions (and all the complexity that come with it).
 
-
-## Documentation
-
-[Index](docs/index.md)
-
-[Code samples](docs/code-samples/index.md)
+If you're curious, you can read more details about the project in the [documentation](docs/index.md).

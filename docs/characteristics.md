@@ -8,13 +8,14 @@ With local (global?) type inference.
 ## Ownership type system
 
 Very similar to Rust, with one important difference: borrowing does not create a
-reference.
+reference. You can read a description of the ownership system
+[here](ownership-system.md).
 
 
 ## Functional but in place
 
-Thanks to the ownership system, the programmer can always know when a
-"functional update" will be made in-place.
+Thanks to the ownership system, we can always know when a "functional update"
+will be made in-place (i.e. without copy).
 
 
 ## Arrays as the main collection type
