@@ -4,7 +4,7 @@ The desire to design a new programming language came from my frustration with
 two existing languages, Rust and Haskell, and the realisation that each of these
 frustrations was actually the solution to the other.
 
-## I want Rust, but simpler
+## Rust, but simpler
 
 Rust is a beautiful language. But because it is laser-focused on performance and
 system programming, it has a lot of complexity. And no, I am not talking about
@@ -26,7 +26,7 @@ Rust, because its goals. But what if you don't share most of these goals, but
 still wanted automatic memory management through ownership?
 
 
-## I want Haskell, but closer to the hardware
+## Haskell, but closer to the hardware
 
 Haskell is also a really beautiful language. But it is also a very high-level
 language, detached from how computers actually work. And no, I am not talking about the absence of mutation, the use of monads or the higher-kinded type-classes: those are great!
