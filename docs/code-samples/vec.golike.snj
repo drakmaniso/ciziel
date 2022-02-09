@@ -2,53 +2,52 @@ module vec
 
 
 trait #vector =
-    alias Self.Scalar #num
-    const Self.zero: Self
-    func (Self).length -> Self.Scalar
-    func (Self).normalize -> Self
-    func (Self) + (other: Self) -> Self
-    func (Self) - (other: Self) -> Self
-    func (Self) * (other: Self.Scalar) -> Self
+    Self.Scalar #num
+    Self.zero: Self
+    (Self).length -> Self.Scalar
+    (Self).normalize -> Self
+    (Self) + (other: Self) -> Self
+    (Self) - (other: Self) -> Self
+    (Self) * (other: Self.Scalar) -> Self
     -- If operators have double-dispatch:
-    -- func (Self.Scalar) * (other: Self) -> Self
+    -- (Self.Scalar) * (other: Self) -> Self
 
 
 trait #vec2 =
-    trait #vector
-    struct Self =
-        x: Self.Scalar
-        y: Self.Scalar
+    #vector
+    Self(x: Self.Scalar, y: Self.Scalar)
 
 
 trait #vec3 =
-    trait #vector
-    struct Self =
-        x: Self.Scalar
-        y: Self.Scalar
-        z: Self.Scalar
+    #vector
+    Self(x: Self.Scalar, y: Self.Scalar, z: Self.Scalar)
 
 
 -- Generic Implementation -----------------------------------------------------
 
 
-func length(vector: #vec2) -> Float =
+func vec2-length(vector: #vec2) -> Float =
     math'sqrt((vector.x ^ 2) + (vector.y ^ 2))
 
 
-func normalize(vector: V #vec2) -> V =
+forall V #vec2
+func vec2-normalize(vector: V) -> V =
     l = length(vector)
     V(x: vector.x / l, y: vector.y / l)
 
 
-func add(vector: V #vec2, other: U #vec2) -> V =
+forall V #vec2
+func vec2-add(vector: V, other: V) -> V =
     V(x: vector.x + other.x, y: vector.y + other.y)
 
 
-func sub(vector: V #vec2) - (other: U #vec2) -> V =
+forall V #vec2
+func vec2-sub(vector: V) - (other: V) -> V =
     V(x: vector.x - other.x, y: vector.y - other.y)
 
 
-func mul(vector: V #vec2, scalar: Float) -> V =
+forall V #vec2
+func vec2-mul(vector: V, scalar: Float) -> V =
     V(x: vector.x * scalar, y: vector.y * scalar)
 
 
@@ -59,8 +58,7 @@ struct Vec2 =
     x: Float32
     y: Float32
 
-ensure
-    Vec2 is #vec2
+ensure Vec2 is #vec2
 
 alias Vec2.Scalar = Float32
 
@@ -111,3 +109,34 @@ func (IVec2) * (other: Int32) -> IVec2 =
 -- If operators have double-dispatch:
 -- func (Int32) * (other: IVec2) -> IVec2 =
 --     other * self
+
+
+struct Point =
+    x: Float32
+    y: Float32
+
+ensure Point is #tuple
+ensure Point is #vec2
+
+alias Point.Scalar = Float32
+
+const Point.zero = Point(0, 0)
+
+func (Point).length -> Float32 =
+    length(self)
+
+func (Point).normalize -> Point =
+    normalize(self)
+
+func (Point) + (other: Point) -> Point =
+    add(self, other)
+
+func (Point) - (other: Point) -> Point =
+    sub(self, other)
+
+func (Point) * (other: Float32) -> Point =
+    mul(self, other)
+
+-- If operators have double-dispatch:
+-- func (Float32) * (other: Point) -> Point =
+--     vec'mul(other, self)

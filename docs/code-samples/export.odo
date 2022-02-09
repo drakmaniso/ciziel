@@ -1,0 +1,36 @@
+-- Private structs are completely inaccessible outside the module. They cannot be
+-- used as argument or return type by any of the public functions of the module.
+private
+
+struct Private =
+    private-field: Int
+
+
+-- Public structs can be freely constructed outside the module, deconstructed in a match,
+-- and their fields are all accessible.
+public (*)
+
+struct Transparent =
+    public public-field: Int
+
+
+-- Public structs can mark some or all of their fields as private. They can be
+-- stored in variables outside the module, but their constructor and their private
+-- fields are not accessible, and they cannot be deconstructed in a match.
+public (*)
+
+struct Opaque =
+    private-field: Int
+
+func Opaque.new(public-parameter: Float32) -> Opaque =
+    Opaque(private-field: public-parameter.rounded)
+
+
+public (*)
+
+struct Semi-Opaque =
+    public public-field: Int
+    private-field: Int
+
+func Semi-Opaque.new(public-field: Int) -> Semi-Opaque =
+    Semi-Opaque(public-field: public-field, private-field: 0)

@@ -1,0 +1,24 @@
+struct Vector =
+    x: Float
+    y: Float
+
+-- Functions with type arguments:
+
+func dimensions(type Vector) -> static Int = 2
+
+func zero(type Vector) -> static Vector = Vector(0, 0)
+
+-- A type function (i.e. a function where all the arguments
+-- and the return type are static):
+
+func Scalar(type Vector) -> type #num = Float
+
+
+
+-- desugaring
+
+const dimensions = lambda(static _: TypeWitness[Vector]) -> static Int = 2
+
+const zero = lambda(static _: TypeWitness[Vector]) -> static Vector = Vector(0, 0)
+
+const Scalar = lambda(static _: TypeWitness[Vector]) -> static Type = Float

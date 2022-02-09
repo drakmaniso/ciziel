@@ -1,0 +1,68 @@
+module geom
+
+use std'vec (Point)
+
+public
+
+
+union Shape =
+    Circle | Square | Rectangle
+
+
+trait #movable =
+    move-to(shape: Self, destination: Point) -> Self
+
+
+trait #scalable =
+    scale-by(shape: Self, factor: Float32) -> Self
+
+
+trait #with-center =
+    Self(center: Point, ...)
+
+
+forall T #with-center
+func move-to(shape: T, destination: Point) -> T =
+    shape.with(center: destination)
+
+
+struct Circle =
+    center: Point
+    radius: Float32
+    implement #with-center
+    implement #movable
+    implement #scalable
+
+
+func diameter(circle: Circle) -> Float32 =
+    circle.radius * 2
+
+
+func perimeter(shape: Circle) -> Float32 =
+    math'pi * shape.diameter
+
+
+func area(shape: Circle) -> Float32 =
+    math'pi * (shape.radius ** 2)
+
+
+-- `move-by` for `Circle` is implemented by the generic function
+
+
+func scale-by(shape: Circle, factor: Float32) -> Circle =
+    self.with(radius: self.radius * factor)
+
+
+struct Square =
+    center: Point
+    side: Int
+
+
+struct Rectangle =
+    center: Point
+    width: Int
+    height: Int
+
+
+struct Polygon =
+    ...points: Array[Point]

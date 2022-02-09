@@ -1,7 +1,0 @@
-def #graph =
-    has Node
-    has Edge
-    has has-edge(self, Node, Node) -> Bool
-    ...
-
-

@@ -1,35 +1,36 @@
 module lexer
 
 
-let Lexer{
-        filepath: String,
-        input: String,
-        start: UInt,
-        pos: UInt,
-    }
+struct Lexer =
+    filepath: String
+    input: String
+    start: Size
+    pos: Size
 
-def new-lexer(filepath: String, input: String) -> Lexer =
-    Lexer{
-        filepath,
-        input,
-        start = 0,
-        pos = 0,
-    }
+func new-lexer(filepath: String, input: String) -> Lexer =
+    Lexer(
+        :filepath,
+        :input,
+        start: 0,
+        pos: 0,
+    )
 
-def lexer-run!(mut self: Lexer) =
-    self.start <- 0
-    self.pos <- 0
-
-    mut tag: TokenTag = scan!(self)
-    while tag =/= token'EndOfFile do
-        token = Token{
-            value = str-slice(self.input, self.start, self.pos)
-            tag,
-            pos = self.start,
-        }
-        self.start <- self.pos
-        token'print(token)
-        tag = scan(self)
+func lexer-run(lexer: Lexer) -> =
+    (lexer, tag) := scan(lexer)
+    if tag == token'EndOfFile then
+        lexer
+    else
+        lexer-run(
+            lexer.with(
+                token:
+                    Token(
+                        value: str-slice(lexer.input, lexer.start, lexer.pos),
+                        tag: tag,
+                        pos: lexer.start,
+                    ),
+                start: lexer.pos,
+            )
+        )
 
 let next!(mut self: Lexer) -> Option[Char] =
     result = self.input[self.pos]

@@ -1,3 +1,20 @@
+
+func (Foo).fn1(arg: String | Float32) -> Bool = ...
+func (Foo).fn2(arg: T #stringable) -> U #stringable #comparable = ...
+
+
+func (Bar).fn1(arg: String | Int) -> Char = ...
+func (Bar).fn2(arg: T #comparable) -> U #stringable #numeric = ...
+
+
+-- implicitly:
+func (Foo | Bar).fn1(arg: String) -> Bool | Char = ...
+func (Foo | Bar).fn2(arg: T #stringable #comparable) -> U #stringable #comparable | V #stringable #numeric = ...
+
+
+-------------------------------------------------------------------------------
+
+
 module trivial-generalization
 
 union Pet = Cat | Dog

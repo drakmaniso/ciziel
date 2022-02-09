@@ -1,26 +1,31 @@
 --- From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type)
 module gadt_example_1
 
-union Expr = Boolean | Integer | Equality | Addition
-union IntegerExpr = Integer | Addition
-union BooleanExpr = Boolean | Equality
+union Expr = EBool | EInt | Equality | Addition
+union IntegerExpr = EInt | Addition
+union BooleanExpr = EBool | Equality
 
-struct Boolean =
+struct EBool =
     eval: Bool
 
-struct Integer = 
+struct EInt = 
     eval: Int
 
 struct Equality =
-    left: IntegerExpr
-    right: IntegerExpr
+    left: EInt
+    right: EInt
 
 struct Addition =
-    left: IntegerExpr
-    right: IntegerExpr
+    left: EInt
+    right: EInt
 
-func (Equality).eval -> Bool = self.left.eval == self.right.eval
-func (Addition).eval -> Int = self.left.eval + self.right.eval
+func eval(expr: Equality) -> Bool = self.left.eval == self.right.eval
+func eval(expr: Addition) -> Int = self.left.eval + self.right.eval
+
+trait #eval =
+    Output(type Self) -> type #eval
+    eval(expr: Self) -> Self.Output
+
 
 -------------------------------------------------------------------------------
 --- GADT example: phantom types
@@ -39,12 +44,12 @@ struct If[T] =
     thenBranch: T
     elseBranch: T
 
-func (Zero).eval -> Int = 0
-func (Succ).eval -> Int = self.arg.eval + 1
-func (Pred).eval -> Int = self.arg.eval - 1
-func (IsZero).eval -> Int = self.arg.eval == 0
+func eval(expr: Zero) -> Int = 0
+func eval(expr: Succ) -> Int = self.arg.eval + 1
+func eval(expr: Pred) -> Int = self.arg.eval - 1
+func eval(expr: IsZero) -> Int = self.arg.eval == 0
 
-func (If[T]).eval -> T =
+func eval(expr: If[T]) -> T =
     if self.condition.eval then
         self.thenBranch.eval
     else
@@ -73,18 +78,18 @@ struct Apply[T, U] =
 struct Fix[T] =
     function: Lambda[T, T]
 
-func (Pair[T, U]).eval -> (T, U) =
+func eval(expr: Pair[T, U]) -> (T, U) =
     (self.first.eval, self.second.eval)
     
-func (Lambda[T, U]).eval -> Func[T -> U] =
+func eval(expr: Lambda[T, U]) -> Func[T -> U] =
     x => self.function(Lift(x)).eval
 
-func (Apply[T, U]).eval -> U =
+func eval(expr: Apply[T, U]) -> U =
     self.function.eval(self.argument.eval)
 
-func (Fix[T]).eval(self) -> T =
+func eval(expr: Fix[T]) -> T =
     self.function.eval(Fix(self.function).eval)
 
-func example!(io: sole Console) =
-    factorial = Fix(Lam(f => Lam(y => Lift(if y.eval == 0 then 1 else y.eval * f.eval(y.eval - 1)))))
-    io.print!(factorial.eval(10))
+func example() =
+    factorial = Fix(Lambda(f => Lambda(y => Lift(if y.eval == 0 then 1 else y.eval * f.eval(y.eval - 1)))))
+    io'print(factorial.eval(10))

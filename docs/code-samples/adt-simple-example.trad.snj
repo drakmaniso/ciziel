@@ -1,0 +1,113 @@
+module geom
+
+
+use std'vec (#vec2)
+
+
+struct Point =
+    x: Float32
+    y: Float32
+
+
+ensure Point is #tuple
+ensure Point is #vec2
+
+
+alias Scalar Point = Float32
+
+
+func zero Point = Point(0, 0)
+
+
+func length (vector: Point) -> Float32 =
+    vec'length vector
+
+
+func normalize (vector: Point) -> Point =
+    vec'normalize vector
+
+
+func (+) (self: Point) (other: #vec2) -> Point =
+    vec'add vector other
+
+
+func (+) (self: Point) (other: #vec2) -> Point =
+    vec'sub vector other
+
+
+func (*) (self: Point) (other: Float32) -> Point =
+    vec'mul vector other
+
+
+func (*) (Float32) (other: Point) -> Point =
+    vec'mul other vector
+
+
+union Shape =
+    Circle | Square | Rectangle
+
+
+ensure Shape is #movable
+ensure Shape is #scalable
+
+
+trait Movable(T) =
+    move-to (shape: T) (destination: Point) -> T
+
+
+trait Scalable(T) =
+    scale-by (shape: T) (factor: Float32) -> Self
+
+
+trait With-Center(T) =
+    (shape: T) with (center: Point)
+
+
+forall T #with-center
+func move-shape-to (shape: T) (destination: Point) -> T =
+    shape with (center: destination)
+
+
+struct Circle =
+    center: Point
+    radius: Float32
+
+
+ensure Circle is #with-center
+ensure Circle is #movable
+ensure Circle is #scalable
+
+
+func diameter (circle: Circle) -> Float32 =
+    circle.radius * 2
+
+
+func perimeter (circle: Circle) -> Float32 =
+    math'pi * circle.diameter
+
+
+func area: (circle: Circle) -> Float32 =
+    math'pi * (circle.radius ** 2)
+
+
+func move-to (circle: Circle) (destination: Point) -> Circle =
+    move-shape-to self destination
+
+
+func scale-by (circle: Circle) (factor: Float32) -> Circle =
+    self with (radius: self.radius * factor)
+
+
+struct Square =
+    center: Point
+    side: Int
+
+
+struct Rectangle =
+    center: Point
+    width: Int
+    height: Int
+
+
+struct Polygon =
+    ...points: Array[Point]

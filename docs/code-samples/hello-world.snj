@@ -1,0 +1,6 @@
+module main
+
+use std'io (Io)
+
+func main() -> Io[()] =
+	io'print("Hello, World!")

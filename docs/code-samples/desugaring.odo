@@ -1,3 +1,18 @@
+func gcd (a: Integer) (b: Integer) -> Integer =
+    ...
+
+
+const gcd: Integer Integer -> Integer =
+    { a b =>
+        ... }
+
+
+const gcd = {
+    (a: Ingeger) (b: Integer) -> Integer =>
+        ...
+}
+
+
 --( Everything is a constant )--
 
 func (Foo[T#eq]).bar(a: Int) -> String =

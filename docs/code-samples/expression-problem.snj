@@ -1,0 +1,79 @@
+module foo
+
+
+trait #eval =
+	eval(expr: Self) -> Int
+
+
+struct Literal =
+	value: Int
+	implement #eval
+
+
+struct Addition[T] =
+	left: Expr[T]
+	right: Expr[T]
+	forall T #eval implement #eval
+
+
+func eval(expr: Literal) -> Int =
+	expr.value
+
+
+func eval(expr: Addition[#eval]) -> Int =
+	expr.left.eval + expr.right.eval
+
+
+------
+module bar
+
+use foo (#eval, Literal, Addition)
+
+
+trait #pretty =
+	pretty(expr: Self) -> String
+	implement Literal
+	implement Addition[#eval]
+
+
+struct Negation[T] =
+	subexpr: T
+	forall T #eval implement #eval
+	forall T #pretty implement #pretty
+
+
+func eval(expr: Negation[#eval]) -> Int =
+	- expr.subexpr.eval
+
+
+func pretty(expr: Literal) -> String =
+	expr.eval.as-string
+
+
+func pretty(expr: Addition[#pretty]) -> String =
+	"{expr.left.pretty} + {expr.right.pretty}"
+
+
+func pretty(expr: Negation[#pretty]) -> String =
+	match expr.subexpr
+	case e = Literal(...) then
+		"-{e.pretty}"
+	else
+		"- ({expr.subexpr.pretty})"
+
+
+------
+module main
+
+use 'std'io
+
+use foo (#eval, Literal, Addition)
+use bar (#pretty, Negation)
+
+union Expr = Literal | Addition[Expr] | Negation[Expr]
+
+func main() -> Io[()] =
+	do {
+		e1 = Addition(Literal(77), Negation(Literal(12)))
+		io'print("{e1.pretty} = {e1.eval}")
+	}

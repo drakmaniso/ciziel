@@ -1,0 +1,84 @@
+------ Standard traits for iterators ------------------------------------------
+module std/iter
+
+trait #iterable =
+    Iterator(type Self) -> type #next
+    iterator(iterable: Self) -> Self.Iterator
+
+trait #iterator =
+    Item(type Self) -> type #any
+    next(iterator: Self) -> (Self, Option[Self.Item])
+
+
+------ Simple iterator example ------------------------------------------------
+module counter
+
+unique Counter =
+    count: Int
+    limit: Int
+    ensure #iterator
+
+func new(type Counter, limit: Int) -> Counter =
+    Counter{count: 0, limit: limit}
+
+func Item(type Counter) = Int
+
+func next(counter: Counter) -> (Counter, Option[Int]) =
+    if counter.count >= counter.limit then
+        (counter, None)
+    else
+        (
+            counter.with(count: counter.count + 1),
+            Some(counter.count),
+        )
+
+func test_Counter() =
+    counter = Counter.new(6)
+    assert counter.next! == Some(1)
+    assert counter.next! == Some(2)
+    assert counter.next! == Some(3)
+    assert counter.next! == Some(4)
+    assert counter.next! == Some(5)
+    assert counter.next! == None
+
+let example-loop() =
+    counter = Counter.new(7)
+    step(counter)
+    where
+        step(c) =
+            match c.next
+            case (_, None) then
+                io'print("Done!")
+            case (rest, Some(number)) then
+                io'print("{number}...")
+
+
+----
+module main
+
+use
+    std'iter for Iterator
+
+forall I #iterator
+func foo(iterator: I, f: I.Item -> Int) -> Array[Int] =
+    iterator.fold(
+        [],
+        lambda(array, item) =>
+            [...array, item]
+    )
+
+forall I #iterator, J #iterator, I.Item == J.Item
+func compare(i: I, j: J) -> Bool =
+    match (i.next, j.next)
+    case
+        ((rest-i, Some(item-i),
+            (rest-j, Some(item-j))
+    then
+        if item-i == item-j then
+            compare(rest-i, rest-j)
+        else
+            False
+
+    case ((_, None), (_, None)) then True
+
+    case _ then False

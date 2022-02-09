@@ -1,0 +1,95 @@
+module main
+
+use std'console (Console)
+
+
+func main(io: Console) -> Console =
+	(io, number) := get-number(io)
+	naive = naive-factorial(answer)
+	tail = tail-factorial(answer)
+	folded = folded-factorial(answer)
+
+	io.print("naive factorial: {naive}")
+		.print("tail recursice factorial: {tail}")
+		.print("fold-based factorial: {folded}")
+
+	where
+		get-number(io) =
+			(io, answer) :=
+				io.print("Please enter a number: \!")
+					.input
+			match answer.to-int
+			case Some n then (io, n)
+			else get-number(io)
+
+
+func naive-factorial(n) =
+	if n <= 1 then 1
+	else n * naive-factorial(n - 1)
+
+
+func tail-factorial(n: Int) -> Int =
+	step(n, 1)
+	where
+		step(n, accum) =
+			if n <= 1 then accum
+			else step(n - 1, n * accum)
+
+
+func fold-factorial(n: Int) -> Int =
+	(2 `upto` n).fold(1, lambda(i, accum) => i * accum)
+
+
+forall N #num #copy
+func generic-tail-factorial(n: N) -> N =
+	step(n, N.one)
+	where
+		step(n, accum) =
+			if n <= N.one then accum
+			else step(n - N.one, n * accum)
+
+
+forall N #num #range #copy
+func generic-fold-factorial(n: N) -> N =
+	(N.one `upto` n).fold(
+		N.one,
+		lambda(accum, x) => accum * x
+	)
+
+
+func gcd(n: Int, m: Int) -> Int =
+	require n > 0
+	require m > 0
+	ensure result > 0
+
+	(a, b) = (max(n, m), min(n, m))
+	if b == 0 then a
+	else gcd(b, a % b)
+
+	
+func fibonacci(n: Int) -> Int =
+	require n > 0
+	ensure result > 0
+	step(n, 1, 1)
+	where
+		step(n, previous, current) =
+			if n = 0 then current
+			else step(n - 1, current, previous + current)
+
+
+func pipeline-example() =
+	my-array = [1, 2, 3, 4, 5, 6, 7]
+	my-array
+		.filter(n => n `mod` 2 == 0)
+		.map(n => n * 2)
+		.fold("",
+			lambda(string, number) =>
+				string ++ number.to-string
+		)
+		.map(
+			lambda(rune) =>
+				if rune.is-letter then
+					rune.to-upper
+				else
+					"?".to-rune
+		)

@@ -2,27 +2,25 @@ module foo
 
 
 trait #eval =
-	func (Self).eval -> Int
+	(Self).eval -> Int
 
 
 struct Literal =
 	value: Int
-with
-	#eval
+	ensure Literal is #eval
 
 
 struct Addition[T] =
 	left: Expr[T]
 	right: Expr[T]
-with
-	#eval
+	ensure Addition[#eval] is #eval
 
 
-func (self: Literal).eval -> Int =
+func (Literal).eval -> Int =
 	self.value
 
 
-func (self: Addition[T#eval]).eval -> Int =
+func (Addition[#eval]).eval -> Int =
 	self.left.eval + self.right.eval
 
 
@@ -38,23 +36,27 @@ trait #pretty
 
 struct Negation[T] =
 	subexpr: T
-with
-	#eval, #pretty
 
 
-func (self: Negation[T#eval]).eval -> Int =
+ensure Negation[#eval] is #eval
+ensure Literal is #pretty
+ensure Addition[#pretty] is #pretty
+ensure Negation[#pretty] is #pretty
+
+
+func (Negation[#eval]).eval -> Int =
 	- self.subexpr.eval
 
 
-func (self: Literal).pretty -> String =
+func (Literal).pretty -> String =
 	self.eval.as-string
 
 
-func (self: Addition[T#pretty]).pretty -> String =
+func (Addition[#pretty]).pretty -> String =
 	"{self.left.pretty} + {self.right.pretty}"
 
 
-func (self: Negation[T#pretty]).pretty -> String =
+func (Negation[#pretty]).pretty -> String =
 	match self.subexpr
 	case e = Literal(...) then
 		"-{e.pretty}"
@@ -67,6 +69,9 @@ module main
 
 use foo (#eval, Literal, Addition)
 use bar (#pretty, Negation)
+
+use foo (Literal, Addition)
+use bar (Negation, +Literal, +Addition)
 
 union Expr = Literal | Addition[Expr] | Negation[Expr]
 

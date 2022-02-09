@@ -1,0 +1,141 @@
+module vec
+
+
+trait #vector =
+    Scalar(type Self) -> type #num
+    zero(type Self) -> Self
+    length(vector: Self) -> Self.Scalar
+    normalize(vector: Self) -> Self
+    `+` (left: Self, right: Self) -> Self
+    `-` (left: Self, right: Self) -> Self
+    `*` (left: Self, other: Self.Scalar) -> Self
+    -- If operators have double-dispatch:
+    -- `*`(left: Self.Scalar, right: Self) -> Self
+
+
+trait #vec2 =
+    #vector
+    Self(x: Self.Scalar, y: Self.Scalar)
+
+
+trait #vec3 =
+    #vector
+    Self(x: Self.Scalar, y: Self.Scalar, z: Self.Scalar)
+
+
+-- Generic Implementation -----------------------------------------------------
+
+
+func vec2-length(vector: #vec2) -> Float =
+    math'sqrt((vector.x ^ 2) + (vector.y ^ 2))
+
+
+forall V #vec2
+func vec2-normalize(vector: V) -> V =
+    l = length(vector)
+    V(x: vector.x / l, y: vector.y / l)
+
+
+forall V #vec2
+func vec2-add(vector: V, other: V) -> V =
+    V(x: vector.x + other.x, y: vector.y + other.y)
+
+
+forall V #vec2
+func vec2-sub(vector: V) - (other: V) -> V =
+    V(x: vector.x - other.x, y: vector.y - other.y)
+
+
+forall V #vec2
+func vec2-mul(vector: V, scalar: Float) -> V =
+    V(x: vector.x * scalar, y: vector.y * scalar)
+
+
+-- Concrete Types -------------------------------------------------------------
+
+
+struct Vec2 =
+    x: Float32
+    y: Float32
+
+ensure Vec2 is #vec2
+
+func Scalar(type Vec2) = Float32
+
+func zero(type Vec2) = Vec2(0, 0)
+
+func length(vector: Vec2) -> Float32 = vec2-length(self)
+
+func normalize(vector: Vec2) -> Vec2 = vec2-normalize(self)
+
+func `+`(left: Vec2, right: Vec2) -> Vec2 =
+    Vec2(x: left.x + right.x, y: left.y + right.y)
+
+func `-`(left: Vec2, right: Vec2) -> Vec2 =
+    Vec2(x: left.x - right.x, y: left.y - right.y)
+
+func `*`(left: Vec2, right: Float32) -> Vec2 =
+    Vec2(x: left.x * right, y: left.y * right)
+
+-- If operators have double-dispatch:
+-- func `*`(left: Float32, right: Vec2) -> Vec2 =
+--     right * left
+
+
+struct IVec2 =
+    x: Int32
+    y: Int32
+
+ensure IVec2 is #vec2
+
+func Scalar(type IVec2) = Int32
+
+func zero(type IVec2) = IVec2(0, 0)
+
+func length(vector: IVec2) -> Int32 = vec2-length(self)
+
+func normalize(vector: IVec2) -> IVec2 = vec2-normalize(self)
+
+func `+`(left: IVec2, right: IVec2) -> IVec2 =
+    IVec2(x: left.x + right.x, y: left.y + right.y)
+
+func `-`(left: IVec2, right: IVec2) -> IVec2 =
+    IVec2(x: left.x - right.x, y: left.y - right.y)
+
+func `*`(left: IVec2, right: Int32) -> IVec2 =
+    IVec2(x: left.x * right, y: left.y * right)
+
+-- If operators have double-dispatch:
+-- func `*`(left: Int32, right: IVec2) -> IVec2 =
+--     right * left
+
+
+struct Point =
+    x: Float32
+    y: Float32
+
+ensure Point is #tuple
+ensure Point is #vec2
+
+func Scalar(type Point) = Float32
+
+func zero(type Point) = Point(0, 0)
+
+func length(vector: Point) -> Float32 =
+    length(self)
+
+func normalize(vector: Point) -> Point =
+    normalize(self)
+
+func `+`(left: Point, right: Point) -> Point =
+    vec2-add(left, right)
+
+func `-`(left: Point, right: Point) -> Point =
+    vec2-sub(left, right)
+
+func `*`(left: Point, other: Float32) -> Point =
+    mul(left, right)
+
+-- If operators have double-dispatch:
+-- func `*`(left: Float32, other: Point) -> Point =
+--     vec2-mul(left, right)
