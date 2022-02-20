@@ -3,4 +3,4 @@ module main
 use std'io (Io)
 
 func main() -> Io[()] =
-	io'print("Hello, World!")
+	do Io'print("Hello, World!")

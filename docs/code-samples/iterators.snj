@@ -2,34 +2,35 @@
 module std/iter
 
 trait #iterable =
-    Iterator(type Self) -> type #next
-    iterator(iterable: Self) -> Self.Iterator
+    Self'Iterator #next
+    (Self).iterator -> Self'Iterator
 
 trait #iterator =
-    Item(type Self) -> type #any
-    next(iterator: Self) -> (Self, Option[Self.Item])
+    Self'Item #any
+    (Self).next -> (Self, Option[Self'Item])
 
 
 ------ Simple iterator example ------------------------------------------------
 module counter
 
-unique Counter =
+unique struct Counter =
     count: Int
     limit: Int
-    ensure #iterator
+    implement #iterator
 
-func new(type Counter, limit: Int) -> Counter =
+func Counter'new(limit: Int) -> Counter =
     Counter{count: 0, limit: limit}
 
-func Item(type Counter) = Int
+alias Counter'Item = Int
 
-func next(counter: Counter) -> (Counter, Option[Int]) =
+func (Counter).next -> (Counter, Option[Int]) =
     if counter.count >= counter.limit then
         (counter, None)
     else
+        count = &counter.count
         (
-            counter.with(count: counter.count + 1),
-            Some(counter.count),
+            counter.with{count: count + 1},
+            Some(count),
         )
 
 func test_Counter() =
@@ -41,29 +42,29 @@ func test_Counter() =
     assert counter.next! == Some(5)
     assert counter.next! == None
 
-let example-loop() =
-    counter = Counter.new(7)
+let example-loop() -> Io[()] =
+    counter = Counter'new(7)
     step(counter)
     where
-        step(c) =
-            match c.next
+        step(counter) =
+            match counter.next
             case (_, None) then
-                io'print("Done!")
+                Io'print("Done!")
             case (rest, Some(number)) then
-                io'print("{number}...")
+                do Io'print("{number}...")
+                step(rest)
 
 
 ----
 module main
 
-use
-    std'iter for Iterator
+use std'iter (Iterator)
 
 forall I #iterator
 func foo(iterator: I, f: I.Item -> Int) -> Array[Int] =
     iterator.fold(
         [],
-        lambda(array, item) =>
+        \(array, item) =>
             [...array, item]
     )
 

@@ -1,0 +1,23 @@
+-- Desugaring of methods ------------------------------------------------------
+
+func Foo'type-method(a: Int, b: Bool) -> String = ...
+
+func (Foo).value-method(a: Int, b: Bool) -> String = ...
+
+-- is sugar for:
+
+const Foo'type-method: Func(Int, Bool) -> String =
+    \(a, b) => ...
+
+const Foo'value-method: Func(Foo, Int, Bool) -> String =
+    \(self, a, b) => ...
+
+
+-- Desugaring of method calls -------------------------------------------------
+
+a.my-method
+
+-- is sugar for:
+
+a.Type'my-method
+

@@ -1,0 +1,22 @@
+func foo(a: Int, b: String) -> String =
+	"{a} and {b}"
+
+func (Int).bar(b: String) -> String =
+	"{a} and {b}"
+
+func example-partial-application!() -> Io[] =
+	do Io'print(=> foo(___, "abc").type-info)
+	--> "Func(Int) -> String"
+	do Io'print(=> foo(123, ___).type-info)
+	--> "Func(String) -> String"
+	do Io'print(=> ___.bar("abc").type-info)
+	--> "Func(Int) -> String"
+	do Io'print(=> 123.bar(___).type-info)
+	--> "Func(String) -> String"
+	Io'done
+
+func main() =
+	ex1 = 123.(\x => foo(x, "abc"))
+	ex2 = 123.(=> foo(___, "abc"))
+	()
+

@@ -1,0 +1,75 @@
+def Nil
+
+union Bool = False | True
+
+struct False
+
+struct True
+
+--- The "maybe" monad
+union Option[T] = Some[T] | None
+    implement #monad
+
+struct Some[T] = item: T
+
+struct None
+
+func (Option[T]).map(f: \T -> U) -> Some[U] =
+    match self
+    case Some(item) then Some(f(self.item))
+    case None then None
+
+func (Option[T]).chain(f: \T -> Option[U]) -> Option[U] =
+    match self
+    case Some(item) then f(item)
+    case None then None
+
+---
+
+union Result[A, E #error] = Ok[A] | Error[E]
+    implement #monad
+
+struct Ok[A] = value: A
+
+forall E #error
+struct Error[E] = error: E
+
+func Result[A, E]'wrap(value: A) -> Result[A, E] =
+    Ok(value)
+
+func (Result[A, E]).chain(operation: \A -> Result[A, E]) -> Result[A, E] =
+    match self
+    case Ok(value) then operation(value)
+    case e = Error(...) then e
+
+
+---
+
+forall I #iterator
+unique struct Map[I, A] =
+    iterator: I
+    function: \I'Item -> A
+    implement #iterator
+
+func Map[I, A]'new(iterator: I, function: \I'Item -> A) -> Map[I, A] =
+    Map(iterator, function)
+
+alias Map[I, A]'Item = A
+
+func (Map[I, A]).next -> (Map[I, A], Option[A]) =
+    match self.iterator.next
+    case (_, None) then None
+    case (iter, Some(item)) then
+        (
+            self.with{iterator: iter},
+            Some(self.function(item),
+        )
+
+
+---
+
+func (Array[A]).fold(accum: B, function: \B \T -> B) -> B =
+    ...
+
+func Array[B]'unfold(first: A, function: \A -> Option[(B, A)]) -> Array[B] =
+    ...

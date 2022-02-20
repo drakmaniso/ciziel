@@ -1,0 +1,26 @@
+module example-text
+
+
+func example-1() -> () =
+    a = Text("Hello")
+    -- a :: Text
+
+    b = a.append(Text(", World!"))
+    -- a is now invalid
+    -- b :: Text
+
+    c = &b.slice(1, 5)
+    -- b is temporarily inaccessible
+    -- c :: & Text
+
+    d = c
+    -- b is still inaccessible
+    -- c :: & Text
+    -- d :: & Text
+
+    e = b.append(Text(" How are you?"))
+    -- d and c are now invalid
+    -- b is now invalid
+    -- e :: Text
+
+    ()

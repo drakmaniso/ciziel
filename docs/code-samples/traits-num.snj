@@ -1,0 +1,37 @@
+--( from Rust crate num_traits )--
+
+----
+module /std/num
+
+trait #num =
+    #partial-eq
+    #zero #add #sub
+    #one #mul #div #rem
+    Self'from-string(str: String) -> Result[Self, #error]
+    Self'from-string-radix(str: String, radix: UInt) -> Result[Self, #error]
+
+trait #zero =
+    #add
+    Self'zero: Self
+    (Self).is-zero -> Bool
+
+trait #one =
+    #mul
+    Self'one: Self
+    (Self).is-one -> Bool
+
+
+trait #add =
+    (Self) + (other: Self) -> Self
+
+trait #sub =
+    (Self) - (other: Self) -> Self
+
+trait #mul =
+    (Self) * (other: Self) -> Self
+
+trait #div =
+    (Self) / (other: Self) -> Self
+
+trait #rem =
+    (Self) % (other: Self) -> Self

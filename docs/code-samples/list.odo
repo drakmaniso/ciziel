@@ -35,7 +35,7 @@ ensure
 func List[T].new(...items: Array[T]) -> List[T] =
     items.fold-rev(
         Empty,
-        lambda(item, acc) => Node(item, acc)
+        \item \acc => Node(item, acc)
     )
 
 

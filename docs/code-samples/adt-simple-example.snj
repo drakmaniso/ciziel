@@ -7,14 +7,16 @@ public
 
 union Shape =
     Circle | Square | Rectangle
+    dispatch #movable
+    dispatch #scalable
 
 
 trait #movable =
-    move-to(shape: Self, destination: Point) -> Self
+    (Self).move-to(destination: Point) -> Self
 
 
 trait #scalable =
-    scale-by(shape: Self, factor: Float32) -> Self
+    (Self).scale-by(factor: Float32) -> Self
 
 
 trait #with-center =
@@ -22,7 +24,7 @@ trait #with-center =
 
 
 forall T #with-center
-func move-to(shape: T, destination: Point) -> T =
+func move-shape-to(shape: T, destination: Point) -> T =
     shape.with(center: destination)
 
 
@@ -34,35 +36,44 @@ struct Circle =
     implement #scalable
 
 
-func diameter(circle: Circle) -> Float32 =
-    circle.radius * 2
+func (Circle).diameter -> Float32 =
+    self.radius * 2
 
 
-func perimeter(shape: Circle) -> Float32 =
-    math'pi * shape.diameter
+func (Circle).perimeter -> Float32 =
+    math'pi * self.diameter
 
 
-func area(shape: Circle) -> Float32 =
-    math'pi * (shape.radius ** 2)
+func (Circle).area -> Float32 =
+    math'pi * (self.radius ** 2)
 
 
--- `move-by` for `Circle` is implemented by the generic function
+func (Circle).move-to(destination: Point) -> Circle =
+    move-shape-to(self, destination)
 
 
-func scale-by(shape: Circle, factor: Float32) -> Circle =
-    self.with(radius: self.radius * factor)
+func (Circle).scale-by(factor: Float32) -> Circle =
+    self.with{radius: self.radius * factor}
 
 
 struct Square =
     center: Point
     side: Int
+    implement #with-center
+    implement #movable
+    implement #scalable
 
 
 struct Rectangle =
     center: Point
     width: Int
     height: Int
+    implement #with-center
+    implement #movable
+    implement #scalable
 
 
 struct Polygon =
     ...points: Array[Point]
+    implement #movable
+    implement #scalable

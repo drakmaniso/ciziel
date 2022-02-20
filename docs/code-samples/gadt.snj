@@ -1,4 +1,4 @@
---- From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type)
+--- [from wikipedia]: https://en.wikipedia.org/wiki/Generalized_algebraic_data_type
 module gadt_example_1
 
 union Expr = EBool | EInt | Equality | Addition
@@ -19,37 +19,51 @@ struct Addition =
     left: EInt
     right: EInt
 
-func eval(expr: Equality) -> Bool = self.left.eval == self.right.eval
-func eval(expr: Addition) -> Int = self.left.eval + self.right.eval
-
-trait #eval =
-    Output(type Self) -> type #eval
-    eval(expr: Self) -> Self.Output
+func (Equality).eval -> Bool = self.left.eval == self.right.eval
+func (Addition).eval -> Int = self.left.eval + self.right.eval
 
 
 -------------------------------------------------------------------------------
 --- GADT example: phantom types
---- From "Fun with phantom types" by R. Hinze
+--- From ["Fun with phantom types"] by R. Hinze
+---
+--- ["Fun with phantom types"]: https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
 module
 
-union TermInt = Zero | Succ | Pred | If[TermInt]
-union TermBool = IsZero | If[TermBool]
+trait #term =
+    Self'Output
+    (Self).eval -> Self'Output
 
-struct Zero
-struct Succ = arg: TermInt
-struct Pred = arg: TermInt
-struct IsZero = arg: TermInt
-struct If[T] =
-    condition: TermBool
+union Term =
+    Zero | Succ | Pred | IsZero | If[C, T]
+    dispatch #term
+
+struct Zero implement #term
+struct Succ = arg: TermInt implement #term
+struct Pred = arg: TermInt implement #term
+struct IsZero = arg: TermInt implement #term
+
+forall C #term, C'Output == Bool, T #term
+struct If[C, T] =
+    condition: C
     thenBranch: T
     elseBranch: T
+    implement #term
 
-func eval(expr: Zero) -> Int = 0
-func eval(expr: Succ) -> Int = self.arg.eval + 1
-func eval(expr: Pred) -> Int = self.arg.eval - 1
-func eval(expr: IsZero) -> Int = self.arg.eval == 0
+alias Zero'Output = Int
+func (Zero).eval -> Int = 0
 
-func eval(expr: If[T]) -> T =
+alias Succ'Output = Int
+func (Succ).eval -> Int = self.arg.eval + 1
+
+alias Pred'Output = Int
+func (Pred).eval -> Int = self.arg.eval - 1
+
+alias IsZero'Output = Bool
+func (IsZero).eval -> Int = self.arg.eval == 0
+
+alias If[C, T]'Output = T
+func (If[C, T]).eval -> T.Output =
     if self.condition.eval then
         self.thenBranch.eval
     else
@@ -61,35 +75,59 @@ func eval(expr: If[T]) -> T =
 --- From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
 module
 
+trait #eval =
+    Self'Output
+    (Self).eval -> Self'Output
+
 struct Lift[T] =
     eval: T
+    implement #eval
 
+forall T #eval, U #eval
 struct Pair[T, U] =
     first: T
     second: U
+    implement #eval
 
+forall T #eval, U #eval
 struct Lambda[T, U] =
-    function: Func[T -> U]
+    function: Func(T) -> U
+    implement #eval
 
+forall T #eval, U #eval
 struct Apply[T, U] =
     function: Lambda[T, U]
     argument: U
+    implement #eval
 
+forall T #eval
 struct Fix[T] =
     function: Lambda[T, T]
+    implement #eval
 
-func eval(expr: Pair[T, U]) -> (T, U) =
+alias Pair[T, U]'Output = (T, U)
+func (Pair[T, U]).eval -> (T, U) =
     (self.first.eval, self.second.eval)
     
-func eval(expr: Lambda[T, U]) -> Func[T -> U] =
+alias Lambda[T, U]'Output = Func(T) -> U
+func (Lambda[T, U]).eval -> Func(T) -> U =
     x => self.function(Lift(x)).eval
 
-func eval(expr: Apply[T, U]) -> U =
+alias Apply[T, U]'Output = U
+func (Apply[T, U]).eval -> U =
     self.function.eval(self.argument.eval)
 
-func eval(expr: Fix[T]) -> T =
+alias Fix[T]'Output = T
+func (Fix[T]).eval -> T =
     self.function.eval(Fix(self.function).eval)
 
 func example() =
-    factorial = Fix(Lambda(f => Lambda(y => Lift(if y.eval == 0 then 1 else y.eval * f.eval(y.eval - 1)))))
+    factorial =
+        Fix(
+            Lambda(\f =>
+                Lambda(\y =>
+                    Lift(if y.eval == 0 then 1 else y.eval * f.eval(y.eval - 1))
+                )
+            )
+        )
     io'print(factorial.eval(10))

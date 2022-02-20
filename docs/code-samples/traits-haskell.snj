@@ -1,12 +1,14 @@
-trait #functor =
-    func (Self[A]).fmap(transform: A -> B) -> Self[B]
+-- [Haskell's Typeclassopedia]: https://wiki.haskell.org/Typeclassopedia
 
-    -- aka `replace` (with arguments swapped)?
-    func (B) <$ (functor: Self[B]) -> Self[A] =
-        functor.map(_ => self)
+
+trait #functor =
+    (Self[A]).fmap(transform: \A -> B) -> Self[B]
+
+    (Self[B]) $> (value: A) -> Self[A] =
+        self.map(\_ => value)
     
-    func Self[_].lift(transform: A -> B) -> (Self[A] -> Self[B]) =
-        lambda(fa) => fa.map(transform)
+    Self[_]'lift(transform: \A -> B) -> (\Self[A] -> Self[B]) =
+        => ___.map(transform)
 
 ---
 
@@ -14,24 +16,24 @@ trait #applicative =
     #functor
 
     -- aka `wrap`
-    func Self[A].pure(value: A) -> Self[A]
+    Self[A]'pure(value: A) -> Self[A]
 
     -- aka `apply`
-    func (Self[A -> B]) <*> (functor: Self[A]) -> Self[B]
+    (Self[A -> B]) <*> (functor: Self[A]) -> Self[B]
 
     -- aka `and-then`?
-    func (Self[A]) *> (other: Self[B]) -> Self[B] =
+    (Self[A]) *> (other: Self[B]) -> Self[B] =
         (identity <$ a) <*> b
 
     -- aka `discard`? `when-also`?
-    func (Self[A]) <* (other: Self[B]) -> Self[A] =
-        const = lambda(x, _) => x
-        Self.lift-2(const)
+    (Self[A]) <* (other: Self[B]) -> Self[A] =
+        const-f = \x \_ => x
+        Self.lift-2(const-f)
     
-    func Self[_].lift-2(f: (A, B) -> C) -> ((F[A], F[B]) -> F[C]) =
-        curried-f: A -> (B -> C) =
-            a -> (b -> f(a, b))
-        lambda(a, b) =>
+    Self[_]'lift-2(f: (A, B) -> C) -> ((Self[A], Self[B]) -> Self[C]) =
+        curried-f: \A -> (\B -> C) =
+            \a => \b => f(a, b)
+        \a \b =>
             Self.pure(curried-f) <*> Self.pure(a) <*> Self.pure(b)
 
 ---
@@ -39,37 +41,33 @@ trait #applicative =
 trait #monad =
     #applicative
     -- aka `chain`, `flat-map`, `bind`...
-    func (Self[A]) >>= (operation: A -> Self[B]) -> Self[B]
+    (Self[A]) >>= (operation: \A -> Self[B]) -> Self[B]
 
-    func (Self[A]) >> (other: Self[B]) -> Self[B] =
+    (Self[A]) >> (other: Self[B]) -> Self[B] =
         self >>= (_ => other)
 
-    -- `merge` instead of `flatten` instead of `join`
-    def merge(nested-monad: Self[Self[T]]) -> Self[T] =
-        nested-monad.chain(identity)
+    forall M #monad
+    (Self[M[A]]).join -> Self[A] =
+        self.chain(identity)
 
-def [T] #chain =
-    has #functor
-    has chain(self, operation: T -> Self[A]) -> Self[A]
-
-def [T] #monad-fail =
-    has #monad
-    has fail(msg: String) -> Self[T]
+trait #monad-fail =
+    #monad
+    Self'fail(msg: String) -> Self[_]
 
 --TODO: is this correct?
-def [T[U]] #monad-trans =
-    has lift(monad: T[U]) -> Self[T[U]]
+trait #monad-trans =
+    Self[M, A]'lift(monad: M[A]) -> Self[M, A]
 
 
-def [T] #comonad =
-    has #functor
-    -- `unwrap` instead of `extract`
-    has unwrap(self) -> T
-    -- `co-merge` (or `nest`?) instead of `duplicate`
-    def co-merge(self) -> Self[Self[T]] =
+trait #comonad =
+    #functor
+
+    func (Self[A]).extract -> A
+
+    func (Self[A]).duplicate -> Self[Self[A]] =
         self.extend(identity)
-    -- `co-chain` instead of `co-flat-map` of `extend`
-    def co-chain(self, f: Self[T] -> A) -> Self[A] =
+
+    func (Self[A]).extend(f: Self[A] -> B) -> Self[B] =
         self.duplicate.map(f)
 
 

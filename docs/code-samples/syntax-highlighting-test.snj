@@ -14,22 +14,21 @@ func foo-bar(a: Int) -> Void
 
 func foo(a: Int, b: Float, c: Bool) -> String
 
--- Static Methods
+-- Type Methods
 
-func Int.foo
+func Int'foo
 
-func Array[T].foo
+func Array[T]'foo
 
-func Array[T #eq].foo
+func Array[T #eq]'foo
 
-func Tuple[T, U].foo
+func Tuple[T, U]'foo
 
-func Tuple[T, U #eq, V #iterable #num]).foo
+func Tuple[T, U #eq, V #iterable #num])'foo
 
--- Methods
+-- Value Methods
 
 func (Int).foo
-func (Int).foo!
 
 func (ref Int).foo
 
@@ -45,11 +44,7 @@ func (mut Array[T #eq]).foo
 
 func (Tuple[T, U, V]).foo
 
-func (mut Tuple[T, U, V]).foo
-
 func (Tuple[T #eq #uusd, U, V #eq]).foo
-
-func (mut Tuple[T #eq #uusd, U, V #eq]).foo
 
 -- Operators
 

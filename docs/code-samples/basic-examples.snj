@@ -1,9 +1,29 @@
 module main
 
-use std'console (Console)
+use std'io (Io)
 
 
-func main(io: Console) -> Console =
+func main() -> Io[()] =
+	do number = get-number()
+	naive = naive-factorial(number)
+	tail = tail-factorial(number)
+	folded = folded-factorial(number)
+
+	do Io'print("naive factorial: {naive}")
+	do Io'print("tail recursice factorial: {tail}")
+	do Io'print("fold-based factorial: {folded}")
+	Io'wrap(())
+
+	where
+		get-number() -> Io[Int] =
+			do Io'put-string("Please enter a number: ")
+			do answer = Io'input
+			match answer.to-int
+			case Some n then Io'wrap(n)
+			else get-number()
+
+
+func main(io: Io) -> Io =
 	(io, number) := get-number(io)
 	naive = naive-factorial(answer)
 	tail = tail-factorial(answer)
@@ -37,7 +57,7 @@ func tail-factorial(n: Int) -> Int =
 
 
 func fold-factorial(n: Int) -> Int =
-	(2 `upto` n).fold(1, lambda(i, accum) => i * accum)
+	(2 `upto` n).fold(1, => ___ * ___)
 
 
 forall N #num #copy
@@ -53,7 +73,7 @@ forall N #num #range #copy
 func generic-fold-factorial(n: N) -> N =
 	(N.one `upto` n).fold(
 		N.one,
-		lambda(accum, x) => accum * x
+		\accum \x => accum * x
 	)
 
 
@@ -80,14 +100,14 @@ func fibonacci(n: Int) -> Int =
 func pipeline-example() =
 	my-array = [1, 2, 3, 4, 5, 6, 7]
 	my-array
-		.filter(n => n `mod` 2 == 0)
-		.map(n => n * 2)
+		.filter(\n => n `mod` 2 == 0)
+		.map(\n => n * 2)
 		.fold("",
-			lambda(string, number) =>
+			\string \number =>
 				string ++ number.to-string
 		)
 		.map(
-			lambda(rune) =>
+			\rune =>
 				if rune.is-letter then
 					rune.to-upper
 				else

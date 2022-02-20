@@ -2,15 +2,15 @@ module std'ops
 
 
 trait #add =
-    RightHand(type Self) -> type #any
-    Output(type Self) -> type #any
-    `+`(left: Self, right: Self.RightHand) -> Self.Output
+    Self'RightHand
+    Self'Output
+    (Self) + (other: Self.RightHand) -> Self.Output
 
 
 trait #mul =
-    RightHand(type Self) -> type #any
-    Output(type Self) -> type #any
-    `*`(left: Self, right: Self.RightHand) -> Self.Output
+    Self'RightHand
+    Self'Output
+    (Self) * (other: Self.RightHand) -> Self.Output
 
 
 -------------------------------------------------------------------------------
@@ -25,24 +25,24 @@ use std'ops for #add, #mul
 struct Vec2 =
     x: Float
     y: Float
-    ensure #add, #sub, #mul
+    implement #add, #sub, #mul
 
 
-func RightHand(type Vec2 #add) = Vec2
+alias Vec2#add'RightHand = Vec2
 
 
-func Output(type Vec2 #add) = Vec2
+alias Vec2#add'Output = Vec2
 
 
-func `+`(left: Vec2, right: Vector) -> Vec2 =
-    Vec2(left.x + right.x, left.y + right.y)
+func (Vec2) `+` (other: Vector) -> Vec2 =
+    Vec2(self.x + other.x, self.y + other.y)
 
 
-func RightHand(type Vec2 #mul) = Float
+alias Vec2#mul'RightHand = Float
 
 
-func Output(type Vec2 #mul) = Vec2
+alias Vec2#mul'Output = Vec2
 
 
-func `*`(left: Self, right: Float) -> Vec2 =
-    Vec2(left.x * right, left.y * right)
+func (Vec2) * (other: Float) -> Vec2 =
+    Vec2(self.x * other, self.y * other)

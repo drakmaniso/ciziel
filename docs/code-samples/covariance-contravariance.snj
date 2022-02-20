@@ -1,0 +1,45 @@
+-- [from the blog article]: https://quuxplusone.github.io/blog/2019/01/20/covariance-and-contravariance/
+
+trait #animal =
+    (Self).make-noise -> String
+
+struct Cat
+func (Cat).make-noise -> String = "meow"
+
+struct Horse
+func (Horse).make-noise -> String = "neigh"
+func (Horse).ride -> String = "Ok, sure."
+
+
+trait #animal-breeder =
+    Self'Animal
+    (Self).produce -> Self'Animal
+
+struct Cat-Breeder
+alias Cat-Breeder'Animal = Cat
+func (Cat-Breeder).produce -> Cat = Cat
+
+struct Horse-Breeder
+alias Horse-Breeder'Animal = Horse
+func (Horse-Breeder).produce -> Horse = Horse
+
+trait #animal-doctor =
+    (Self).treat(patient: #animal) -> ()
+
+trait #cat-doctor =
+    (Self).treat(patient: Cat) -> ()
+
+trait #horse-doctor =
+    (Self).treat(patient: Horse) -> ()
+
+struct Dr-Dolittle
+    implement #animal-doctor, #cat-doctor, #horse-doctor
+func (Dr-Dolittle).treat(patient: #animal) -> () = ()
+
+struct Dr-Keat
+    implement #cat-doctor
+func (Dr-Keat).treat(patient: Cat) -> () = ()
+
+struct Dr-Hackenbush
+    implement #horse-doctor
+func (Dr-Hackenbush).treat(patient: Horse) -> () = ()

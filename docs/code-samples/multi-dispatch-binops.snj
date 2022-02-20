@@ -1,0 +1,96 @@
+------ Multiple dispatch using custom binary operators
+
+union Pet = Cat | Dog
+
+struct Dog(name: String)
+func (Dog) `meets` (other: Dog) -> String = "sniffs"
+func (Dog) `meets` (other: Cat) -> String = "chases"
+
+struct Cat(name: String)
+func (Cat) `meets` (other: Cat) -> String = "slinks"
+func (Cat) `meets` (other: Dog) -> String = "hisses"
+
+func encounter(a: Pet, b: Pet) -> String =
+    verb = a `meets` b
+    return "{a.name} meets {b.name} and {verb}"
+
+
+-- Note: would a generic version of encounter be possible?
+
+trait #pet =
+    Self(name: String, ...)
+    (Self) `meets` (other: #pet) -> String
+    (other: #pet) `meets` (Self) -> String
+
+forall A #pet, B #pet
+func genericEncounter(a: A, b: B) -> String =
+    verb = a `meets` b
+    return "{a.name} meets {b.name} and {verb}"
+
+
+------ Combined with the expression problem:
+module pets
+
+trait #pet =
+    Self(name: String, ...)
+    (Self) `meets` (other: #pet) -> String
+    (other: #pet) `meets` (Self) -> String
+
+
+forall A #per, B #pet
+func encounter(a: A, b: B) -> String =
+    verb = a `meets` b
+    return "{a.name} meets {b.name} and {verb}"
+
+module dogs
+
+struct Dog(name: String)
+func (Dog) `meets` (other: Dog) -> String = "sniffs"
+
+module cats
+
+struct Cat(name: String)
+func (Cat) `meets` (other: Dog) -> String = "hisses"
+func (Cat) `meets` (other: Cat) -> String = "slinks"
+
+func (Dog) `meets` (other: Cat) -> String = "chases"
+
+module test
+
+use pets (#pet)
+use dogs (Dog)
+use cats (Cat)
+
+func example_encounter() -> Io[] =
+    fido = Dog("Fido")
+    rex = Dog("Rex")
+    whiskers = Cat("Whiskers")
+    spot = Cat("Spot")
+
+    do Io'print(encounter(fido, rex))
+    --> Fido meets Rex and sniffs
+    do Io'print(encounter(fido, whiskers))
+    --> Fido meets Whiskers and chases
+    do Io'print(encounter(whiskers, rex))
+    --> Whiskers meets Rex and hisses
+    do Io'print(encounter(whiskers, spot))
+    --> Whiskers meets Spot and slinks
+
+    pets = Array(fido, whiskers)
+    do pets.fold(Io[], \(_, pet) =>
+        Io'print("{pet.name}: {pet.type}")
+    )
+    --> Fido: Cat | Dog
+    --> Whiskers: Cat | Dog
+
+    do pets.fold(Io[], \(_, a) =>
+        pets.fold(Io[], \(_, b) =>
+            Io'print(encounter(a, b)
+        )
+    )
+    --> Fido meets Fido and sniffs
+    --> Fido meets Whiskers and chases
+    --> Whiskers meets Fido and hisses
+    --> Whiskers meets Whiskers and slinks
+
+    Io'wrap(())

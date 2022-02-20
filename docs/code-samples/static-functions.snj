@@ -2,23 +2,35 @@ struct Vector =
     x: Float
     y: Float
 
--- Functions with type arguments:
+-- Associated constants:
 
-func dimensions(type Vector) -> static Int = 2
+const Vector'dimensions: Int = 2
 
-func zero(type Vector) -> static Vector = Vector(0, 0)
+const Vector'zero = Vector(0, 0)
 
--- A type function (i.e. a function where all the arguments
--- and the return type are static):
+-- Associated type:
 
-func Scalar(type Vector) -> type #num = Float
+alias Vector'Scalar = Float
 
+-- Type methods:
 
+func Vector'new-from-angle(angle: Float, length: Float) -> Vector = ...
 
--- desugaring
+--> desugars to:
 
-const dimensions = lambda(static _: TypeWitness[Vector]) -> static Int = 2
+const Vector'new-from-angle: Func(Float, Float) -> Vector =
+    \angle \length => ...
 
-const zero = lambda(static _: TypeWitness[Vector]) -> static Vector = Vector(0, 0)
+-- Methods:
 
-const Scalar = lambda(static _: TypeWitness[Vector]) -> static Type = Float
+func (Vector).length -> Float = ...
+
+func (Vector).rotate(center: Vector, angle: Float) -> Vector = ...
+
+--> desugars to:
+
+const Vector'length: Func(Vector) -> Float =
+    \self => ...
+
+const Vector'rotate: Func(Vector, Vector, Float) -> Vector =
+    \self \center \angle => ...
