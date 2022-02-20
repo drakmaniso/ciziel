@@ -19,7 +19,6 @@ void token_print(Token self) {
 		case token_If: printf("IF"); break;
 		case token_Then: printf("THEN"); break;
 		case token_Else: printf("ELSE"); break;
-		case token_End: printf("END"); break;
 
 		case token_Number: printf("NUM"); break;
 		case token_Id: printf("ID"); break;
@@ -52,7 +51,7 @@ void token_print(Token self) {
 		str_print(self.value);
 		printf(")");
 	}
-	if (self.tag == token_End || self.tag == token_Semicolon || self.tag == token_Equal) {
+	if (self.tag == token_Semicolon || self.tag == token_Equal) {
 		printf("\n");
 	} else {
 		printf(" ");

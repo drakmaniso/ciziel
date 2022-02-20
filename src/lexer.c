@@ -156,8 +156,6 @@ TokenTag scan_id(Lexer *self) {
 			return token_Then;
 		} else if (str_is(text, "else")) {
 			return token_Else;
-		} else if (str_is(text, "end")) {
-			return token_End;
 		}
 
 		return token_Id;

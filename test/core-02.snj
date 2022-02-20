@@ -1,4 +1,3 @@
 const main =
-    lambda() =>
+    lambda(_) =>
         assert-eq(33, 33);
-    end

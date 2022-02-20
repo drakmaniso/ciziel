@@ -14,7 +14,6 @@ typedef enum TokenTag {
 	token_If,
 	token_Then,
 	token_Else,
-	token_End,
 	
 	// Delimiters
 	token_Colon,

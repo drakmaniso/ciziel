@@ -1,4 +1,3 @@
 const main =
-    lambda() =>
+    lambda(_) =>
         42;
-    end
