@@ -2,6 +2,7 @@
 #include "global.h"
 #include "lexer.h"
 #include "token.h"
+#include "parser.h"
 
 
 int main(int argc, char **argv)
@@ -21,6 +22,8 @@ int main(int argc, char **argv)
 		Token tok = array_at(tokens, i);
 		token_print(tok);
 	}
+
+	Parser parser = parser_new(argv[1], tokens);
 
 	str_free(&source);
 	return 0;
