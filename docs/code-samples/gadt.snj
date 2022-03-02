@@ -111,7 +111,7 @@ func (Pair[T, U]).eval -> (T, U) =
     
 alias Lambda[T, U]'Output = Func(T) -> U
 func (Lambda[T, U]).eval -> Func(T) -> U =
-    x => self.function(Lift(x)).eval
+    => self.function(Lift(___)).eval
 
 alias Apply[T, U]'Output = U
 func (Apply[T, U]).eval -> U =

@@ -77,15 +77,15 @@ func example_encounter() -> Io[] =
     --> Whiskers meets Spot and slinks
 
     pets = Array(fido, whiskers)
-    do pets.fold(Io[], \(_, pet) =>
+    do pets.fold(Io[], \_ \pet =>
         Io'print("{pet.name}: {pet.type}")
     )
     --> Fido: Cat | Dog
     --> Whiskers: Cat | Dog
 
-    do pets.fold(Io[], \(_, a) =>
-        pets.fold(Io[], \(_, b) =>
-            Io'print(encounter(a, b)
+    do pets.fold(Io[], \_ \a =>
+        pets.fold(Io[], \_ \b =>
+            Io'print(encounter(a, b))
         )
     )
     --> Fido meets Fido and sniffs

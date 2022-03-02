@@ -12,7 +12,7 @@ const Vector'zero = Vector(0, 0)
 
 alias Vector'Scalar = Float
 
--- Type methods:
+-- Associated functions:
 
 func Vector'new-from-angle(angle: Float, length: Float) -> Vector = ...
 

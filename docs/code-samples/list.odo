@@ -77,11 +77,11 @@ func (Empty).pop -> None =
 -- Functor implementation
 
 
-func (Empty).map(f: T -> U) -> Empty =
+func (Empty).map(f: Func(T) -> U) -> Empty =
     Empty
 
 
-func (Node[T]).map(f: T -> U) -> Node[U] =
+func (Node[T]).map(f: Func(T) -> U) -> Node[U] =
     Node(
         item: f(self.item),
         tail: self.tail.map(f))
@@ -125,7 +125,7 @@ use std'list (List, Node, Empty)
 
 
 func double(list: List[Int]) -> List[Int] =
-    list.map(x => x * 2)
+    list.map(=> ___ * 2)
 
 
 func main!(io: Console) =

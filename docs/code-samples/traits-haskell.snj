@@ -2,12 +2,12 @@
 
 
 trait #functor =
-    (Self[A]).fmap(transform: \A -> B) -> Self[B]
+    (Self[A]).fmap(transform: Func(A) -> B) -> Self[B]
 
     (Self[B]) $> (value: A) -> Self[A] =
         self.map(\_ => value)
     
-    Self[_]'lift(transform: \A -> B) -> (\Self[A] -> Self[B]) =
+    Self[_]'lift(transform: Func(A) -> B) -> Func(Self[A]) -> Self[B] =
         => ___.map(transform)
 
 ---
@@ -31,20 +31,20 @@ trait #applicative =
         Self.lift-2(const-f)
     
     Self[_]'lift-2(f: (A, B) -> C) -> ((Self[A], Self[B]) -> Self[C]) =
-        curried-f: \A -> (\B -> C) =
+        curried-f: Func(A) -> Func(B) -> C =
             \a => \b => f(a, b)
         \a \b =>
-            Self.pure(curried-f) <*> Self.pure(a) <*> Self.pure(b)
+            Self'pure(curried-f) <*> Self'pure(a) <*> Self'pure(b)
 
 ---
 
 trait #monad =
     #applicative
     -- aka `chain`, `flat-map`, `bind`...
-    (Self[A]) >>= (operation: \A -> Self[B]) -> Self[B]
+    (Self[A]) >>= (operation: Func(A) -> Self[B]) -> Self[B]
 
     (Self[A]) >> (other: Self[B]) -> Self[B] =
-        self >>= (_ => other)
+        self >>= (\_ => other)
 
     forall M #monad
     (Self[M[A]]).join -> Self[A] =
@@ -67,7 +67,7 @@ trait #comonad =
     func (Self[A]).duplicate -> Self[Self[A]] =
         self.extend(identity)
 
-    func (Self[A]).extend(f: Self[A] -> B) -> Self[B] =
+    func (Self[A]).extend(f: Func(Self[A]) -> B) -> Self[B] =
         self.duplicate.map(f)
 
 
@@ -97,13 +97,17 @@ def [T] #monad-plus =
 ------
 
 def [T #monoid] #reduce =
-    has reduce(self, operation: (T, T) -> T) -> T
-    has fold-map(self, operation: T -> A) -> A
+    has reduce(self, operation: Func(T, T) -> T) -> T
+    has fold-map(self, operation: Func(T) -> A) -> A
+
+def [T #monoid] #reduce =
+    has reduce(self, operation: Func(T, T) -> T) -> T
+    has fold-map(self, operation: Func(T) -> A) -> A
 
 -- Catamorphisms
 def [T] #foldable =
-    has fold(self, initial: A, operation: (A, T) -> A) -> A
-    has rev-fold(self, initial: A, operation: (T, A) -> A) -> A
+    has fold(self, initial: A, operation: Func(A, T) -> A) -> A
+    has rev-fold(self, initial: A, operation: Func(T, A) -> A) -> A
 
 -- Anamorphisms
 def [T] #unfoldable =
@@ -112,17 +116,17 @@ def [T] #unfoldable =
 def [T] #traversable =
     has Self[T] #functor
     has Self[T] #foldable -- or #reduce?
-    has traverse(self, operation: T -> F[B] #functor) -> F[Self[B]]
+    has traverse(self, operation: Func(T) -> F[B] #functor) -> F[Self[B]]
     has sequence(stuff: Self[F[T] #functor]) -> F[Self[T]]
 
 
 ------
 
 def [T, U] #bifunctor =
-    has bimap(self, left-operation: T -> A, right-operation: U -> B) -> Self[A, B]
-    has left-map(self, left-operation: T -> A) -> Self[A, U] =
+    has bimap(self, left-operation: Func(T) -> A, right-operation: Func(U) -> B) -> Self[A, B]
+    has left-map(self, left-operation: Func(T) -> A) -> Self[A, U] =
         self.bimap(left-operation, identity)
-    has right-map(self, right-operation: U -> A) -> Self[T, A] =
+    has right-map(self, right-operation: Func(U) -> A) -> Self[T, A] =
         self.bimap(identity, right-operation)
 
 
@@ -130,7 +134,7 @@ def [T, U] #bifunctor =
 
 def [T, U] #category =
     has id: Self[T, T]
-    has compose(self, other: Self[U -> A]) -> Self[T -> A]
+    has compose(self, other: Self[Func(U) -> A]) -> Self[Func(T) -> A]
 
 def [T, U] #arrow =
     has Self[T, U] #category

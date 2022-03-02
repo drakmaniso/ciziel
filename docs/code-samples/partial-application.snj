@@ -13,6 +13,8 @@ func example-partial-application!() -> Io[] =
 	--> "Func(Int) -> String"
 	do Io'print(=> 123.bar(___).type-info)
 	--> "Func(String) -> String"
+	do Io'print(=> ___.bar(___).type-info)
+	--> "Func(Int, String) -> String"
 	Io'done
 
 func main() =

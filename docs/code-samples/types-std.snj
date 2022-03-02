@@ -14,12 +14,12 @@ struct Some[T] = item: T
 
 struct None
 
-func (Option[T]).map(f: \T -> U) -> Some[U] =
+func (Option[T]).map(f: Func(T) -> U) -> Some[U] =
     match self
     case Some(item) then Some(f(self.item))
     case None then None
 
-func (Option[T]).chain(f: \T -> Option[U]) -> Option[U] =
+func (Option[T]).chain(f: Func(T) -> Option[U]) -> Option[U] =
     match self
     case Some(item) then f(item)
     case None then None
@@ -37,7 +37,7 @@ struct Error[E] = error: E
 func Result[A, E]'wrap(value: A) -> Result[A, E] =
     Ok(value)
 
-func (Result[A, E]).chain(operation: \A -> Result[A, E]) -> Result[A, E] =
+func (Result[A, E]).chain(operation: Func(A) -> Result[A, E]) -> Result[A, E] =
     match self
     case Ok(value) then operation(value)
     case e = Error(...) then e
@@ -48,10 +48,10 @@ func (Result[A, E]).chain(operation: \A -> Result[A, E]) -> Result[A, E] =
 forall I #iterator
 unique struct Map[I, A] =
     iterator: I
-    function: \I'Item -> A
+    function: Func(I'Item) -> A
     implement #iterator
 
-func Map[I, A]'new(iterator: I, function: \I'Item -> A) -> Map[I, A] =
+func Map[I, A]'new(iterator: I, function: Func(I'Item) -> A) -> Map[I, A] =
     Map(iterator, function)
 
 alias Map[I, A]'Item = A
@@ -68,8 +68,8 @@ func (Map[I, A]).next -> (Map[I, A], Option[A]) =
 
 ---
 
-func (Array[A]).fold(accum: B, function: \B \T -> B) -> B =
+func (Array[A]).fold(accum: B, function: Func(B, T) -> B) -> B =
     ...
 
-func Array[B]'unfold(first: A, function: \A -> Option[(B, A)]) -> Array[B] =
+func Array[B]'unfold(first: A, function: Func(A) -> Option[(B, A)]) -> Array[B] =
     ...

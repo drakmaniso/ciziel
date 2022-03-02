@@ -36,7 +36,7 @@ func main(io: Io) -> Io =
 	where
 		get-number(io) =
 			(io, answer) :=
-				io.print("Please enter a number: \!")
+				io.put-string("Please enter a number: ")
 					.input
 			match answer.to-int
 			case Some n then (io, n)
@@ -61,19 +61,19 @@ func fold-factorial(n: Int) -> Int =
 
 
 forall N #num #copy
-func generic-tail-factorial(n: N) -> N =
-	step(n, N.one)
+func generic-tail-factorial(number: N) -> N =
+	step(number, N.one)
 	where
-		step(n, accum) =
-			if n <= N.one then accum
-			else step(n - N.one, n * accum)
+		step(num, accum) =
+			if num <= N.one then accum
+			else step(num - N.one, num * accum)
 
 
 forall N #num #range #copy
-func generic-fold-factorial(n: N) -> N =
-	(N.one `upto` n).fold(
+func generic-fold-factorial(number: N) -> N =
+	(N.one `upto` number).fold(
 		N.one,
-		\accum \x => accum * x
+		=> ___ * ___
 	)
 
 
@@ -100,16 +100,14 @@ func fibonacci(n: Int) -> Int =
 func pipeline-example() =
 	my-array = [1, 2, 3, 4, 5, 6, 7]
 	my-array
-		.filter(\n => n `mod` 2 == 0)
-		.map(\n => n * 2)
-		.fold("",
-			\string \number =>
-				string ++ number.to-string
+		.filter(=> ___ `mod` 2 == 0)
+		.map(=> ___ * 2)
+		.fold("", \str \num =>
+			str ++ num.to-string
 		)
-		.map(
-			\rune =>
-				if rune.is-letter then
-					rune.to-upper
-				else
-					"?".to-rune
+		.map(\rune =>
+			if rune.is-letter then
+				rune.to-upper
+			else
+				"?".to-rune
 		)

@@ -28,10 +28,8 @@ func (Counter).next -> (Counter, Option[Int]) =
         (counter, None)
     else
         count = &counter.count
-        (
-            counter.with{count: count + 1},
-            Some(count),
-        )
+        new-counter = counter.with{count: count + 1}
+        (new-counter, Some(count))
 
 func test_Counter() =
     counter = Counter.new(6)
@@ -41,6 +39,7 @@ func test_Counter() =
     assert counter.next! == Some(4)
     assert counter.next! == Some(5)
     assert counter.next! == None
+    ()
 
 let example-loop() -> Io[()] =
     counter = Counter'new(7)
@@ -61,12 +60,8 @@ module main
 use std'iter (Iterator)
 
 forall I #iterator
-func foo(iterator: I, f: I.Item -> Int) -> Array[Int] =
-    iterator.fold(
-        [],
-        \(array, item) =>
-            [...array, item]
-    )
+func foo(iterator: I, f: Func(I.Item) -> Int) -> Array[Int] =
+    iterator.fold([], => [...___, ___])
 
 forall I #iterator, J #iterator, I.Item == J.Item
 func compare(i: I, j: J) -> Bool =
