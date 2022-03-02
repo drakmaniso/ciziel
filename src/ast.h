@@ -6,6 +6,7 @@
 
 
 typedef enum {
+    ast_Module,
     ast_TopLevelDef,
     ast_ConstDef,
     ast_Literal,
@@ -29,6 +30,17 @@ typedef struct {
         ConstDef *const_def;
     };
 } TopLevelDef;
+
+
+array_typedef(TopLevelDef);
+
+
+typedef struct {
+    ArrayTopLevelDef definitions;
+} Module;
+
+
+array_typedef(Module);
 
 
 #endif // AST_H

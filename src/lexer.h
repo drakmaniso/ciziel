@@ -15,7 +15,7 @@ typedef struct {
 
 
 void lexer_new(Lexer *self, char *filepath, String input);
-TokenArray lexer_tokenize(Lexer *self);
+ArrayToken lexer_tokenize(Lexer *self);
 
 
 #endif // SCANNER_H

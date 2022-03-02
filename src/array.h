@@ -6,16 +6,16 @@
 #include "global.h"
 
 
-#define array_def(itemType) \
+#define array_typedef(itemType) \
 typedef struct {            \
     itemType *items;        \
     size_t length;          \
     size_t capacity;        \
-} itemType##Array
+} Array##itemType
 
 
 #define array_new(itemType, cap)                             \
-    (itemType##Array) {                                      \
+    (Array##itemType) {                                      \
         .items = (itemType*)calloc((cap), sizeof(itemType)), \
         .length = 0,                                         \
         .capacity = (cap)                                    \

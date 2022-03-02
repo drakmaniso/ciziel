@@ -17,8 +17,8 @@ void lexer_new(Lexer *self, char *filepath, String input) {
 }
 
 
-TokenArray lexer_tokenize(Lexer *self) {
-	TokenArray tokens = array_new(Token, 8);
+ArrayToken lexer_tokenize(Lexer *self) {
+	ArrayToken tokens = array_new(Token, 8);
 	self->start = 0;
 	self->pos = 0;
 
@@ -148,8 +148,6 @@ TokenTag scan_id(Lexer *self) {
 		String text = str_slice(self->input, self->start, self->pos);
 		if (str_is(text, "const")) {
 			return token_Const;
-		} else if (str_is(text, "lambda")) {
-			return token_Lambda;
 		} else if (str_is(text, "if")) {
 			return token_If;
 		} else if (str_is(text, "then")) {
@@ -182,13 +180,16 @@ TokenTag scan_operator(Lexer *self) {
 		next(self);
 	}
 
-	if (str_is(str_slice(self->input, self->start, self->pos), "=")) {
+	String slice = str_slice(self->input, self->start, self->pos);
+	if (str_is(slice, "=")) {
 		return token_Equal;
-	} else if (str_is(str_slice(self->input, self->start, self->pos), "=>")) {
+	} else if (str_is(slice, "\\")) {
+		return token_Lambda;
+	} else if (str_is(slice, "=>")) {
 		return token_DoubleArrow;
-	} else if (str_is(str_slice(self->input, self->start, self->pos), "->")) {
+	} else if (str_is(slice, "->")) {
 		return token_RightArrow;
-	} else if (str_is(str_slice(self->input, self->start, self->pos), "<-")) {
+	} else if (str_is(slice, "<-")) {
 		return token_LeftArrow;
 	}
 
