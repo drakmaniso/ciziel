@@ -32,7 +32,7 @@ typedef struct {
 } TopLevelDef;
 
 
-array_typedef(TopLevelDef);
+Array_typedef(TopLevelDef);
 
 
 typedef struct {
@@ -40,7 +40,7 @@ typedef struct {
 } Module;
 
 
-array_typedef(Module);
+Array_typedef(Module);
 
 
 #endif // AST_H

@@ -6,36 +6,36 @@
 
 
 typedef enum TokenTag {
-	token_None,
+	Token_None,
 
 	// Keywords
-	token_Const,
-	token_Lambda,
-	token_If,
-	token_Then,
-	token_Else,
+	Token_Const,
+	Token_Lambda,
+	Token_If,
+	Token_Then,
+	Token_Else,
 	
 	// Delimiters
-	token_Colon,
-	token_Semicolon,
-	token_LeftParen,
-	token_RightParen,
-	token_Comma,
-	token_Quote,
+	Token_Colon,
+	Token_Semicolon,
+	Token_LeftParen,
+	Token_RightParen,
+	Token_Comma,
+	Token_Quote,
 
 	// Operators
-	token_Equal,
-	token_DoubleArrow,
-	token_RightArrow,
-	token_LeftArrow,
+	Token_Equal,
+	Token_DoubleArrow,
+	Token_RightArrow,
+	Token_LeftArrow,
 
 	// Literals and identifiers
-	token_Number,
-	token_Id,
-	token_TypeId,
+	Token_Number,
+	Token_Id,
+	Token_TypeId,
 
-	token_EOF,
-	token_Invalid
+	Token_EOF,
+	Token_Invalid
 } TokenTag;
 
 
@@ -45,11 +45,11 @@ typedef struct {
 	TokenTag tag;
 } Token;
 
-array_typedef(Token);
+Array_typedef(Token);
 
 
-Token token_new(size_t pos, String value, TokenTag tag);
-void token_print(Token self);
+Token Token_new(size_t pos, String value, TokenTag tag);
+void Token_print(Token self);
 
 
 #endif // TOKEN_H

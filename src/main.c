@@ -12,19 +12,19 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	String source = str_read_from(argv[1]);
+	String source = String_read_from(argv[1]);
 
 	Lexer lexer;
-	lexer_new(&lexer, argv[1], source);
-	ArrayToken tokens = lexer_tokenize(&lexer);
+	Lexer_new(&lexer, argv[1], source);
+	ArrayToken tokens = Lexer_tokenize(&lexer);
 
-	for(size_t i = 0; i < array_length(tokens); i++) {
-		Token tok = array_at(tokens, i);
-		token_print(tok);
+	for(size_t i = 0; i < Array_length(tokens); i++) {
+		Token tok = Array_at(tokens, i);
+		Token_print(tok);
 	}
 
-	Parser parser = parser_new(argv[1], tokens);
+	Parser parser = Parser_new(argv[1], tokens);
 
-	str_free(&source);
+	String_free(&source);
 	return 0;
 }

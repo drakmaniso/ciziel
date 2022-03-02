@@ -7,7 +7,7 @@
 // LEXER
 
 
-void lexer_new(Lexer *self, char *filepath, String input) {
+void Lexer_new(Lexer *self, char *filepath, String input) {
 	*self = (Lexer) {
 		.name = filepath,
 		.input = input,
@@ -17,17 +17,17 @@ void lexer_new(Lexer *self, char *filepath, String input) {
 }
 
 
-ArrayToken lexer_tokenize(Lexer *self) {
-	ArrayToken tokens = array_new(Token, 8);
+ArrayToken Lexer_tokenize(Lexer *self) {
+	ArrayToken tokens = Array_new(Token, 8);
 	self->start = 0;
 	self->pos = 0;
 
 	TokenTag tag = scan(self);
-	while(tag != token_EOF) {
-		String value = str_slice(self->input, self->start, self->pos);
-		Token token = token_new(self->start, value, tag);
+	while(tag != Token_EOF) {
+		String value = String_slice(self->input, self->start, self->pos);
+		Token token = Token_new(self->start, value, tag);
 		self->start = self->pos;
-		array_push(tokens, token);
+		Array_push(tokens, token);
 		tag = scan(self);
 	}
 	return tokens;
@@ -35,10 +35,10 @@ ArrayToken lexer_tokenize(Lexer *self) {
 
 
 char next(Lexer *self) {
-	if (self->pos >= str_length(self->input)) {
+	if (self->pos >= String_length(self->input)) {
 		return '\0';
 	}
-	char result = str_at(self->input, self->pos);
+	char result = String_at(self->input, self->pos);
 	self->pos++;
 	return result;
 }
@@ -87,7 +87,7 @@ TokenTag scan(Lexer *self) {
 		char r = next(self);
 
 		if (r == '\0') {
-			return token_EOF;
+			return Token_EOF;
 		}
 
 		if (r == '\n') {
@@ -145,18 +145,18 @@ TokenTag scan_id(Lexer *self) {
 
 		backtrack(self);
 
-		String text = str_slice(self->input, self->start, self->pos);
-		if (str_is(text, "const")) {
-			return token_Const;
-		} else if (str_is(text, "if")) {
-			return token_If;
-		} else if (str_is(text, "then")) {
-			return token_Then;
-		} else if (str_is(text, "else")) {
-			return token_Else;
+		String text = String_slice(self->input, self->start, self->pos);
+		if (String_is(text, "const")) {
+			return Token_Const;
+		} else if (String_is(text, "if")) {
+			return Token_If;
+		} else if (String_is(text, "then")) {
+			return Token_Then;
+		} else if (String_is(text, "else")) {
+			return Token_Else;
 		}
 
-		return token_Id;
+		return Token_Id;
 	}
 }
 
@@ -170,7 +170,7 @@ TokenTag scan_type_id(Lexer *self) {
 		}
 
 		backtrack(self);
-		return token_TypeId;
+		return Token_TypeId;
 	}
 }
 
@@ -180,45 +180,45 @@ TokenTag scan_operator(Lexer *self) {
 		next(self);
 	}
 
-	String slice = str_slice(self->input, self->start, self->pos);
-	if (str_is(slice, "=")) {
-		return token_Equal;
-	} else if (str_is(slice, "\\")) {
-		return token_Lambda;
-	} else if (str_is(slice, "=>")) {
-		return token_DoubleArrow;
-	} else if (str_is(slice, "->")) {
-		return token_RightArrow;
-	} else if (str_is(slice, "<-")) {
-		return token_LeftArrow;
+	String slice = String_slice(self->input, self->start, self->pos);
+	if (String_is(slice, "=")) {
+		return Token_Equal;
+	} else if (String_is(slice, "\\")) {
+		return Token_Lambda;
+	} else if (String_is(slice, "=>")) {
+		return Token_DoubleArrow;
+	} else if (String_is(slice, "->")) {
+		return Token_RightArrow;
+	} else if (String_is(slice, "<-")) {
+		return Token_LeftArrow;
 	}
 
-	return token_Invalid;
+	return Token_Invalid;
 }
 
 
 TokenTag scan_delimiter(Lexer *self) {
-	switch(str_at(self->input, self->start)) {
+	switch(String_at(self->input, self->start)) {
 		case '\'':
-			return token_Quote;
+			return Token_Quote;
 			break;
 		case '(':
-			return token_LeftParen;
+			return Token_LeftParen;
 			break;
 		case ')':
-			return token_RightParen;
+			return Token_RightParen;
 			break;
 		case ',':
-			return token_Comma;
+			return Token_Comma;
 			break;
 		case ':':
-			return token_Colon;
+			return Token_Colon;
 			break;
 		case ';':
-			return token_Semicolon;
+			return Token_Semicolon;
 			break;
 		default:
-			return token_Invalid;
+			return Token_Invalid;
 	}
 }
 
@@ -232,7 +232,7 @@ TokenTag scan_number(Lexer *self) {
 		}
 
 		backtrack(self);
-		return token_Number;
+		return Token_Number;
 	}
 }
 
@@ -244,7 +244,7 @@ TokenTag scan_invalid(Lexer *self) {
 		if (r == '\0' || r == '\n') {
 			backtrack(self);
 		}
-		return token_Invalid;
+		return Token_Invalid;
 	}
 }
 

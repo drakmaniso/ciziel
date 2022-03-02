@@ -16,7 +16,7 @@ typedef struct {
 } Parser;
 
 
-Parser parser_new(char *filepath, ArrayToken tokens);
+Parser Parser_new(char *filepath, ArrayToken tokens);
 
 
 #endif // PARSER_H
