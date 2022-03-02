@@ -36,6 +36,7 @@ ArrayToken Lexer_tokenize(Lexer *self) {
 
 char next(Lexer *self) {
 	if (self->pos >= String_length(self->input)) {
+		self->pos++;
 		return '\0';
 	}
 	char result = String_at(self->input, self->pos);
@@ -64,7 +65,7 @@ char peek(Lexer *self) {
 // SCANNER
 
 
-TokenTag scan_between(Lexer *self);
+TokenTag scan_white_space(Lexer *self);
 TokenTag scan_id(Lexer *self);
 TokenTag scan_type_id(Lexer *self);
 TokenTag scan_delimiter(Lexer *self);
@@ -72,6 +73,7 @@ TokenTag scan_operator(Lexer *self);
 TokenTag scan_number(Lexer *self);
 TokenTag scan_invalid(Lexer *self);
 
+bool is_new_line(char r);
 bool is_white_space(char r);
 bool is_uppercase(char r);
 bool is_lowercase(char r);
@@ -90,15 +92,8 @@ TokenTag scan(Lexer *self) {
 			return Token_EOF;
 		}
 
-		if (r == '\n') {
-			ignore(self);
-			continue;
-			//return (TokenTag) {lexNewLine};
-		}
-
-		if (is_white_space(r)) {
-			ignore(self);
-			continue;
+		if (is_new_line(r) || is_white_space(r)) {
+			return scan_white_space(self);
 		}
 
 		if (is_delimiter(r)) {
@@ -131,6 +126,29 @@ TokenTag scan(Lexer *self) {
 
 		// Invalid rune in input
 		return scan_invalid(self);
+	}
+}
+
+
+TokenTag scan_white_space(Lexer *self) {
+	bool is_nl = is_new_line(String_at(self->input, self->start));
+	while (true) {
+		char r = next(self);
+
+		if (is_new_line(r)) {
+			is_nl = true;
+			continue;
+		}
+
+		if (is_white_space(r)) {
+			continue;
+		}
+
+		backtrack(self);
+		if (is_nl) {
+			return Token_NewLine;
+		}
+		return Token_WhiteSpace;
 	}
 }
 
@@ -250,6 +268,12 @@ TokenTag scan_invalid(Lexer *self) {
 
 
 // CHARACTER CLASSES
+
+
+bool is_new_line(char r) {
+	return r == '\n' || r == '\r';
+}
+
 
 bool is_white_space(char r) {
 	return r == ' ' || r == '\t';

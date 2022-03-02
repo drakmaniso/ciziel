@@ -14,6 +14,9 @@ Token Token_new(size_t pos, String value, TokenTag tag) {
 
 void Token_print(Token self) {
 	switch (self.tag) {
+		case Token_NewLine: printf("\n"); break;
+		case Token_WhiteSpace: printf(" "); break;
+
 		case Token_Const: printf("CONST"); break;
 		case Token_Lambda: printf("LAMBDA"); break;
 		case Token_If: printf("IF"); break;
@@ -51,9 +54,7 @@ void Token_print(Token self) {
 		String_print(self.value);
 		printf(")");
 	}
-	if (self.tag == Token_Semicolon || self.tag == Token_Equal) {
-		printf("\n");
-	} else {
+	if (self.tag != Token_NewLine) {
 		printf(" ");
 	}
 }

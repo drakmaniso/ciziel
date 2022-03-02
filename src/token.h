@@ -8,6 +8,9 @@
 typedef enum TokenTag {
 	Token_None,
 
+	Token_WhiteSpace,
+	Token_NewLine,
+
 	// Keywords
 	Token_Const,
 	Token_Lambda,
