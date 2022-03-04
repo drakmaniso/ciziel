@@ -11,6 +11,7 @@ typedef struct {
 	String input;
 	size_t start;
 	size_t pos;
+	bool at_line_start;
 } Lexer;
 
 

@@ -35,7 +35,7 @@
 
     ControlExpr <- MatchExpr / LambdaExpr
 
-    LambdaExpr <- LAMBDA ID (LAMBDA ID)* DOUBLEARROW LocalDef* Expr
+    LambdaExpr <- LAMBDA ID (LAMBDA ID)* DARROW LocalDef* Expr
 
     SimpleExpr <- Atom (FuncCallTail / DotAccessTail)*
     FuncCallTail <- Tuple

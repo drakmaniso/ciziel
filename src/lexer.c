@@ -13,6 +13,7 @@ void Lexer_new(Lexer *self, char *filepath, String input) {
 		.input = input,
 		.start = 0,
 		.pos = 0,
+		.at_line_start = true,
 	};
 }
 
@@ -25,8 +26,9 @@ ArrayToken Lexer_tokenize(Lexer *self) {
 	TokenTag tag = scan(self);
 	while(tag != Token_EOF) {
 		String value = String_slice(self->input, self->start, self->pos);
-		Token token = Token_new(self->start, value, tag);
+		Token token = Token_new(self->start, value, tag, self->at_line_start);
 		self->start = self->pos;
+		self->at_line_start = false;
 		Array_push(tokens, token);
 		tag = scan(self);
 	}
@@ -92,8 +94,15 @@ TokenTag scan(Lexer *self) {
 			return Token_EOF;
 		}
 
-		if (is_new_line(r) || is_white_space(r)) {
-			return scan_white_space(self);
+		if (is_new_line(r)) {
+			self->at_line_start = true;
+			ignore(self);
+			continue;
+		}
+
+		if (is_white_space(r)) {
+			ignore(self);
+			continue;
 		}
 
 		if (is_delimiter(r)) {
@@ -126,29 +135,6 @@ TokenTag scan(Lexer *self) {
 
 		// Invalid rune in input
 		return scan_invalid(self);
-	}
-}
-
-
-TokenTag scan_white_space(Lexer *self) {
-	bool is_nl = is_new_line(String_at(self->input, self->start));
-	while (true) {
-		char r = next(self);
-
-		if (is_new_line(r)) {
-			is_nl = true;
-			continue;
-		}
-
-		if (is_white_space(r)) {
-			continue;
-		}
-
-		backtrack(self);
-		if (is_nl) {
-			return Token_NewLine;
-		}
-		return Token_WhiteSpace;
 	}
 }
 
@@ -203,12 +189,10 @@ TokenTag scan_operator(Lexer *self) {
 		return Token_Equal;
 	} else if (String_is(slice, "\\")) {
 		return Token_Lambda;
-	} else if (String_is(slice, "=>")) {
-		return Token_DoubleArrow;
 	} else if (String_is(slice, "->")) {
-		return Token_RightArrow;
-	} else if (String_is(slice, "<-")) {
-		return Token_LeftArrow;
+		return Token_SArrow;
+	} else if (String_is(slice, "=>")) {
+		return Token_DArrow;
 	}
 
 	return Token_Invalid;
@@ -221,10 +205,10 @@ TokenTag scan_delimiter(Lexer *self) {
 			return Token_Quote;
 			break;
 		case '(':
-			return Token_LeftParen;
+			return Token_LParen;
 			break;
 		case ')':
-			return Token_RightParen;
+			return Token_RParen;
 			break;
 		case ',':
 			return Token_Comma;
