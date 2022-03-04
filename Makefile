@@ -5,3 +5,6 @@ compile.exe: src\main.c src\global.c src\string.c src\token.c src\lexer.c src\pa
 
 build:
 	mkdir build
+
+clean:
+	del build\*.obj
