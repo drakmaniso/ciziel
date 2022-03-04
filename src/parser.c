@@ -3,7 +3,7 @@
 #include "ast.h"
 
 
-Parser Parser_new(char *filepath, ArrayToken tokens) {
+Parser Parser_new(char *filepath, Array_Token tokens) {
     return (Parser) {
         .filename = filepath,
         .tokens = tokens,

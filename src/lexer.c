@@ -18,8 +18,8 @@ void Lexer_new(Lexer *self, char *filepath, String input) {
 }
 
 
-ArrayToken Lexer_tokenize(Lexer *self) {
-	ArrayToken tokens = Array_new(Token, 8);
+Array_Token Lexer_tokenize(Lexer *self) {
+	Array_Token tokens = Array_new(Token, 8);
 	self->start = 0;
 	self->pos = 0;
 

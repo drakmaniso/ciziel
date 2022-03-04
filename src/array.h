@@ -11,11 +11,11 @@ typedef struct {            \
     itemType *items;        \
     size_t length;          \
     size_t capacity;        \
-} Array##itemType
+} Array_##itemType
 
 
 #define Array_new(itemType, cap)                             \
-    (Array##itemType) {                                      \
+    (Array_##itemType) {                                      \
         .items = (itemType*)calloc((cap), sizeof(itemType)), \
         .length = 0,                                         \
         .capacity = (cap)                                    \

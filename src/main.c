@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 
 	Lexer lexer;
 	Lexer_new(&lexer, argv[1], source);
-	ArrayToken tokens = Lexer_tokenize(&lexer);
+	Array_Token tokens = Lexer_tokenize(&lexer);
 
 	for(size_t i = 0; i < Array_length(tokens); i++) {
 		Token tok = Array_at(tokens, i);

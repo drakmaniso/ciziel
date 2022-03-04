@@ -36,7 +36,7 @@ Array_typedef(TopLevelDef);
 
 
 typedef struct {
-    ArrayTopLevelDef definitions;
+    Array_TopLevelDef definitions;
 } Module;
 
 
