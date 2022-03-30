@@ -14,8 +14,7 @@ int main(int argc, char **argv)
 
 	String source = String_read_from(argv[1]);
 
-	Lexer lexer;
-	Lexer_new(&lexer, argv[1], source);
+	Lexer lexer = Lexer_new(argv[1], source);
 	Array_Token tokens = Lexer_tokenize(&lexer);
 
 	for(size_t i = 0; i < Array_length(tokens); i++) {

@@ -7,8 +7,8 @@
 // LEXER
 
 
-void Lexer_new(Lexer *self, char *filepath, String input) {
-	*self = (Lexer) {
+Lexer Lexer_new(char *filepath, String input) {
+	return (Lexer) {
 		.name = filepath,
 		.input = input,
 		.start = 0,

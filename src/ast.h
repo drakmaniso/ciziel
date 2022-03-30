@@ -6,9 +6,6 @@
 
 
 typedef enum {
-    ast_Module,
-    ast_TopLevelDef,
-    ast_ConstDef,
     ast_Literal,
 } ASTTag;
 
@@ -19,28 +16,8 @@ typedef struct {
 
 
 typedef struct {
-    Token name;
-    Literal *body;
-} ConstDef;
-
-
-typedef struct {
-    ASTTag tag;
-    union {
-        ConstDef *const_def;
-    };
-} TopLevelDef;
-
-
-Array_typedef(TopLevelDef);
-
-
-typedef struct {
-    Array_TopLevelDef definitions;
-} Module;
-
-
-Array_typedef(Module);
+    Literal *root;
+} AST;
 
 
 #endif // AST_H

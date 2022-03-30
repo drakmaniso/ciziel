@@ -13,10 +13,30 @@
 
 ## Operators
 
-    \ -> =>
-    = :=
-    |
-    + - * /
+Keyword operators:
+
+    =
+    \ =>
+
+Type operators:
+
+    | ->
+
+Logic and comparison:
+
+    and or == /= < <= > >=
+
+Term:
+
+    + -
+
+Factor:
+
+    * /
+
+Unary:
+
+    not -
 
 
 ## PEG Grammar (for the core language only)
@@ -29,23 +49,37 @@
 
     ConstDef <- CONST ID EQUAL LocalDef* Expr
 
-    Expr <- ControlExpr / SimpleExpr
-
     LocalDef <- ID EQUAL Expr
 
-    ControlExpr <- MatchExpr / LambdaExpr
+    Expr <- MatchExpr / LambdaExpr / BinaryExpr
 
     LambdaExpr <- LAMBDA ID (LAMBDA ID)* DARROW LocalDef* Expr
 
-    SimpleExpr <- Atom (FuncCallTail / DotAccessTail)*
-    FuncCallTail <- Tuple
-    DotAccess <- DOT ID
+    BinaryExpr <- UnaryExpr (
+            (AND UnaryExpr)*
+            / (OR UnaryExpr)*
+            / (EQ UnaryExpr)*
+            / (DIFF UnaryExpr)*
+            / (LT UnaryExpr)*
+            / (LTE UnaryExpr)*
+            / (GT UnaryExpr)*
+            / (GTE UnaryExpr)*
+            / (MINUS UnaryExpr)*
+            / (PLUS UnaryExpr)*
+            / (SLASH UnaryExpr)*
+            / (ASTERISK UnaryExpr)*
+        )
 
-    Atom <- Identifier / Literal / Tuple
+    UnaryExpr <- (NOT / MINUS) UnaryExpr / Call
+
+    Call <- Primary (LPAREN Arguments? RPAREN / DOT ID)*
+    Arguments <- Expr (COMMA  Expr)*
+
+
+    Primary <- Identifier / Literal / Tuple
     Identifier <- ID
     Literal <- NUMBER
     Tuple <- LPAREN Expr (COMMA Expr)* RPAREN
-
 
 
 ---

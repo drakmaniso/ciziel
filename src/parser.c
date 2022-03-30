@@ -4,14 +4,17 @@
 
 
 Parser Parser_new(char *filepath, Array_Token tokens) {
-    return (Parser) {
+    return (Parser){
         .filename = filepath,
         .tokens = tokens,
-        .ast = Array_new(Module, 8),
-        .ast = NULL,
+        .ast = (AST) { .root = NULL },
         .start = 0,
         .pos = 0,
     };
 }
 
 
+AST Parser_parse(Parser *self) {
+    // parse_number(self);
+    return self->ast;
+}

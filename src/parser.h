@@ -10,7 +10,7 @@
 typedef struct {
     char *filename;
     Array_Token tokens;
-    Array_TopLevelDef ast;
+    AST ast;
     size_t start;
     size_t pos;
 } Parser;
