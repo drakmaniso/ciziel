@@ -2,6 +2,7 @@
 #include "global.h"
 #include "lexer.h"
 #include "token.h"
+#include "parser.h"
 
 
 int main(int argc, char **argv)
@@ -11,17 +12,18 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	String source = str_read_from(argv[1]);
+	String source = String_read_from(argv[1]);
 
-	Lexer lexer;
-	lexer_new(&lexer, argv[1], source);
-	TokenArray tokens = lexer_tokenize(&lexer);
+	Lexer lexer = Lexer_new(argv[1], source);
+	Array_Token tokens = Lexer_tokenize(&lexer);
 
-	for(size_t i = 0; i < array_length(tokens); i++) {
-		Token tok = array_at(tokens, i);
-		token_print(tok);
+	for(size_t i = 0; i < Array_length(tokens); i++) {
+		Token tok = Array_at(tokens, i);
+		Token_print(tok);
 	}
 
-	str_free(&source);
+	Parser parser = Parser_new(argv[1], tokens);
+
+	String_free(&source);
 	return 0;
 }

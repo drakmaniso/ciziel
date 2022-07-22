@@ -1,0 +1,64 @@
+-- From https://www.informit.com/articles/printerfriendly/1407357
+
+trait #one-pass-range =
+    Self'Item
+    (Self).empty -> Bool
+    (Self).front -> Self'Item
+    (Self).pop-front -> Self
+
+
+forall R #one-pass-range
+func find(range: R, value: R.Item) -> R =
+    if range.empty or range.front == value then
+        range
+    else
+        find(range.pop-front, value)
+
+
+trait #writable-range =
+    Self'Item
+    (Self).replace-front(item: Self'Item) -> Self
+
+forall A #one-pass-range, B #one-pass-range #writable-range, A.Item == B.Item
+func copy(source: A, target: B) -> B =
+    if source.empty or target.empty then
+        target
+    else
+        src = source.pop-front
+        tgt = target.pop-front.replace-front(source.front)
+        copy(src, tgt)
+
+
+trait #forward-range =
+    #one-pass-range
+    (Self).save -> Self
+
+
+trait #double-ended-range =
+    #forward-range
+    (Self).back -> Self.Item
+    (Self).pop-back -> Self
+
+
+trait #random-access-range =
+    #forward-range
+    (Self).at(index: Size) -> Self.Item
+    (Self).slice(from: Size, to: Size) -> Self
+
+
+trait #length =
+    (Self).length -> Size
+
+
+trait #is-infinite =
+    Self.is-infinite: Bool
+
+
+trait #infinite =
+    #is-infinite
+    Self.is-infinite: True
+
+
+trait #finite =
+    #is-infinite
+    Self.is-infinite: False

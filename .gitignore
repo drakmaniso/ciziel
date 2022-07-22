@@ -1,4 +1,6 @@
 *.exe
+*.ilk
+*.pdb
 compile
 *.o
 build/

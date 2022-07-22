@@ -1,0 +1,41 @@
+{
+	"version": "2.0.0",
+	// "windows": {
+	// 	"options": {
+	// 		"shell": {
+	// 			"executable": "cmd.exe",
+	// 			"args": [
+	// 				"/C",
+	// 				// The path to VsDevCmd.bat depends on the version of Visual Studio you have installed.
+	// 				"\"C:/Program Files (x86)/Microsoft Visual Studio/2019/BuildTools/Common7/Tools/VsDevCmd.bat\"",
+	// 				"&&"
+	// 			]
+	// 		}
+	// 	}
+	// },
+	"tasks": [
+		{
+			"type": "shell",
+			// "type": "cppbuild",
+			"label": "C/C++: cl.exe build active file",
+			"command": "cl.exe",
+			"args": [
+				"/Zi",
+				"/nologo",
+				"/Fe\"${workspaceFolder}\\compile.exe\"",
+				"${workspaceFolder}\\src\\*.c"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}\\build\\"
+			},
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "compiler: cl.exe"
+		}
+	]
+}

@@ -1,59 +1,99 @@
---- From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type)
+--- [from wikipedia]: https://en.wikipedia.org/wiki/Generalized_algebraic_data_type
 module gadt_example_1
 
-union Expr = EBool | EInt | Equality | Addition
-union IntegerExpr = EInt | Addition
-union BooleanExpr = EBool | Equality
+define Expr = enum { EBool, EInt, Equality, Addition }
+define IntegerExpr = enum { EInt, Addition }
+define BooleanExpr = enum { EBool, Equality }
 
-struct EBool =
-    eval: Bool
+define EBool = struct { value: Bool }
+define EInt = struct { value: Int }
+define Equality = struct { left: EInt, right: EInt }
+define Addition = struct { left: EInt, right: EInt }
 
-struct EInt = 
-    eval: Int
-
-struct Equality =
-    left: EInt
-    right: EInt
-
-struct Addition =
-    left: EInt
-    right: EInt
-
-func eval(expr: Equality) -> Bool = self.left.eval == self.right.eval
-func eval(expr: Addition) -> Int = self.left.eval + self.right.eval
-
-trait #eval =
-    Output(type Self) -> type #eval
-    eval(expr: Self) -> Self.Output
+define (EBool).eval() -> Bool = self.value
+define (EInt).eval() -> Int = self.value
+define (Equality).eval() -> Bool = self.left.eval() == self.right.eval()
+define (Addition).eval() -> Int = self.left.eval() + self.right.eval()
 
 
 -------------------------------------------------------------------------------
 --- GADT example: phantom types
---- From "Fun with phantom types" by R. Hinze
+--- From ["Fun with phantom types"] by R. Hinze
+---
+--- ["Fun with phantom types"]: https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
 module
 
-union TermInt = Zero | Succ | Pred | If[TermInt]
-union TermBool = IsZero | If[TermBool]
+define #term =
+    trait {
+        has Self.Output
+        has (Self).eval() -> Self.Output
+    }
 
-struct Zero
-struct Succ = arg: TermInt
-struct Pred = arg: TermInt
-struct IsZero = arg: TermInt
-struct If[T] =
-    condition: TermBool
-    thenBranch: T
-    elseBranch: T
+define Term =
+    enum {
+        Zero, Succ, Pred, IsZero, If[C, T]
+        has #term
+    }
 
-func eval(expr: Zero) -> Int = 0
-func eval(expr: Succ) -> Int = self.arg.eval + 1
-func eval(expr: Pred) -> Int = self.arg.eval - 1
-func eval(expr: IsZero) -> Int = self.arg.eval == 0
+define Zero =
+    struct {
+        has #term
+    }
 
-func eval(expr: If[T]) -> T =
-    if self.condition.eval then
-        self.thenBranch.eval
+define Succ =
+    struct {
+        arg: TermInt
+        has #term
+    }
+
+define Pred =
+    struct {
+        arg: TermInt
+        has #term
+    }
+
+define IsZero =
+    struct {
+        arg: TermInt
+        has #term
+    }
+
+define If[C, T]
+    forall C #term, C.Output == Bool, T #term
+    =
+    struct {
+        condition: C,
+        then-branch: T,
+        else-branch: T,
+        has #term
+    }
+
+define Term.Output = enum { Int, Bool }
+
+define Zero.Output = alias Int
+define (Zero).eval() -> Int = 0
+
+define Succ.Output = alias Int
+define (Succ).eval() -> Int = self.arg.eval() + 1
+
+define Pred.Output = alias Int
+define (Pred).eval() -> Int = self.arg.eval() - 1
+
+define IsZero.Output = alias Bool
+define (IsZero).eval() -> Int = self.arg.eval() == 0
+
+define If[C, T].Output = alias T
+
+define (If[C, T]).eval() -> T.Output
+    forall
+        C #term,
+        C.Output == Bool,
+        T #term,
+    =
+    if self.condition.eval() then
+        self.then-branch.eval()
     else
-        self.elseBranch.eval
+        self.else-branch.eval()
 
 
 -------------------------------------------------------------------------------
@@ -61,35 +101,89 @@ func eval(expr: If[T]) -> T =
 --- From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
 module
 
-struct Lift[T] =
-    eval: T
+define #expr =
+    trait {
+        Self.Output
+        (Self).eval() -> Self.Output
+    }
 
-struct Pair[T, U] =
-    first: T
-    second: U
+define Lift[T] =
+    struct {
+        value: T
+        has #expr
+    }
 
-struct Lambda[T, U] =
-    function: Func[T -> U]
+define Pair[T, U]
+    forall T #expr, U #expr
+    =
+    struct {
+        first: T,
+        second: U,
+        has #expr
+    }
 
-struct Apply[T, U] =
-    function: Lambda[T, U]
-    argument: U
+define Lambda[T, U]
+    forall T #expr, U #expr
+    =
+    struct {
+        function: Func(T) -> U
+        has #expr
+    }
 
-struct Fix[T] =
-    function: Lambda[T, T]
+define Apply[T, U]
+    forall T #expr, U #expr
+    =
+    struct {
+        function: Lambda[T, U],
+        argument: U,
+        has #expr
+    }
 
-func eval(expr: Pair[T, U]) -> (T, U) =
-    (self.first.eval, self.second.eval)
-    
-func eval(expr: Lambda[T, U]) -> Func[T -> U] =
-    x => self.function(Lift(x)).eval
+define Fix[T]
+    forall T #expr
+    =
+    struct {
+        function: Lambda[T, T]
+        has #expr
+    }
 
-func eval(expr: Apply[T, U]) -> U =
-    self.function.eval(self.argument.eval)
+define Lift[T].Output = alias (T, U)
+define (Lift[T]).eval() -> T =
+    self.first.value
 
-func eval(expr: Fix[T]) -> T =
-    self.function.eval(Fix(self.function).eval)
+define Pair[T, U].Output = alias (T, U)
+define (Pair[T, U]).eval() -> (T, U)
+    forall T #expr, U #expr
+    =
+    (self.first.eval(), self.second.eval())
 
-func example() =
-    factorial = Fix(Lambda(f => Lambda(y => Lift(if y.eval == 0 then 1 else y.eval * f.eval(y.eval - 1)))))
-    io'print(factorial.eval(10))
+define Lambda[T, U].Output = alias Func(T) -> U
+define (Lambda[T, U]).eval() -> fun(T) -> U
+    forall T #expr, U #expr =
+    fun(x) -> self.function(Lift(x)).eval()
+
+define Apply[T, U].Output = alias U
+define (Apply[T, U]).eval() -> U
+    forall T #expr, U #expr
+    =
+    self.function.eval()(self.argument.eval())
+
+define Fix[T].Output = alias T
+define (Fix[T]).eval() -> T
+    forall T #expr =
+    self.function.eval()(Fix(self.function).eval())
+
+local example() =
+    let factorial =
+        Fix(
+            Lambda(fun(f) ->
+                Lambda(fun(y) ->
+                    Lift(
+                        let y' = y.eval()
+                        let f' = f.eval()
+                        if y' == 0 then 1 else y' * f'(y' - 1)
+                    )
+                )
+            )
+        )
+    Io.print(factorial.eval()(10))

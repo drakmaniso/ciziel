@@ -1,68 +1,133 @@
 module geom
-
-use std'vec (Point)
-
-public
+use std::vec (Point)
 
 
-union Shape =
-    Circle | Square | Rectangle
+define Shape =
+    enum { 
+        Circle, Square, Rectangle
+        has #movable
+        has #scalable
+    }
 
 
-trait #movable =
-    move-to(shape: Self, destination: Point) -> Self
+define #movable =
+    trait {
+        has (Self).move-to(destination: Point) -> Self
+    }
 
 
-trait #scalable =
-    scale-by(shape: Self, factor: Float32) -> Self
+define #scalable =
+    trait {
+        has (Self).scale-by(factor: Float32) -> Self
+    }
 
 
-trait #with-center =
-    Self(center: Point, ...)
+local #with-center =
+    trait {
+        has struct { center: Point, ... }
+
+        has (Self).move-to(destination: Point) =
+            self.with { center = destination }
+    }
 
 
-forall T #with-center
-func move-to(shape: T, destination: Point) -> T =
-    shape.with(center: destination)
+local switch-places(shape-1: A, shape-2: B) -> (A, B)
+    forall A #with-center, B #with-center
+    =
+    let c1 = shape-1.center
+    let c2 = shape-2.center
+    (shape-1.with { center = c2 }, shape-2.with { center = c1 })
 
 
-struct Circle =
-    center: Point
-    radius: Float32
-    implement #with-center
-    implement #movable
-    implement #scalable
+define Circle =
+    struct {
+        center: Point,
+        radius: Float32,
+        has #movable, #scalable
+        has #with-center
+    }
 
 
-func diameter(circle: Circle) -> Float32 =
-    circle.radius * 2
+define Circle.bounding-of(points: Array[Point]) -> Circle =
+    let welzl(points, boundary) =
+        match points
+        case _ and boundary.length() == 3 then
+            trivial(boundary)
+
+        case [] then
+            trivial(boundary)
+
+        case [p, rest] then
+            d = welzl(points.remove(p), boundary)
+            if d.encloses(p) then
+                d
+            else
+                welzl(points.remove(p), boundary.push(p))
+        end
+
+    welzl(points, [])
 
 
-func perimeter(shape: Circle) -> Float32 =
-    math'pi * shape.diameter
+define (Circle).diameter() -> Float32 =
+    self.radius * 2
 
 
-func area(shape: Circle) -> Float32 =
-    math'pi * (shape.radius ** 2)
+define (Circle).perimeter() -> Float32 =
+    math::pi * self.diameter()
 
 
--- `move-by` for `Circle` is implemented by the generic function
+define (Circle).area() -> Float32 =
+    math::pi * (self.radius ** 2)
 
 
-func scale-by(shape: Circle, factor: Float32) -> Circle =
-    self.with(radius: self.radius * factor)
+define (Circle).scale-by(factor: Float32) -> Circle =
+    self.with{radius: self.radius * factor}
 
 
-struct Square =
-    center: Point
-    side: Int
+define BBox =
+    struct {
+        min: Point,
+        max: Point,
+        local _: () = (),
+        has #movable, #scalabe
+        has #scalable
+    }
 
 
-struct Rectangle =
-    center: Point
-    width: Int
-    height: Int
+define BBox.new(a: Point, b: Point) -> BBox =
+    min-x, max-x = ...((a.x, b.x).sorted)
+    min-y, max-y = ...((a.y, b.y).sorted)
+    
+    BBox {
+        min = Point(min-x, min-y),
+        max = Point(max-x, max-y),
+    }
 
 
-struct Polygon =
-    ...points: Array[Point]
+define Square =
+    struct {
+        center: Point,
+        side: Int,
+        has #movable
+        has #scalable
+        has #with-center
+    }
+
+
+define Rectangle =
+    struct {
+        center: Point,
+        width: Int,
+        height: Int,
+        has #movable
+        has #scalable
+        has #with-center
+    }
+
+
+define Polygon =
+    struct {
+        ...points: Array[Point]
+        has #movable
+        has #scalable
+    }

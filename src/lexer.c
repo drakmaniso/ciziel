@@ -7,27 +7,29 @@
 // LEXER
 
 
-void lexer_new(Lexer *self, char *filepath, String input) {
-	*self = (Lexer) {
+Lexer Lexer_new(char *filepath, String input) {
+	return (Lexer) {
 		.name = filepath,
 		.input = input,
 		.start = 0,
 		.pos = 0,
+		.at_line_start = true,
 	};
 }
 
 
-TokenArray lexer_tokenize(Lexer *self) {
-	TokenArray tokens = array_new(Token, 8);
+Array_Token Lexer_tokenize(Lexer *self) {
+	Array_Token tokens = Array_new(Token, 8);
 	self->start = 0;
 	self->pos = 0;
 
 	TokenTag tag = scan(self);
-	while(tag != token_EOF) {
-		String value = str_slice(self->input, self->start, self->pos);
-		Token token = token_new(self->start, value, tag);
+	while(tag != Token_EOF) {
+		String value = String_slice(self->input, self->start, self->pos);
+		Token token = Token_new(self->start, value, tag, self->at_line_start);
 		self->start = self->pos;
-		array_push(tokens, token);
+		self->at_line_start = false;
+		Array_push(tokens, token);
 		tag = scan(self);
 	}
 	return tokens;
@@ -35,10 +37,11 @@ TokenArray lexer_tokenize(Lexer *self) {
 
 
 char next(Lexer *self) {
-	if (self->pos >= str_length(self->input)) {
+	if (self->pos >= String_length(self->input)) {
+		self->pos++;
 		return '\0';
 	}
-	char result = str_at(self->input, self->pos);
+	char result = String_at(self->input, self->pos);
 	self->pos++;
 	return result;
 }
@@ -64,7 +67,7 @@ char peek(Lexer *self) {
 // SCANNER
 
 
-TokenTag scan_between(Lexer *self);
+TokenTag scan_white_space(Lexer *self);
 TokenTag scan_id(Lexer *self);
 TokenTag scan_type_id(Lexer *self);
 TokenTag scan_delimiter(Lexer *self);
@@ -72,6 +75,7 @@ TokenTag scan_operator(Lexer *self);
 TokenTag scan_number(Lexer *self);
 TokenTag scan_invalid(Lexer *self);
 
+bool is_new_line(char r);
 bool is_white_space(char r);
 bool is_uppercase(char r);
 bool is_lowercase(char r);
@@ -87,13 +91,13 @@ TokenTag scan(Lexer *self) {
 		char r = next(self);
 
 		if (r == '\0') {
-			return token_EOF;
+			return Token_EOF;
 		}
 
-		if (r == '\n') {
+		if (is_new_line(r)) {
+			self->at_line_start = true;
 			ignore(self);
 			continue;
-			//return (TokenTag) {lexNewLine};
 		}
 
 		if (is_white_space(r)) {
@@ -145,22 +149,18 @@ TokenTag scan_id(Lexer *self) {
 
 		backtrack(self);
 
-		String text = str_slice(self->input, self->start, self->pos);
-		if (str_is(text, "const")) {
-			return token_Const;
-		} else if (str_is(text, "lambda")) {
-			return token_Lambda;
-		} else if (str_is(text, "if")) {
-			return token_If;
-		} else if (str_is(text, "then")) {
-			return token_Then;
-		} else if (str_is(text, "else")) {
-			return token_Else;
-		} else if (str_is(text, "end")) {
-			return token_End;
+		String text = String_slice(self->input, self->start, self->pos);
+		if (String_is(text, "const")) {
+			return Token_Const;
+		} else if (String_is(text, "if")) {
+			return Token_If;
+		} else if (String_is(text, "then")) {
+			return Token_Then;
+		} else if (String_is(text, "else")) {
+			return Token_Else;
 		}
 
-		return token_Id;
+		return Token_Id;
 	}
 }
 
@@ -174,7 +174,7 @@ TokenTag scan_type_id(Lexer *self) {
 		}
 
 		backtrack(self);
-		return token_TypeId;
+		return Token_TypeId;
 	}
 }
 
@@ -184,42 +184,43 @@ TokenTag scan_operator(Lexer *self) {
 		next(self);
 	}
 
-	if (str_is(str_slice(self->input, self->start, self->pos), "=")) {
-		return token_Equal;
-	} else if (str_is(str_slice(self->input, self->start, self->pos), "=>")) {
-		return token_DoubleArrow;
-	} else if (str_is(str_slice(self->input, self->start, self->pos), "->")) {
-		return token_RightArrow;
-	} else if (str_is(str_slice(self->input, self->start, self->pos), "<-")) {
-		return token_LeftArrow;
+	String slice = String_slice(self->input, self->start, self->pos);
+	if (String_is(slice, "=")) {
+		return Token_Equal;
+	} else if (String_is(slice, "\\")) {
+		return Token_Lambda;
+	} else if (String_is(slice, "->")) {
+		return Token_SArrow;
+	} else if (String_is(slice, "=>")) {
+		return Token_DArrow;
 	}
 
-	return token_Invalid;
+	return Token_Invalid;
 }
 
 
 TokenTag scan_delimiter(Lexer *self) {
-	switch(str_at(self->input, self->start)) {
+	switch(String_at(self->input, self->start)) {
 		case '\'':
-			return token_Quote;
+			return Token_Quote;
 			break;
 		case '(':
-			return token_LeftParen;
+			return Token_LParen;
 			break;
 		case ')':
-			return token_RightParen;
+			return Token_RParen;
 			break;
 		case ',':
-			return token_Comma;
+			return Token_Comma;
 			break;
 		case ':':
-			return token_Colon;
+			return Token_Colon;
 			break;
 		case ';':
-			return token_Semicolon;
+			return Token_Semicolon;
 			break;
 		default:
-			return token_Invalid;
+			return Token_Invalid;
 	}
 }
 
@@ -233,7 +234,7 @@ TokenTag scan_number(Lexer *self) {
 		}
 
 		backtrack(self);
-		return token_Number;
+		return Token_Number;
 	}
 }
 
@@ -245,12 +246,18 @@ TokenTag scan_invalid(Lexer *self) {
 		if (r == '\0' || r == '\n') {
 			backtrack(self);
 		}
-		return token_Invalid;
+		return Token_Invalid;
 	}
 }
 
 
 // CHARACTER CLASSES
+
+
+bool is_new_line(char r) {
+	return r == '\n' || r == '\r';
+}
+
 
 bool is_white_space(char r) {
 	return r == ' ' || r == '\t';

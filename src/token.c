@@ -4,57 +4,59 @@
 #include "token.h"
 
 
-Token token_new(size_t pos, String value, TokenTag tag) {
+Token Token_new(size_t pos, String value, TokenTag tag, bool at_line_start) {
 	return (Token) {
 		.pos = pos,
 		.value = value,
-		.tag = tag
+		.tag = tag,
+		.at_line_start = at_line_start
 	};
 }
 
-void token_print(Token self) {
-	switch (self.tag) {
-		case token_Const: printf("CONST"); break;
-		case token_Lambda: printf("LAMBDA"); break;
-		case token_If: printf("IF"); break;
-		case token_Then: printf("THEN"); break;
-		case token_Else: printf("ELSE"); break;
-		case token_End: printf("END"); break;
 
-		case token_Number: printf("NUM"); break;
-		case token_Id: printf("ID"); break;
-		case token_TypeId: printf("TYPEID"); break;
+void print_value(Token self) {
+	printf("\"");
+	String_print(self.value);
+	printf("\"");
+}
+
+
+void Token_print(Token self) {
+	if (self.at_line_start) {
+		printf("\n");
+	}
+
+	switch (self.tag) {
+		case Token_Const: printf("CONST"); break;
+		case Token_If: printf("IF"); break;
+		case Token_Then: printf("THEN"); break;
+		case Token_Else: printf("ELSE"); break;
+
+		case Token_Number: printf("NUMBER"); print_value(self); break;
+		case Token_Id: printf("ID"); print_value(self); break;
+		case Token_TypeId: printf("TYPEID"); print_value(self); break;
 
 		// Operators
 
-		case token_Equal: printf("EQUAL"); break;
-		case token_DoubleArrow: printf("DBARROW"); break;
-		case token_RightArrow: printf("RARROW"); break;
-		case token_LeftArrow: printf("LARROW"); break;
+		case Token_Equal: printf("EQUAL"); break;
+		case Token_Lambda: printf("LAMBDA"); break;
+		case Token_SArrow: printf("SARROW"); break;
+		case Token_DArrow: printf("DARROW"); break;
 
 		// Delimiters
 
-		case token_Colon: printf("COLON"); break;
-		case token_Semicolon: printf("SEMICOLON"); break;
-		case token_LeftParen: printf("LPAREN"); break;
-		case token_RightParen: printf("RPAREN"); break;
-		case token_Comma: printf("COMMA"); break;
-		case token_Quote: printf("QUOTE"); break;
+		case Token_Colon: printf("COLON"); break;
+		case Token_Semicolon: printf("SEMICOLON"); break;
+		case Token_LParen: printf("LPAREN"); break;
+		case Token_RParen: printf("RPAREN"); break;
+		case Token_Comma: printf("COMMA"); break;
+		case Token_Quote: printf("QUOTE"); break;
 
-		case token_Invalid: printf("INVALID"); break;
+		case Token_Invalid: printf("INVALID"); print_value(self); break;
 
 		default:
-			printf("***UNKNOWN***");
+			printf("***UNKNOWN-TOKEN***");
 	}
-	if (self.tag == token_Invalid || self.tag == token_Number 
-			|| self.tag == token_Id || self.tag == token_TypeId) {
-		printf("(");
-		str_print(self.value);
-		printf(")");
-	}
-	if (self.tag == token_End || self.tag == token_Semicolon || self.tag == token_Equal) {
-		printf("\n");
-	} else {
-		printf(" ");
-	}
+
+	printf(" ");
 }

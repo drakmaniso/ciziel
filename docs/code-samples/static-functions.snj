@@ -1,24 +1,43 @@
-struct Vector =
-    x: Float
-    y: Float
+define Vector =
+    struct {
+        x: Float,
+        y: Float,
+    }
 
--- Functions with type arguments:
+-- ASSOCIATED CONSTANTS -------------------------------------------------------
 
-func dimensions(type Vector) -> static Int = 2
+define Vector.dimensions: Int = 2
 
-func zero(type Vector) -> static Vector = Vector(0, 0)
+define Vector.zero = Vector(0, 0)
 
--- A type function (i.e. a function where all the arguments
--- and the return type are static):
+-- ASSOCIATED TYPES -----------------------------------------------------------
 
-func Scalar(type Vector) -> type #num = Float
+define Vector.Scalar = alias Float
 
+-- ASSOCIATED FUNCTIONS -------------------------------------------------------
 
+define Vector.new-from-angle(angle: Float, length: Float) : Vector =
+    ...
 
--- desugaring
+--> desugars to:
+define Vector.new-from-angle: fun(Float, Float) -> Vector =
+    fun(angle, length) ->
+        ...
 
-const dimensions = lambda(static _: TypeWitness[Vector]) -> static Int = 2
+-- METHODS --------------------------------------------------------------------
 
-const zero = lambda(static _: TypeWitness[Vector]) -> static Vector = Vector(0, 0)
+define (Vector).length: Float =
+    ...
 
-const Scalar = lambda(static _: TypeWitness[Vector]) -> static Type = Float
+-- Desugars to:
+define Vector.length: fun(Vector) -> Float =
+    fun(self) ->
+        ...
+
+define (Vector).rotate(center: Vector, angle: Float) -> Vector =
+    ...
+
+-- Desugars to:
+define Vector.rotate: fun(Vector, Vector, Float) -> Vector =
+    fun(self, center, angle) ->
+        ...

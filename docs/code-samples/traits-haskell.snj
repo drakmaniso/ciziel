@@ -1,0 +1,163 @@
+-- [Haskell's Typeclassopedia]: https://wiki.haskell.org/Typeclassopedia
+
+
+trait #functor =
+    (Self[A]).fmap(transform: Func(A) -> B) -> Self[B]
+
+    (Self[B]) $> (value: A) -> Self[A] =
+        self.map(\_ => value)
+    
+    Self[_]'lift(transform: Func(A) -> B) -> Func(Self[A]) -> Self[B] =
+        => ___.map(transform)
+
+---
+
+trait #applicative =
+    #functor
+
+    -- aka `wrap`
+    Self[A]'pure(value: A) -> Self[A]
+
+    -- aka `apply`
+    (Self[A -> B]) <*> (functor: Self[A]) -> Self[B]
+
+    -- aka `and-then`?
+    (Self[A]) *> (other: Self[B]) -> Self[B] =
+        (identity <$ a) <*> b
+
+    -- aka `discard`? `when-also`?
+    (Self[A]) <* (other: Self[B]) -> Self[A] =
+        const-f = \x \_ => x
+        Self.lift-2(const-f)
+    
+    Self[_]'lift-2(f: (A, B) -> C) -> ((Self[A], Self[B]) -> Self[C]) =
+        curried-f: Func(A) -> Func(B) -> C =
+            \a => \b => f(a, b)
+        \a \b =>
+            Self'pure(curried-f) <*> Self'pure(a) <*> Self'pure(b)
+
+---
+
+trait #monad =
+    #applicative
+    -- aka `chain`, `flat-map`, `bind`...
+    (Self[A]) >>= (operation: Func(A) -> Self[B]) -> Self[B]
+
+    (Self[A]) >> (other: Self[B]) -> Self[B] =
+        self >>= (\_ => other)
+
+    forall M #monad
+    (Self[M[A]]).join -> Self[A] =
+        self.chain(identity)
+
+trait #monad-fail =
+    #monad
+    Self'fail(msg: String) -> Self[_]
+
+--TODO: is this correct?
+trait #monad-trans =
+    Self[M, A]'lift(monad: M[A]) -> Self[M, A]
+
+
+trait #comonad =
+    #functor
+
+    func (Self[A]).extract -> A
+
+    func (Self[A]).duplicate -> Self[Self[A]] =
+        self.extend(identity)
+
+    func (Self[A]).extend(f: Func(Self[A]) -> B) -> Self[B] =
+        self.duplicate.map(f)
+
+
+------
+
+def #semigroup =
+    has append(self, other: Self) -> Self
+
+has #monoid =
+    has #semigroup
+    has empty: Self
+    def concat(values: A[Self] #functor) -> Self =
+        values.fold(Self.append, Self.empty)
+
+
+------
+
+def [T] #alternative =
+    has Self[T] #applicative
+    has #monoid
+
+def [T] #monad-plus =
+    has Self[T] #monad
+    has #monoid
+
+
+------
+
+def [T #monoid] #reduce =
+    has reduce(self, operation: Func(T, T) -> T) -> T
+    has fold-map(self, operation: Func(T) -> A) -> A
+
+def [T #monoid] #reduce =
+    has reduce(self, operation: Func(T, T) -> T) -> T
+    has fold-map(self, operation: Func(T) -> A) -> A
+
+-- Catamorphisms
+def [T] #foldable =
+    has fold(self, initial: A, operation: Func(A, T) -> A) -> A
+    has rev-fold(self, initial: A, operation: Func(T, A) -> A) -> A
+
+-- Anamorphisms
+def [T] #unfoldable =
+    has unfold(initial: A, operation: A -> Option[(T, A)]) -> Self[T]
+
+def [T] #traversable =
+    has Self[T] #functor
+    has Self[T] #foldable -- or #reduce?
+    has traverse(self, operation: Func(T) -> F[B] #functor) -> F[Self[B]]
+    has sequence(stuff: Self[F[T] #functor]) -> F[Self[T]]
+
+
+------
+
+def [T, U] #bifunctor =
+    has bimap(self, left-operation: Func(T) -> A, right-operation: Func(U) -> B) -> Self[A, B]
+    has left-map(self, left-operation: Func(T) -> A) -> Self[A, U] =
+        self.bimap(left-operation, identity)
+    has right-map(self, right-operation: Func(U) -> A) -> Self[T, A] =
+        self.bimap(identity, right-operation)
+
+
+------
+
+def [T, U] #category =
+    has id: Self[T, T]
+    has compose(self, other: Self[Func(U) -> A]) -> Self[Func(T) -> A]
+
+def [T, U] #arrow =
+    has Self[T, U] #category
+    has arrow(operation: T -> U) -> Self[T, U]
+    has first(self) -> Self[(T, A), (U, A)]
+    has parrallel-compose(self, other: Self[A, B]) -> Self[(T, A), (U, B)]
+    has fanout-compose(self, other: Self[T, A]) -> Self[T, (U, A)]
+
+def [T, U] #arrow-apply =
+    has Self[T, U] #arrow
+    has application: Self[(Self[A, B], A), B]
+
+def [T, U] #arrow-loop =
+    has Self[T, U] #arrow
+    has loop(Self[(A, C), (B, C)]) -> Self[A, B]
+
+
+------
+
+def [T] #comonad =
+    has Self[T] #functor
+    has extract(self) -> T
+    has duplicate(self) -> Self[Self[T]]
+    def extend(self, operation: Self[T] -> A) -> Self[A] =
+        self.duplicate.map(operation)
+

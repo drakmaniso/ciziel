@@ -13,57 +13,73 @@
 
 ## Operators
 
-    -> =>
-    = :=
-    |
-    + - * /
+Keyword operators:
+
+    =
+    \ =>
+
+Type operators:
+
+    | ->
+
+Logic and comparison:
+
+    and or == /= < <= > >=
+
+Term:
+
+    + -
+
+Factor:
+
+    * /
+
+Unary:
+
+    not -
 
 
-## PEG Grammar
+## PEG Grammar (for the core language only)
 
-(Out of date)
 
-    ID = [a-z][a-z0-9-]*
-    TYPEID = [A-Z][A-Za-z0-9-]*
-    TYPEVARID = [A-Z][A-Z0-9-]*
-    SOURCEVARID = [&][a-z0-9-]*
-    TRAITID = [#][a-z][a-z0-9-]*
+    ID = [a-z][A-Za-z0-9-]*
 
     Module <- TopLevelDef*
-    TopLevelDef <- FuncDef / ConstDef
-    FuncDef <- (LET / DEF) ID LPAREN Parameter (COMMA Parameter)* RPAREN RARROW TypeExpr EQUAL ExprSequence END
-    Parameter <- MUT? ID COLON TypeExpr
+    TopLevelDef <- ConstDef
 
-    Expr <- ControlExpr / SimpleExpr
-    ExprSequence <- ((SeqOnlyExpr / ControlExpr / SimpleExpr) SEMICOLON?)+
+    ConstDef <- CONST ID EQUAL LocalDef* Expr
 
-    SeqOnlyExpr <- LocalDef / ReturnExpr
-    LocalDef <- MUT? ID EQUAL Expr
-    ReturnExpr <- RETURN Expr
+    LocalDef <- ID EQUAL Expr
 
-    ControlExpr <- IfExpr / WhileExpr / DoExpr
-    IfExpr <- IF SimpleExpr THEN ExprSequence (ELSE ExprSequence)? END
-    WhileExpr <- WHILE SimpleExpr DoExpr
-    DoExpr <- DO ExprSequence END
+    Expr <- MatchExpr / LambdaExpr / BinaryExpr
 
-    SimpleExpr <- AtomExpr (FuncCallTail / DotAccessTail)*
-    FuncCallTail <- TupleExpr
-    DotAccessTail <- DOT ID
-    AtomExpr <- Identifier / Literal / TupleExpr
-    TupleExpr <- LPAREN Expr (COMMA Expr)* RPAREN
+    LambdaExpr <- LAMBDA ID (LAMBDA ID)* DARROW LocalDef* Expr
+
+    BinaryExpr <- UnaryExpr (
+            (AND UnaryExpr)*
+            / (OR UnaryExpr)*
+            / (EQ UnaryExpr)*
+            / (DIFF UnaryExpr)*
+            / (LT UnaryExpr)*
+            / (LTE UnaryExpr)*
+            / (GT UnaryExpr)*
+            / (GTE UnaryExpr)*
+            / (MINUS UnaryExpr)*
+            / (PLUS UnaryExpr)*
+            / (SLASH UnaryExpr)*
+            / (ASTERISK UnaryExpr)*
+        )
+
+    UnaryExpr <- (NOT / MINUS) UnaryExpr / Call
+
+    Call <- Primary (LPAREN Arguments? RPAREN / DOT ID)*
+    Arguments <- Expr (COMMA  Expr)*
+
+
+    Primary <- Identifier / Literal / Tuple
     Identifier <- ID
     Literal <- NUMBER
-
-
-    TypeExpr <- FuncType / TupleType / NamedType
-    FuncType <- TypeExpr RARROW TypeExpr
-    TupleType <- LPAREN TypeExpr (COMMA TypeExpr)* COMMA? RPAREN
-    NamedType <- TypeName TypeParams? TypeTraits?
-    TypeTraits <- TraitIdentifier+
-    TypeParams <- LBRACKET TypeExpr (COMMA TypeExpr)* COMMA? RBRACKET
-    TypeName <- TYPEID / TYPEVARID
-    TraitIdentifier <- TRAITID
-
+    Tuple <- LPAREN Expr (COMMA Expr)* RPAREN
 
 
 ---

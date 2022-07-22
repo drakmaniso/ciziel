@@ -1,141 +1,128 @@
 module vec
 
 
-trait #vector =
-    Scalar(type Self) -> type #num
-    zero(type Self) -> Self
-    length(vector: Self) -> Self.Scalar
-    normalize(vector: Self) -> Self
-    `+` (left: Self, right: Self) -> Self
-    `-` (left: Self, right: Self) -> Self
-    `*` (left: Self, other: Self.Scalar) -> Self
-    -- If operators have double-dispatch:
-    -- `*`(left: Self.Scalar, right: Self) -> Self
+define #vector =
+    trait {
+        has Self.Scalar #num
+        has Self.zero: Self
+        has (Self).length -> Self.Scalar
+        has (Self).normalize -> Self
+        has (Self) + (other: Self) -> Self
+        has (Self) - (other: Self) -> Self
+        has (Self) * (other: Self.Scalar) -> Self
+        -- If operators have double dispatch:
+        has (Self.Scalar) * (other: Self) -> Self
+    }
 
 
-trait #vec2 =
-    #vector
-    Self(x: Self.Scalar, y: Self.Scalar)
+define #vec2 =
+    trait {
+        has #vector
+
+        has struct {
+            x: Self.Scalar,
+            y: Self.Scalar,
+        }
+
+        define Self.zero: Self =
+            Self { x = Self.Scalar.zero, y = Self.Scalar.zero }
+            
+        define (Self).length -> Self.Scalar =
+            ((self.x ^ 2) + (self.y ^ 2)).square-root
 
 
-trait #vec3 =
-    #vector
-    Self(x: Self.Scalar, y: Self.Scalar, z: Self.Scalar)
+        define (Self).normalize -> Self =
+            let l = self.length
+            Self { x = self.x / l, y = self.y / l }
 
 
--- Generic Implementation -----------------------------------------------------
+        define (Self) + (other: Self) -> Self =
+            Self { x = self.x + other.x, y = self.y + other.y }
 
 
-func vec2-length(vector: #vec2) -> Float =
-    math'sqrt((vector.x ^ 2) + (vector.y ^ 2))
+        define (Self) - (other: Self) -> Self =
+            Self { x = self.x - other.x, y = self.y - other.y }
 
 
-forall V #vec2
-func vec2-normalize(vector: V) -> V =
-    l = length(vector)
-    V(x: vector.x / l, y: vector.y / l)
+        define (Self) * (scalar: Self.Scalar) -> Self =
+            Self { x = self.x * scalar, y = self.y * scalar }
+        
+        -- If operators have double dispatch:
+        define (Self.Scalar) * (other: Self) -> Self =
+            self * other
+    }    
 
 
-forall V #vec2
-func vec2-add(vector: V, other: V) -> V =
-    V(x: vector.x + other.x, y: vector.y + other.y)
+define #vec3 =
+    trait {
+        has #vector
 
+        has struct {
+            x: Self.Scalar,
+            y: Self.Scalar,
+            z: Self.Scalar,
+        }
 
-forall V #vec2
-func vec2-sub(vector: V) - (other: V) -> V =
-    V(x: vector.x - other.x, y: vector.y - other.y)
-
-
-forall V #vec2
-func vec2-mul(vector: V, scalar: Float) -> V =
-    V(x: vector.x * scalar, y: vector.y * scalar)
+        ...
+    }
 
 
 -- Concrete Types -------------------------------------------------------------
 
 
-struct Vec2 =
-    x: Float32
-    y: Float32
+define Vec2 =
+    struct {
+        x: Float32
+        y: Float32
+        has #vec2
+    }
 
-ensure Vec2 is #vec2
+define Vec2.Scalar = Float32
 
-func Scalar(type Vec2) = Float32
+define Vec2.zero = Vec2(0, 0)
 
-func zero(type Vec2) = Vec2(0, 0)
+define (Vec2).length -> Float32 = vec2-length(self)
 
-func length(vector: Vec2) -> Float32 = vec2-length(self)
+define (Vec2).normalize -> Vec2 = vec2-normalize(self)
 
-func normalize(vector: Vec2) -> Vec2 = vec2-normalize(self)
+define (Vec2) + (other: Vec2) -> Vec2 =
+    Vec2 { x = self.x + other.x, y = self.y + other.y }
 
-func `+`(left: Vec2, right: Vec2) -> Vec2 =
-    Vec2(x: left.x + right.x, y: left.y + right.y)
+define (Vec2) - (other: Vec2) -> Vec2 =
+    Vec2 { x = self.x - other.x, y = self.y - other.y }
 
-func `-`(left: Vec2, right: Vec2) -> Vec2 =
-    Vec2(x: left.x - right.x, y: left.y - right.y)
-
-func `*`(left: Vec2, right: Float32) -> Vec2 =
-    Vec2(x: left.x * right, y: left.y * right)
-
--- If operators have double-dispatch:
--- func `*`(left: Float32, right: Vec2) -> Vec2 =
---     right * left
-
-
-struct IVec2 =
-    x: Int32
-    y: Int32
-
-ensure IVec2 is #vec2
-
-func Scalar(type IVec2) = Int32
-
-func zero(type IVec2) = IVec2(0, 0)
-
-func length(vector: IVec2) -> Int32 = vec2-length(self)
-
-func normalize(vector: IVec2) -> IVec2 = vec2-normalize(self)
-
-func `+`(left: IVec2, right: IVec2) -> IVec2 =
-    IVec2(x: left.x + right.x, y: left.y + right.y)
-
-func `-`(left: IVec2, right: IVec2) -> IVec2 =
-    IVec2(x: left.x - right.x, y: left.y - right.y)
-
-func `*`(left: IVec2, right: Int32) -> IVec2 =
-    IVec2(x: left.x * right, y: left.y * right)
+define (Vec2) * (other: Float32) -> Vec2 =
+    Vec2 { x = self.x * other, y = self.y * other }
 
 -- If operators have double-dispatch:
--- func `*`(left: Int32, right: IVec2) -> IVec2 =
---     right * left
+define (Float32) * (other: Vec2) -> Vec2 =
+    other * self
 
 
-struct Point =
-    x: Float32
-    y: Float32
+define IVec2 =
+    struct {
+        x: Int32
+        y: Int32
+        has #vec2
+    }
 
-ensure Point is #tuple
-ensure Point is #vec2
+define IVec2.Scalar = Int32
 
-func Scalar(type Point) = Float32
+define IVec2.zero = IVec2(0, 0)
 
-func zero(type Point) = Point(0, 0)
+define (IVec2).length -> Int32 = length(self)
 
-func length(vector: Point) -> Float32 =
-    length(self)
+define (IVec2).normalize -> IVec2 = normalize(self)
 
-func normalize(vector: Point) -> Point =
-    normalize(self)
+define (IVec2) + (other: IVec2) -> IVec2 =
+    IVec2(x: self.x + other.x, y: self.y + other.y)
 
-func `+`(left: Point, right: Point) -> Point =
-    vec2-add(left, right)
+define (IVec2) - (other: IVec2) -> IVec2 =
+    IVec2(x: self.x - other.x, y: self.y - other.y)
 
-func `-`(left: Point, right: Point) -> Point =
-    vec2-sub(left, right)
-
-func `*`(left: Point, other: Float32) -> Point =
-    mul(left, right)
+define (IVec2) * (other: Int32) -> IVec2 =
+    IVec2(x: self.x * other, y: self.y * other)
 
 -- If operators have double-dispatch:
--- func `*`(left: Float32, other: Point) -> Point =
---     vec2-mul(left, right)
+define (Int32) * (other: IVec2) -> IVec2 =
+    other * self

@@ -5,46 +5,19 @@
 #include "global.h"
 
 
-array_def(TopLevelDef);
-
-
-typedef enum ASTTag {
-    ast_Module,
-    ast_TopLevelDef,
-    ast_FuncDef,
-    ast_TypeName,
+typedef enum {
     ast_Literal,
-};
-
-
-typedef struct {
-    TopLevelDefArray definitions;
-} Module;
-
-
-typedef struct {
-    ASTTag tag;
-    union {
-        FuncDef func_def;
-    };
-} TopLevelDef;
-
-
-typedef struct {
-    Token name;
-    TypeName return_type;
-    Literal body;
-} FuncDef;
-
-
-typedef struct {
-    Token name;
-} TypeName;
+} ASTTag;
 
 
 typedef struct {
     Token number;
 } Literal;
+
+
+typedef struct {
+    Literal *root;
+} AST;
 
 
 #endif // AST_H

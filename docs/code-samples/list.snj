@@ -1,0 +1,151 @@
+------
+module std'list
+
+use std::iter (#iterator, #iterable)
+
+
+define List[T] =
+    enum {
+        Empty, *Node[T]
+        has #eq forall T #eq
+        has #functor
+        has #iterable
+    }
+
+
+define Node[T] =
+    struct {
+        item: T,
+        tail: List[T],
+        has #eq forall T #eq
+        has #functor
+        has #iterable
+    }
+
+
+define Empty =
+    struct {
+        has #eq
+        has #iterable
+    }
+
+
+define List[T].new(...items: Array[T]) -> List[T] =
+    items.fold-rev(
+        Empty,
+        fun(item, acc) -> Node(item, acc)
+    )
+
+
+-- Equality
+
+
+define (Empty) == (other: Empty) -> Bool =
+    True
+
+
+define (Node[T]) == (other: Node[T]) -> Bool
+    forall T #eq
+    =
+    self.item == other.item and self.tail == other.tail
+
+
+define (List[T]) == (other: List[T]) -> Bool
+    forall T #eq
+    =
+    match (self, other)
+    case (Empty, Empty) then True
+    case (a: Node, b: Node) then a == b
+    else False
+
+
+-- Pushing and poping
+
+    
+define (Node[T]).push(item: T) -> Node[T] =
+    Node(item, self)
+
+
+define (Empty).push(item: T) -> Node[T] =
+    Node(item, Empty)
+
+
+define (Node[T]).pop -> (Some[T], List[T]) =
+    (Some(self.item), self.tail)
+
+
+define (Empty).pop -> (None, Empty) =
+    (None, Empty)
+
+
+-- Functor implementation
+
+
+define (Empty).map(f: fun(T) -> U) -> Empty
+    forall T, U
+    =
+    Empty
+
+
+define (Node[T]).map(f: fun(T) -> U) -> Node[U]
+    forall T, U
+    =
+    Node {
+        item = f(self.item),
+        tail = self.tail.map(f)
+    }
+
+
+-- Iterator stuff
+
+
+define List[T].Iterator = alias Iterator[T]
+
+
+define (List[T]).iterator -> Iterator[T] =
+    Iterator(self)
+
+
+define Iterator[T] =
+    opaque struct {
+        current: List[T],
+    }
+    has #iterator
+
+
+define Iterator[T].Item = alias T
+
+
+define (Iterator[T]).next -> (Iterator[T], Option[T]) =
+    match self.current
+    case Empty then
+        (self, None)
+    case Node(item, tail) then
+        (self.with { current = tail }, Some(item))
+    
+
+------
+module std::list::test
+
+
+use std::list (List, Node, Empty)
+
+
+local double(list: List[Int]) -> List[Int] =
+    list.map(___ * 2)
+
+
+define main() -> Io[] =
+    local a = Node(1, Node(2, Node(3, Empty)))
+    local b = List.new(1, 2, 3)
+
+    Io.do {
+        Io.print(a.type)
+        --> Node[Int]
+
+        Io.print(b.type)
+        --> List[Int]
+
+        Io.print(a.map.type)
+        --> fun(Node[Int], fun(Int) -> A) -> Node[A]
+    }

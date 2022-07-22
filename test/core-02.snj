@@ -1,0 +1,3 @@
+const main =
+    \_ =>
+        assert-eq(33, 33)

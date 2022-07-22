@@ -1,0 +1,66 @@
+------ Multiple dispatch emulated with the Visitor pattern
+module pets
+
+define #pet =
+    trait {
+        #pet-visitor
+        Self { name: String, ... }
+        (Self).meets(other: #pet) -> String
+    }
+
+
+define #pet-visitor =
+    trait {
+        (Self).visit-dog(other: Dog) -> String
+        (Self).visit-cat(other: Cat) -> String
+    }
+
+
+define encounter(a: A, b: B) -> String
+        forall A #pet, B #pet
+    =
+    verb = a.meets(b)
+    "{a.name} meets {b.name} and {verb}"
+
+
+define Dog = struct { name: String }
+define (Dog).meets(other: B #pet) -> String = other.visit-dog(self)
+define (Dog).visit-dog(other: Dog) -> String = "sniffs"
+define (Dog).visit-cat(other: Cat) -> String = "chases"
+
+
+define Cat = struct { name: String }
+define (Cat).meets(other: A #pet) -> String = other.visit-cat(self)
+define (Cat).visit-dog(other: Dog) -> String = "hisses"
+define (Cat).visit-cat(other: Cat) -> String = "slinks"
+
+
+define example-encounter(io: Console) -> Console =
+    fido = Dog { name = "Fido" }
+    rex = Dog { name = "Rex" }
+    whiskers = Cat { name = "Whiskers" }
+    spot = Cat { name = "Spot" }
+
+    io := .print(encounter(fido, rex))
+    --> Fido meets Rex and sniffs
+    io .= print(encounter(fido, whiskers))
+    --> Fido meets Whiskers and chases
+    io!print(encounter(whiskers, rex))
+    --> Whiskers meets Rex and hisses
+    io <-> print(encounter(whiskers, spot))
+    --> Whiskers meets Spot and slinks
+
+    pets = {fido, whiskers}
+    io := io.print("{pet[0].name}: {pet[0].type}")
+    --> Fido: Cat | Dog
+    io := io.print("{pet[1].name}: {pet[1].type}")
+    --> Whiskers: Cat | Dog
+
+    io := .print(encounter(pet[0], pet[0]))
+    --> Fido meets Fido and sniffs
+    io := .print(encounter(pet[0], pet[1]))
+    --> Fido meets Whiskers and chases
+    io := .print(encounter(pet[1], pet[0]))
+    --> Whiskers meets Fido and hisses
+    io := .print(encounter(pet[1], pet[1]))
+    --> Whiskers meets Whiskers and slinks

@@ -1,0 +1,97 @@
+module ownership-examples
+
+
+owned struct Book =
+    title: String
+    author: String
+    pages: Int32
+
+
+owned struct Library =
+    owner: String
+    books: Array[Book]
+
+
+owned struct Selection[a] =
+    owner: String
+    books: Array[&a Book]
+
+
+func example-1() -> () =
+    my-book = Book(
+        title: "sdfsd",
+        pages: 432,
+        author: "adfaas",
+    )
+
+
+func (Book).rename(new-title: String) -> Book =
+    self.with(title: new-title)
+
+
+forall c <= (a, b)
+func longest(book1: &a Book, book2: &b Book) -> &c Book =
+    if book1.pages >= book2.pages then book1
+    else book2
+
+
+func (Library).add(book: Book) ->  Library =
+    self.with(books: [...library.books, book])
+
+
+forall a <= b
+func (Selection[a]).add(book: &b Book) -> Selection[a] =
+    self.with(books: [...library.books, book])
+
+
+func example-add-book() -> () =
+    -- Creating a unique library of unique books:
+    my-library = Library(owner: "Myself", books: {...})
+    -- my-library :: Library
+
+    -- Creating a unique selection of shared books:
+    my-selection = Selection(owner: "Myself", books: &my-library.books[0..10])
+    -- my-first-ten-books :: Selection[from my-library]
+
+    -- Adding a shared book to a unique selection of shared books:
+    my-new-selection = my-selection.add(&my-library.books[23])
+
+    -- Adding a unique book to a unique library of unique books:
+    my-new-library = my-library.add(Book(...))
+    -- `my-library` is now invalid.
+
+    ()
+
+
+func (& Library).count-books -> Size =
+    match self.books
+    case [] then 0
+    case [_, ...rest] then rest.count-books + 1
+
+
+forall a <= b
+func (&a Selection[b]).count-books -> Size =
+    match self.books
+    case [] then 0
+    case [_, ...rest] then rest.count-books + 1
+
+
+func all-books-by(author: & String, library: & Library) -> Array[& Book] =
+    library.books.fold(
+        [],
+        \array \book =>
+            if book.author == author then
+                array.push(book)
+            else
+                array
+    )
+
+
+func all-books-by(author: & String, library: & Library) -> Array[& Book] =
+    library.books.clone
+        .filter(=> ___.author == author)
+
+
+func (Array[T]).filter(condition: Func(& T) -> Bool) -> Array[T]
+
+func (Array[T]).fold(init: U, operation: Func(U, T) -> U) -> Array[U]

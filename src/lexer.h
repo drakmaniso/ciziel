@@ -11,11 +11,12 @@ typedef struct {
 	String input;
 	size_t start;
 	size_t pos;
+	bool at_line_start;
 } Lexer;
 
 
-void lexer_new(Lexer *self, char *filepath, String input);
-TokenArray lexer_tokenize(Lexer *self);
+Lexer Lexer_new(char *filepath, String input);
+Array_Token Lexer_tokenize(Lexer *self);
 
 
 #endif // SCANNER_H

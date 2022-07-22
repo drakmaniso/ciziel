@@ -1,3 +1,10 @@
-compile.exe: src\main.c src\global.c src\string.c src\token.c src\lexer.c
+all: build compile.exe
+
+compile.exe: src\main.c src\global.c src\string.c src\token.c src\lexer.c src\parser.c
 	cl /Fobuild\ /Fecompile.exe $**
 
+build:
+	mkdir build
+
+clean:
+	del build\*.obj

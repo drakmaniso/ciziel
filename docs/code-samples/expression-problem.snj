@@ -1,79 +1,97 @@
 module foo
 
 
-trait #eval =
-	eval(expr: Self) -> Int
+define #eval =
+	trait {
+		(Self).eval -> Int
+	}
 
 
-struct Literal =
-	value: Int
-	implement #eval
+define Literal =
+	struct {
+		value: Int,
+	}
+	impl #tuple
+	impl #eval
 
 
-struct Addition[T] =
-	left: Expr[T]
-	right: Expr[T]
-	forall T #eval implement #eval
+define Addition[T] =
+	struct {
+		left: Expr[T],
+		right: Expr[T],
+	}
+	impl #tuple
+	impl #eval forall T #eval
 
 
-func eval(expr: Literal) -> Int =
-	expr.value
+define (Literal).eval -> Int =
+	self.value
 
 
-func eval(expr: Addition[#eval]) -> Int =
-	expr.left.eval + expr.right.eval
+define (Addition[#eval]).eval -> Int =
+	self.left.eval + self.right.eval
 
 
 ------
 module bar
 
+
 use foo (#eval, Literal, Addition)
 
 
-trait #pretty =
-	pretty(expr: Self) -> String
-	implement Literal
-	implement Addition[#eval]
+define #pretty =
+	trait {
+		(Self).pretty -> String
+	}
+	impl Literal
+	impl Addition[#pretty]
 
 
-struct Negation[T] =
-	subexpr: T
-	forall T #eval implement #eval
-	forall T #pretty implement #pretty
+define Negation[T] =
+	struct {
+		subexpr: T,
+	}
+	impl #tuple
+	impl #eval forall T #eval
+	impl #pretty forall T #pretty
 
 
-func eval(expr: Negation[#eval]) -> Int =
-	- expr.subexpr.eval
+define (Negation[#eval]).eval -> Int =
+	- self.subexpr.eval
 
 
-func pretty(expr: Literal) -> String =
-	expr.eval.as-string
+define (Literal).pretty -> String =
+	self.eval.as-string
 
 
-func pretty(expr: Addition[#pretty]) -> String =
-	"{expr.left.pretty} + {expr.right.pretty}"
+define (Addition[#pretty]).pretty -> String =
+	"{self.left.pretty} + {self.right.pretty}"
 
 
-func pretty(expr: Negation[#pretty]) -> String =
-	match expr.subexpr
+define (Negation[#pretty]).pretty -> String =
+	match self.subexpr
 	case e = Literal(...) then
 		"-{e.pretty}"
 	else
-		"- ({expr.subexpr.pretty})"
+		"- ({self.subexpr.pretty})"
 
 
 ------
 module main
 
-use 'std'io
-
 use foo (#eval, Literal, Addition)
 use bar (#pretty, Negation)
 
-union Expr = Literal | Addition[Expr] | Negation[Expr]
 
-func main() -> Io[()] =
-	do {
-		e1 = Addition(Literal(77), Negation(Literal(12)))
-		io'print("{e1.pretty} = {e1.eval}")
+define Expr =
+	enum { Literal, Addition[Expr], Negation[Expr] }
+	impl #eval
+	impl #pretty
+
+
+define main() -> Io[] =
+	e1 = Expr.Addition {
+		left: Expr.Literal(77),
+		right: Expr.Negation(Expr.Literal(12))
 	}
+	Io.print("{e1.pretty} = {e1.eval}")
