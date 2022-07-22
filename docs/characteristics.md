@@ -7,9 +7,9 @@ With local (global?) type inference.
 
 ## Ownership type system
 
-Very similar to Rust, with one important difference: borrowing does not create a
-reference. You can read a description of the ownership system
-[here](ownership-system.md).
+TODO
+
+(see [Ownership system](ownership-system.md))
 
 
 ## Functional but in place
@@ -43,8 +43,6 @@ They are the only way to handle dynamic polymorphism in the language.
 Type classes, because they offer a good way to group code and data while
 preserving encapsulation.
 
-Structural?
-
 
 ## Uncurried functions
 
@@ -53,7 +51,7 @@ Structural?
 
 ## Dot notation
 
-Associating functions with types makes the code easier to reason about.
+Mentally associating functions with types makes the code easier to reason about.
 
 
 ## High-level code with low-level data
