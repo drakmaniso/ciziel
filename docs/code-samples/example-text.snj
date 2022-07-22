@@ -1,26 +1,23 @@
 module example-text
 
 
-func example-1() -> () =
-    a = Text("Hello")
-    -- a :: Text
+local example-1() =
+    a = own "Hello"
+    -- a :: own String
 
-    b = a.append(Text(", World!"))
+    b = own a.append(", World!")
     -- a is now invalid
-    -- b :: Text
+    -- b :: own String
 
-    c = &b.slice(1, 5)
-    -- b is temporarily inaccessible
-    -- c :: & Text
-
-    d = c
-    -- b is still inaccessible
-    -- c :: & Text
-    -- d :: & Text
-
-    e = b.append(Text(" How are you?"))
-    -- d and c are now invalid
+    c = b
     -- b is now invalid
-    -- e :: Text
+    -- c :: String
+
+    d = c.slice(1, 5)
+    -- c :: String
+    -- d :: String
+
+    e = own c.append(" How are you?")
+    -- e :: own String
 
     ()

@@ -1,44 +1,45 @@
------- Multiple dispatch emulated with double single dispatch
+------ Multiple dispatch emulated with the Visitor pattern
 module pets
 
-trait #pet =
-    #pet-visitor
-    Self(name: String, ...)
-    (Self).meets(other: #pet) -> String
+define #pet =
+    trait {
+        #pet-visitor
+        Self { name: String, ... }
+        (Self).meets(other: #pet) -> String
+    }
 
 
-trait #pet-visitor =
-    (Self).visit-dog(other: Dog) -> String
-    (Self).visit-cat(other: Cat) -> String
+define #pet-visitor =
+    trait {
+        (Self).visit-dog(other: Dog) -> String
+        (Self).visit-cat(other: Cat) -> String
+    }
 
 
-forall A #pet, B #pet
-func encounter(a: A, b: B) -> String =
+define encounter(a: A, b: B) -> String
+        forall A #pet, B #pet
+    =
     verb = a.meets(b)
     "{a.name} meets {b.name} and {verb}"
 
 
-struct Dog =
-    name: String
-
-func (Dog).meets(other: B #pet) -> String = other.visit-dog(self)
-func (Dog).visit-dog(other: Dog) -> String = "sniffs"
-func (Dog).visit-cat(other: Cat) -> String = "chases"
+define Dog = struct { name: String }
+define (Dog).meets(other: B #pet) -> String = other.visit-dog(self)
+define (Dog).visit-dog(other: Dog) -> String = "sniffs"
+define (Dog).visit-cat(other: Cat) -> String = "chases"
 
 
-struct Cat =
-    name: String
-
-func (Cat).meets(other: A #pet) -> String = other.visit-cat(self)
-func (Cat).visit-dog(other: Dog) -> String = "hisses"
-func (Cat).visit-cat(other: Cat) -> String = "slinks"
+define Cat = struct { name: String }
+define (Cat).meets(other: A #pet) -> String = other.visit-cat(self)
+define (Cat).visit-dog(other: Dog) -> String = "hisses"
+define (Cat).visit-cat(other: Cat) -> String = "slinks"
 
 
-func example-encounter(io: Console) -> Console =
-    fido = Dog("Fido")
-    rex = Dog("Rex")
-    whiskers = Cat("Whiskers")
-    spot = Cat("Spot")
+define example-encounter(io: Console) -> Console =
+    fido = Dog { name = "Fido" }
+    rex = Dog { name = "Rex" }
+    whiskers = Cat { name = "Whiskers" }
+    spot = Cat { name = "Spot" }
 
     io := .print(encounter(fido, rex))
     --> Fido meets Rex and sniffs

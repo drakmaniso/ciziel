@@ -1,36 +1,43 @@
-struct Vector =
-    x: Float
-    y: Float
+define Vector =
+    struct {
+        x: Float,
+        y: Float,
+    }
 
--- Associated constants:
+-- ASSOCIATED CONSTANTS -------------------------------------------------------
 
-const Vector'dimensions: Int = 2
+define Vector.dimensions: Int = 2
 
-const Vector'zero = Vector(0, 0)
+define Vector.zero = Vector(0, 0)
 
--- Associated type:
+-- ASSOCIATED TYPES -----------------------------------------------------------
 
-alias Vector'Scalar = Float
+define Vector.Scalar = alias Float
 
--- Associated functions:
+-- ASSOCIATED FUNCTIONS -------------------------------------------------------
 
-func Vector'new-from-angle(angle: Float, length: Float) -> Vector = ...
-
---> desugars to:
-
-const Vector'new-from-angle: Func(Float, Float) -> Vector =
-    \angle \length => ...
-
--- Methods:
-
-func (Vector).length -> Float = ...
-
-func (Vector).rotate(center: Vector, angle: Float) -> Vector = ...
+define Vector.new-from-angle(angle: Float, length: Float) : Vector =
+    ...
 
 --> desugars to:
+define Vector.new-from-angle: fun(Float, Float) -> Vector =
+    fun(angle, length) ->
+        ...
 
-const Vector'length: Func(Vector) -> Float =
-    \self => ...
+-- METHODS --------------------------------------------------------------------
 
-const Vector'rotate: Func(Vector, Vector, Float) -> Vector =
-    \self \center \angle => ...
+define (Vector).length: Float =
+    ...
+
+-- Desugars to:
+define Vector.length: fun(Vector) -> Float =
+    fun(self) ->
+        ...
+
+define (Vector).rotate(center: Vector, angle: Float) -> Vector =
+    ...
+
+-- Desugars to:
+define Vector.rotate: fun(Vector, Vector, Float) -> Vector =
+    fun(self, center, angle) ->
+        ...

@@ -1,57 +1,54 @@
 ------ Standard traits for iterators ------------------------------------------
 module std/iter
 
-trait #iterable =
-    Self'Iterator #next
-    (Self).iterator -> Self'Iterator
+define #iterable =
+    trait {
+        Self.Iterator #iterator
+        (Self).iterator -> Self.Iterator
+    }
 
-trait #iterator =
-    Self'Item #any
-    (Self).next -> (Self, Option[Self'Item])
-
+define #iterator =
+    trait {
+        Self.Item
+        (Self).next -> (Self, Maybe[Self.Item])
+    }
 
 ------ Simple iterator example ------------------------------------------------
 module counter
 
-unique struct Counter =
-    count: Int
-    limit: Int
-    implement #iterator
+define Counter =
+    struct {
+        opaque count: Int,
+        limit: Int,
+    }
+    impl #iterator
 
-func Counter'new(limit: Int) -> Counter =
-    Counter{count: 0, limit: limit}
+define Counter.new(limit: Int) -> Counter =
+    Counter { count: 0, limit: limit }
 
-alias Counter'Item = Int
+define Counter.Item = alias Int
 
-func (Counter).next -> (Counter, Option[Int]) =
-    if counter.count >= counter.limit then
-        (counter, None)
+define (Counter).next -> (Counter, Maybe[Int]) =
+    if self.count >= self.limit then
+        (self, None)
     else
-        count = &counter.count
-        new-counter = counter.with{count: count + 1}
+        count = self.count
+        new-counter = self.with { count = count + 1 }
         (new-counter, Some(count))
 
-func test_Counter() =
-    counter = Counter.new(6)
-    assert counter.next! == Some(1)
-    assert counter.next! == Some(2)
-    assert counter.next! == Some(3)
-    assert counter.next! == Some(4)
-    assert counter.next! == Some(5)
-    assert counter.next! == None
-    ()
-
-let example-loop() -> Io[()] =
-    counter = Counter'new(7)
-    step(counter)
-    where
-        step(counter) =
-            match counter.next
-            case (_, None) then
-                Io'print("Done!")
-            case (rest, Some(number)) then
-                do Io'print("{number}...")
+local example() -> Io[] =
+    step = fun(c) ->
+        match c.next
+        case (_, None) then
+            Io.print("Done!")
+        case (rest, Some(number)) then
+            Io.do {
+                Io.print("{number}, ")
                 step(rest)
+            }
+    
+    counter = Counter.new(7)
+    step(counter)
 
 
 ----
@@ -59,22 +56,22 @@ module main
 
 use std'iter (Iterator)
 
-forall I #iterator
-func foo(iterator: I, f: Func(I.Item) -> Int) -> Array[Int] =
+local foo(iterator: I, f: Func(I.Item) -> Int) -> Array[Int]
+        forall I #iterator
+    =
     iterator.fold([], => [...___, ___])
 
-forall I #iterator, J #iterator, I.Item == J.Item
-func compare(i: I, j: J) -> Bool =
+local compare(i: I, j: J) -> Bool
+        forall I #iterator, J #iterator, I.Item == J.Item
+    =
     match (i.next, j.next)
-    case
-        ((rest-i, Some(item-i),
-            (rest-j, Some(item-j))
-    then
-        if item-i == item-j then
-            compare(rest-i, rest-j)
+    case ((_, None), (_, None)) then
+        True
+
+    case ((i-next, Some(a), (j-next, Some(b)) then
+        if a == b then
+            compare(i-next, j-next)
         else
             False
 
-    case ((_, None), (_, None)) then True
-
-    case _ then False
+    else False

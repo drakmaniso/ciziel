@@ -1,0 +1,159 @@
+-- TRANSPARENT STRUCTS --------------------------------------------------------
+
+
+[[ Defined structs are by default transparent: all their fields are accessible
+outside the module, as well as the default constructor and the `with`
+construct. ]]
+
+
+define Transparent =
+    struct {
+        foo: Int,
+        bar: Bool,
+        trait #constructor
+    }
+
+
+-- TRANSLUCENT STRUCTS --------------------------------------------------------
+
+
+[[ If at least one field of a define struct is declared opaque, the default
+constructor can no longer be used outside the module. All the opaque fields are
+also inaccessible. ]]
+
+
+define Translucent =
+    struct {
+        foo: Int,
+        local bar: Bool,
+    }
+
+
+define Translucent.new(foo: Int) -> Translucent =
+    Translucent { foo, bar = foo.is-even }
+
+
+-- OPAQUE STRUCTS -------------------------------------------------------------
+
+
+[[ The whole struct can be declared local: this is equivalent to declaring
+each individual field local. ]]
+
+
+define Opaque =
+    local struct {
+        foo: Int,
+        bar: Bool,
+    }
+
+
+define Opaque.new(foo: Int) -> Opaque =
+    Opaque { foo, bar = foo.is-even }
+
+
+-- PRIVATE STRUCTS ------------------------------------------------------------
+
+
+[[ A local struct is completely private: the type cannot be used in the define
+interface of the module. ]]
+
+
+local Private =
+    struct {
+        foo: Int,
+        bar: Bool,
+    }
+
+
+-- TRANSPARENT ENUMS ----------------------------------------------------------
+
+
+[[ A define enum is completely transparent: it can be constructed and matched
+outside the module. ]]
+
+
+define Transparent =
+    enum { Foo, Bar }
+
+
+-- TRANSLUCENT ENUMS ----------------------------------------------------------
+
+
+[[ A define enum where at least one variant is declared local can no longer be
+matched exhaustively: the match must have an `else` branch. Also, it can only
+be constructed from non-opaque variants. ]]
+
+
+define Translucent =
+    enum { Foo, local Bar }
+
+
+-- OPAQUE ENUMS ---------------------------------------------------------------
+
+
+[[ The whole enum can be declared opaque: this is equivalent to declaring each
+variant opaque. ]]
+
+
+define Opaque =
+    local enum { Foo, Bar }
+
+
+define Opaque.new(foo: Int) -> Opaque =
+    Foo {...}
+
+
+-- PRIVATE ENUMS --------------------------------------------------------------
+
+
+[[ A local enum is completely private: it cannot appear in the define interface
+of the module. ]]
+
+
+local Private =
+    enum { Foo, Bar }
+
+
+-- TRANSPARENT TRAITS ---------------------------------------------------------
+
+
+define #transparent =
+    trait {
+        has (Self).foo() -> Int
+        has (Self).bar() -> Bool
+    }
+
+
+-- TRANSLUCENT TRAITS ---------------------------------------------------------
+
+
+[[ If a member of a trait is declared opaque, the trait can no longer be
+implemented outside the module. Only the non-opaque members can be called from
+outside the module. ]]
+
+
+define #translucent =
+    trait {
+        has (Self).foo() -> Int
+        local has (Self).bar() -> Bool
+    }
+
+
+-- OPAQUE TRAITS --------------------------------------------------------------
+
+
+define #opaque =
+    local trait {
+        has (Self).foo() -> Int
+        has (Self).bar() -> Bool
+    }
+
+
+-- PRIVATE TRAITS -------------------------------------------------------------
+
+
+local #private =
+    trait {
+        has (Self).foo() -> Int
+        has (Self).bar() -> Bool
+    }

@@ -1,16 +1,33 @@
-module std'ops
+module std::ops
 
 
-trait #add =
-    Self'RightHand
-    Self'Output
-    (Self) + (other: Self.RightHand) -> Self.Output
+define #add =
+    trait {
+        Self.RightHand
+        Self.Output
+        (Self) + (other: Self.RightHand) -> Self.Output
+    }
+
+define #zero =
+    trait {
+        ...#add
+        Self.zero: Self
+    }
 
 
-trait #mul =
-    Self'RightHand
-    Self'Output
-    (Self) * (other: Self.RightHand) -> Self.Output
+define #mul =
+    trait {
+        Self.RightHand
+        Self.Output
+        (Self) * (other: Self.RightHand) -> Self.Output
+    }
+
+
+define #one =
+    trait {
+        ...#mul
+        Self.one: Self
+    }
 
 
 -------------------------------------------------------------------------------
@@ -19,30 +36,32 @@ trait #mul =
 module vec
 
 
-use std'ops for #add, #mul
+use std::ops (#add, #mul)
 
 
-struct Vec2 =
-    x: Float
-    y: Float
-    implement #add, #sub, #mul
+define Vec2 =
+    struct {
+        x: Float,
+        y: Float,
+    }
+    impl #add, #sub, #mul
 
 
-alias Vec2#add'RightHand = Vec2
+define Vec2#add.RightHand = alias Vec2
 
 
-alias Vec2#add'Output = Vec2
+define Vec2#add.Output = alias Vec2
 
 
-func (Vec2) `+` (other: Vector) -> Vec2 =
+define (Vec2) + (other: Vector) -> Vec2 =
     Vec2(self.x + other.x, self.y + other.y)
 
 
-alias Vec2#mul'RightHand = Float
+define Vec2#mul.RightHand = alias Float
 
 
-alias Vec2#mul'Output = Vec2
+define Vec2#mul.Output = alias Vec2
 
 
-func (Vec2) * (other: Float) -> Vec2 =
+define (Vec2) * (other: Float) -> Vec2 =
     Vec2(self.x * other, self.y * other)

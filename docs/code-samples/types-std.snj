@@ -1,13 +1,13 @@
 def Nil
 
-union Bool = False | True
+enum Bool = False | True
 
 struct False
 
 struct True
 
 --- The "maybe" monad
-union Option[T] = Some[T] | None
+enum Option[T] = Some[T] | None
     implement #monad
 
 struct Some[T] = item: T
@@ -26,7 +26,7 @@ func (Option[T]).chain(f: Func(T) -> Option[U]) -> Option[U] =
 
 ---
 
-union Result[A, E #error] = Ok[A] | Error[E]
+enum Result[A, E #error] = Ok[A] | Error[E]
     implement #monad
 
 struct Ok[A] = value: A

@@ -1,23 +1,69 @@
--- Desugaring of methods ------------------------------------------------------
+-- Type methods ---------------------------------------------------------------
 
-func Foo'type-method(a: Int, b: Bool) -> String = ...
+func Foo.type-method(a: Int, b: Bool) -> String =
+    ...
 
-func (Foo).value-method(a: Int, b: Bool) -> String = ...
+-- desugars to:
 
--- is sugar for:
-
-const Foo'type-method: Func(Int, Bool) -> String =
-    \a \b => ...
-
-const Foo'value-method: Func(Foo, Int, Bool) -> String =
-    \self \a \b => ...
+const Foo.type-method: Func(Int, Bool) -> String =
+    \ a, b =>
+        ...
 
 
--- Desugaring of method calls -------------------------------------------------
+-- Value methods --------------------------------------------------------------
+
+method (Foo).value-method(a: Int, b: Bool) -> String =
+    ...
+
+-- desugars to:
+
+func Foo.value-method(self, a: Int, b: Bool) -> String =
+    ...
+
+-- desugars to:
+
+const Foo.value-method: Func(Foo, Int, Bool) -> String =
+    lambda(self, a, b) =>
+        ...
+
+
+-- Value method calls ---------------------------------------------------------
 
 a.my-method
 
--- is sugar for (`A` is the type of `a`):
+-- desugars to:
 
-A'my-method(a)
+A.my-method(a) -- `A` being the type of `a`.
 
+
+-- Constructors ---------------------------------------------------------------
+
+func Foo{a: Int, b: Bool} =
+    Foo{a, b}
+
+-- desugars to:
+
+const Foo.new: Func(Int, Bool) -> Foo =
+    \ a, b =>
+        Foo{a: a, b: b}
+
+
+-- Constructor calls ----------------------------------------------------------
+
+Foo{b: True, a: 1}
+
+-- desugars to:
+
+Foo.new(a: 1, b: True)
+
+
+-- Trait #data-constructor ----------------------------------------------------
+
+struct Foo =
+    a: A
+    b: B
+
+-- implicitly define the default constructor:
+
+func Foo.new(a: A, b: B) =
+    Foo{a, b}
