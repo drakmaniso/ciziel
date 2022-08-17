@@ -6,26 +6,26 @@ local (Int).bar(b: Float) -> String =
 
 local example-partial-application() -> Io[] =
 	Io.do {
-		do Io.print(foo(___, 0.5).type-info)
+		Io.print(foo(___, 0.5).type-info)
 		-- "fun(Int) -> String"
 
-		do Io.print(foo(123, ___).type-info)
+		Io.print(foo(123, ___).type-info)
 		-- "fun(Float) -> String"
 
-		do Io.print(foo(___, ___).type-info)
+		Io.print(foo(___, ___).type-info)
 		-- "fun(Int, Float) -> String"
 
-		do Io.print(___.bar(0.5).type-info)
+		Io.print(___.bar(0.5).type-info)
 		-- "fun(Int) -> String"
 
-		do Io.print(123.bar(___).type-info)
+		Io.print(123.bar(___).type-info)
 		-- "fun(Float) -> String"
 
-		do Io.print(___.bar(___).type-info)
+		Io.print(___.bar(___).type-info)
 		-- "fun(Int, Float) -> String"
 	}
 
-define main() =
+public main() =
 	ex1 = 123.(foo(___, "abc"))
 	ex2 = 123.(fun(x) -> foo(x, "abc"))
 	()

@@ -1,34 +1,32 @@
 ------ Standard traits for iterators ------------------------------------------
+
 module std/iter
 
-define #iterable =
-    trait {
-        Self.Iterator #iterator
-        (Self).iterator -> Self.Iterator
-    }
+public #iterable =
+    has Self.Iterator #iterator
+    has (Self).iterator -> Self.Iterator
 
-define #iterator =
-    trait {
-        Self.Item
-        (Self).next -> (Self, Maybe[Self.Item])
-    }
+public #iterator =
+    has Self.Item
+    has (Self).next -> (Self, Maybe[Self.Item])
 
 ------ Simple iterator example ------------------------------------------------
+
 module counter
 
-define Counter =
+public Counter =
     struct {
         opaque count: Int,
         limit: Int,
     }
     impl #iterator
 
-define Counter.new(limit: Int) -> Counter =
+public Counter.new(limit: Int) -> Counter =
     Counter { count: 0, limit: limit }
 
-define Counter.Item = alias Int
+public Counter.Item = alias Int
 
-define (Counter).next -> (Counter, Maybe[Int]) =
+public (Counter).next -> (Counter, Maybe[Int]) =
     if self.count >= self.limit then
         (self, None)
     else
@@ -46,24 +44,25 @@ local example() -> Io[] =
                 Io.print("{number}, ")
                 step(rest)
             }
+        end
     
     counter = Counter.new(7)
     step(counter)
 
-
 ----
+
 module main
 
-use std'iter (Iterator)
+use std::iter (Iterator)
 
 local foo(iterator: I, f: Func(I.Item) -> Int) -> Array[Int]
-        forall I #iterator
-    =
+    forall I #iterator
+=
     iterator.fold([], => [...___, ___])
 
 local compare(i: I, j: J) -> Bool
-        forall I #iterator, J #iterator, I.Item == J.Item
-    =
+    forall I #iterator, J #iterator, I.Item == J.Item
+=
     match (i.next, j.next)
     case ((_, None), (_, None)) then
         True

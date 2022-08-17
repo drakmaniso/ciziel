@@ -1,29 +1,29 @@
--- Type methods ---------------------------------------------------------------
+-- ASSOCIATED FUNCTIONS -------------------------------------------------------
 
-func Foo.type-method(a: Int, b: Bool) -> String =
+local Foo.bar(a: Int, b: Bool) -> String =
     ...
 
--- desugars to:
+-- desugars to the associated constant:
 
-const Foo.type-method: Func(Int, Bool) -> String =
-    \ a, b =>
+local Foo.bar: fun(Int, Bool) -> String =
+    fun(a, b) ->
         ...
 
 
--- Value methods --------------------------------------------------------------
+-- METHODS --------------------------------------------------------------------
 
-method (Foo).value-method(a: Int, b: Bool) -> String =
+local (Foo).baz(a: Int, b: Bool) -> String =
+    ...
+
+-- desugars to the associated function:
+
+local Foo.baz(self: Foo, a: Int, b: Bool) -> String =
     ...
 
 -- desugars to:
 
-func Foo.value-method(self, a: Int, b: Bool) -> String =
-    ...
-
--- desugars to:
-
-const Foo.value-method: Func(Foo, Int, Bool) -> String =
-    lambda(self, a, b) =>
+local Foo.baz: fun(Foo, Int, Bool) -> String =
+    fun(self, a, b) ->
         ...
 
 
@@ -36,34 +36,29 @@ a.my-method
 A.my-method(a) -- `A` being the type of `a`.
 
 
--- Constructors ---------------------------------------------------------------
-
-func Foo{a: Int, b: Bool} =
-    Foo{a, b}
-
--- desugars to:
-
-const Foo.new: Func(Int, Bool) -> Foo =
-    \ a, b =>
-        Foo{a: a, b: b}
-
-
 -- Constructor calls ----------------------------------------------------------
 
-Foo{b: True, a: 1}
+Foo { b = True, a = 1 }
 
 -- desugars to:
 
-Foo.new(a: 1, b: True)
+Foo.make(a = 1, b = True)
 
 
 -- Trait #data-constructor ----------------------------------------------------
 
-struct Foo =
-    a: A
-    b: B
+local Foo =
+    struct {
+        a: A,
+        b: B,
+    }
 
--- implicitly define the default constructor:
+-- implicitly local the default constructor:
 
-func Foo.new(a: A, b: B) =
-    Foo{a, b}
+local Foo.make(a: A, b: B)
+
+-- and the functional update functions:
+
+local (Foo).with(a: A)
+local (Foo).with(b: B)
+local (Foo).with(a: A, b: B)

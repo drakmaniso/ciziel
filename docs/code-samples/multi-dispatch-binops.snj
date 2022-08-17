@@ -1,62 +1,77 @@
------- Multiple dispatch using custom binary operators
+-- Multiple dispatch using custom binary operators ----------------------------
 
-define Pet = enum { Cat, Dog }
+public Pet = enum { Cat, Dog }
 
-define Dog = struct { name: String }
-define (Dog) 'meets' (other: Dog) -> String = "sniffs"
-define (Dog) 'meets' (other: Cat) -> String = "chases"
+public Cat = struct { name: String }
+public (Cat) 'meets (other: Cat) -> String = "slinks"
+public (Cat) 'meets (other: Dog) -> String = "hisses"
 
-struct Cat(name: String)
-define (Cat) 'meets' (other: Cat) -> String = "slinks"
-define (Cat) 'meets' (other: Dog) -> String = "hisses"
+public Dog = struct { name: String }
+public (Dog) 'meets (other: Dog) -> String = "sniffs"
+public (Dog) 'meets (other: Cat) -> String = "chases"
 
-define encounter(a: Pet, b: Pet) -> String =
-    let verb = a 'meets' b
+public encounter(a: Pet, b: Pet) -> String =
+    let verb = a 'meets b
     "{a.name} meets {b.name} and {verb}"
 
 
 -- Note: would a generic version of encounter be possible?
 
-define #pet =
-    trait {
-        Self { name: String, ... }
-        (Self) 'meets' (other: #pet) -> String
-        (other: #pet) 'meets' (Self) -> String
-    }
+public #pet =
+    has Self { name: String, ... }
+    has (Self) 'meets (other: #pet) -> String
+    has (other: #pet) 'meets (Self) -> String
 
-define genericEncounter(a: A, b: B) -> String
-        forall A #pet, B #pet
-    =
-    verb = a 'meets' b
+public genericEncounter(a: A, b: B) -> String
+    forall A #pet, B #pet
+=
+    let verb = a 'meets b
     return "{a.name} meets {b.name} and {verb}"
 
 
------- Combined with the expression problem:
+-- Combined with the expression problem: --------------------------------------
+
 module pets
 
-trait #pet =
-    Self(name: String, ...)
-    (Self) 'meets' (other: #pet) -> String
-    (other: #pet) 'meets' (Self) -> String
+public #pet =
+    has Self(name: String, ...)
+    has (Self) 'meets (other: #pet) -> String
+    has (other: #pet) 'meets (Self) -> String
 
+public encounter(a: A, b: B) -> String
+    forall A #per, B #pet
+=
+    let verb = a 'meets b
+    "{a.name} meets {b.name} and {verb}"
 
-forall A #per, B #pet
-define encounter(a: A, b: B) -> String =
-    verb = a 'meets' b
-    return "{a.name} meets {b.name} and {verb}"
-
-module dogs
-
-struct Dog(name: String)
-define (Dog) 'meets' (other: Dog) -> String = "sniffs"
+--
 
 module cats
 
-struct Cat(name: String)
-define (Cat) 'meets' (other: Dog) -> String = "hisses"
-define (Cat) 'meets' (other: Cat) -> String = "slinks"
+use pets (#pet)
 
-define (Dog) 'meets' (other: Cat) -> String = "chases"
+public Cat =
+    struct { name: String }
+    implement #pet
+
+public (Cat) 'meets (other: Cat) -> String = "slinks"
+
+--
+
+module dogs
+
+use pets (#pet)
+use cats (Cat)
+
+public Dog =
+    struct { name: String }
+    implement #pet
+
+public (Dog) 'meets (other: Dog) -> String = "sniffs"
+public (Dog) 'meets (other: Cat) -> String = "chases"
+public (Cat) 'meets (other: Dog) -> String = "hisses"
+
+--
 
 module test
 
@@ -64,36 +79,40 @@ use pets (#pet)
 use dogs (Dog)
 use cats (Cat)
 
-define example_encounter() -> Io[] =
-    fido = Dog("Fido")
-    rex = Dog("Rex")
-    whiskers = Cat("Whiskers")
-    spot = Cat("Spot")
+public example_encounter() -> Io[] =
+    Io.do {
+        let fido = Dog("Fido")
+        let rex = Dog("Rex")
+        let whiskers = Cat("Whiskers")
+        let spot = Cat("Spot")
 
-    do Io'print(encounter(fido, rex))
-    --> Fido meets Rex and sniffs
-    do Io'print(encounter(fido, whiskers))
-    --> Fido meets Whiskers and chases
-    do Io'print(encounter(whiskers, rex))
-    --> Whiskers meets Rex and hisses
-    do Io'print(encounter(whiskers, spot))
-    --> Whiskers meets Spot and slinks
+        Io.print(encounter(fido, rex))
+        --> Fido meets Rex and sniffs
+        Io.print(encounter(fido, whiskers))
+        --> Fido meets Whiskers and chases
+        Io.print(encounter(whiskers, rex))
+        --> Whiskers meets Rex and hisses
+        Io.print(encounter(whiskers, spot))
+        --> Whiskers meets Spot and slinks
 
-    pets = Array(fido, whiskers)
-    do pets.fold(Io[], \_ \pet =>
-        Io'print("{pet.name}: {pet.type}")
-    )
-    --> Fido: Cat | Dog
-    --> Whiskers: Cat | Dog
-
-    do pets.fold(Io[], \_ \a =>
-        pets.fold(Io[], \_ \b =>
-            Io'print(encounter(a, b))
+        let pets = Array(fido, whiskers)
+        Io.wrap(
+            pets.map(fun(pet) ->
+                Io.print("{pet.name}: {pet.type}")
+            )
         )
-    )
-    --> Fido meets Fido and sniffs
-    --> Fido meets Whiskers and chases
-    --> Whiskers meets Fido and hisses
-    --> Whiskers meets Whiskers and slinks
+        --> Fido: enum(Cat | Dog)
+        --> Whiskers: enum(Cat | Dog)
 
-    Io'wrap(())
+        Io.wrap(
+            pets.map(fun(a) ->
+                pets.map(fun(b) ->
+                    Io.print(encounter(a, b))
+                )
+            )
+        )
+        --> Fido meets Fido and sniffs
+        --> Fido meets Whiskers and chases
+        --> Whiskers meets Fido and hisses
+        --> Whiskers meets Whiskers and slinks
+    }

@@ -1,60 +1,7 @@
--- TRANSPARENT STRUCTS --------------------------------------------------------
-
-
-[[ Defined structs are by default transparent: all their fields are accessible
-outside the module, as well as the default constructor and the `with`
-construct. ]]
-
-
-define Transparent =
-    struct {
-        foo: Int,
-        bar: Bool,
-        trait #constructor
-    }
-
-
--- TRANSLUCENT STRUCTS --------------------------------------------------------
-
-
-[[ If at least one field of a define struct is declared opaque, the default
-constructor can no longer be used outside the module. All the opaque fields are
-also inaccessible. ]]
-
-
-define Translucent =
-    struct {
-        foo: Int,
-        local bar: Bool,
-    }
-
-
-define Translucent.new(foo: Int) -> Translucent =
-    Translucent { foo, bar = foo.is-even }
-
-
--- OPAQUE STRUCTS -------------------------------------------------------------
-
-
-[[ The whole struct can be declared local: this is equivalent to declaring
-each individual field local. ]]
-
-
-define Opaque =
-    local struct {
-        foo: Int,
-        bar: Bool,
-    }
-
-
-define Opaque.new(foo: Int) -> Opaque =
-    Opaque { foo, bar = foo.is-even }
-
-
 -- PRIVATE STRUCTS ------------------------------------------------------------
 
 
-[[ A local struct is completely private: the type cannot be used in the define
+[[ A local struct is completely private: the type cannot be used in the public
 interface of the module. ]]
 
 
@@ -65,27 +12,67 @@ local Private =
     }
 
 
--- TRANSPARENT ENUMS ----------------------------------------------------------
+-- OPAQUE STRUCTS -------------------------------------------------------------
 
 
-[[ A define enum is completely transparent: it can be constructed and matched
-outside the module. ]]
+[[ The whole struct can be declared local: this is equivalent to declaring
+each individual field local. ]]
 
 
-define Transparent =
-    enum { Foo, Bar }
+public Opaque =
+    local struct {
+        foo: Int,
+        bar: Bool,
+    }
 
 
--- TRANSLUCENT ENUMS ----------------------------------------------------------
+public some-function() -> Opaque =
+    Opaque { foo = 1, bar = False }
 
 
-[[ A define enum where at least one variant is declared local can no longer be
-matched exhaustively: the match must have an `else` branch. Also, it can only
-be constructed from non-opaque variants. ]]
+-- TRANSLUCENT STRUCTS --------------------------------------------------------
 
 
-define Translucent =
-    enum { Foo, local Bar }
+[[ If at least one field of a public struct is declared local, the default
+constructor can no longer be used outside the module. All the local fields are
+also inaccessible. ]]
+
+
+public Translucent =
+    struct {
+        foo: Int,
+        local bar: Bool,
+    }
+
+
+public Translucent.make(foo: Int) -> Translucent =
+    Translucent { foo, bar = foo.is-even }
+
+
+-- TRANSPARENT STRUCTS --------------------------------------------------------
+
+
+[[ Defined structs are by default transparent: all their fields are accessible
+outside the module, as well as the default constructor and the `with`
+construct. ]]
+
+
+public Transparent =
+    struct {
+        foo: Int,
+        bar: Bool,
+    }
+
+
+-- PRIVATE ENUMS --------------------------------------------------------------
+
+
+[[ A local enum is completely private: it cannot appear in the public interface
+of the module. ]]
+
+
+local Private =
+    enum(Foo | Bar)
 
 
 -- OPAQUE ENUMS ---------------------------------------------------------------
@@ -95,33 +82,43 @@ define Translucent =
 variant opaque. ]]
 
 
-define Opaque =
-    local enum { Foo, Bar }
+public Opaque =
+    local enum(Foo | Bar)
 
 
-define Opaque.new(foo: Int) -> Opaque =
-    Foo {...}
+public some-function() -> Opaque =
+    Foo
 
 
--- PRIVATE ENUMS --------------------------------------------------------------
+-- TRANSLUCENT ENUMS ----------------------------------------------------------
 
 
-[[ A local enum is completely private: it cannot appear in the define interface
-of the module. ]]
+[[ A public enum where at least one variant is declared local can no longer be
+matched exhaustively: the match must have an `else` branch. Also, it can only
+be constructed from non-opaque variants. ]]
 
 
-local Private =
-    enum { Foo, Bar }
+public Translucent =
+    enum(Foo | local Bar)
+
+
+-- TRANSPARENT ENUMS ----------------------------------------------------------
+
+
+[[ A public enum is completely transparent: it can be constructed and matched
+outside the module. ]]
+
+
+public Transparent =
+    enum(Foo | Bar)
 
 
 -- TRANSPARENT TRAITS ---------------------------------------------------------
 
 
-define #transparent =
-    trait {
-        has (Self).foo() -> Int
-        has (Self).bar() -> Bool
-    }
+public #transparent =
+    has (Self).foo() -> Int
+    has (Self).bar() -> Bool
 
 
 -- TRANSLUCENT TRAITS ---------------------------------------------------------
@@ -132,28 +129,63 @@ implemented outside the module. Only the non-opaque members can be called from
 outside the module. ]]
 
 
-define #translucent =
-    trait {
-        has (Self).foo() -> Int
-        local has (Self).bar() -> Bool
-    }
+public #translucent =
+    has (Self).foo() -> Int
+    local has (Self).bar() -> Bool
 
 
 -- OPAQUE TRAITS --------------------------------------------------------------
 
 
-define #opaque =
-    local trait {
-        has (Self).foo() -> Int
-        has (Self).bar() -> Bool
-    }
+public #opaque =
+    local has (Self).foo() -> Int
+    local has (Self).bar() -> Bool
 
 
 -- PRIVATE TRAITS -------------------------------------------------------------
 
 
 local #private =
-    trait {
-        has (Self).foo() -> Int
-        has (Self).bar() -> Bool
+    has (Self).foo() -> Int
+    has (Self).bar() -> Bool
+
+
+-- PROXY STRUCTS --------------------------------------------------------------
+
+
+public Pseudo-Struct =
+    proxy(Underlying-Type)
+    
+
+
+public Pseudo-Struct {
+        foo: Int,
+        bar: Bool,
     }
+    =
+    Underlying-Type.from(foo, bar)
+
+
+public (Pseudo-Struct).foo -> Int =
+    self.extract-foo()
+
+
+public (Pseudo-Struct).bar -> Bool =
+    self.extract-bar()
+
+
+-- PROXY ENUMS ----------------------------------------------------------------
+
+
+public Pseudo-Enum =
+    proxy(Underlying-Type)
+
+
+public Pseudo-Enum(Foo | Bar) =
+    Underlying-Type.from(variant)
+
+
+public (Pseudo-Enum).case -> enum(Foo | Bar) =
+    ...
+
+

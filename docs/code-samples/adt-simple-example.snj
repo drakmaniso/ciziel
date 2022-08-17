@@ -2,53 +2,47 @@ module geom
 use std::vec (Point)
 
 
-define Shape =
-    enum { 
-        Circle, Square, Rectangle
-        has #movable
-        has #scalable
-    }
+public Shape =
+    enum(Circle | Square | Rectangle)
 
 
-define #movable =
-    trait {
-        has (Self).move-to(destination: Point) -> Self
-    }
+public #movable =
+    has (Self).move-to(destination: Point) -> Self
+    implement Circle, BBox
 
 
-define #scalable =
-    trait {
-        has (Self).scale-by(factor: Float32) -> Self
-    }
+public #scalable =
+    has (Self).scale-by(factor: Float32) -> Self
+    implement Circle, BBox
 
 
 local #with-center =
-    trait {
-        has struct { center: Point, ... }
+    has Self { center: Point, ... }
 
-        has (Self).move-to(destination: Point) =
-            self.with { center = destination }
-    }
+    has (Self).move-to(destination: Point) =
+        self.with { center = destination }
+    
+    implement Circle
 
 
 local switch-places(shape-1: A, shape-2: B) -> (A, B)
     forall A #with-center, B #with-center
-    =
+=
     let c1 = shape-1.center
     let c2 = shape-2.center
     (shape-1.with { center = c2 }, shape-2.with { center = c1 })
 
 
-define Circle =
+public Circle =
     struct {
         center: Point,
         radius: Float32,
-        has #movable, #scalable
-        has #with-center
     }
+    has #movable, #scalable
+    has #with-center
 
 
-define Circle.bounding-of(points: Array[Point]) -> Circle =
+public Circle.bounding-of(points: Array[Point]) -> Circle =
     let welzl(points, boundary) =
         match points
         case _ and boundary.length() == 3 then
@@ -68,33 +62,32 @@ define Circle.bounding-of(points: Array[Point]) -> Circle =
     welzl(points, [])
 
 
-define (Circle).diameter() -> Float32 =
+public (Circle).diameter() -> Float32 =
     self.radius * 2
 
 
-define (Circle).perimeter() -> Float32 =
+public (Circle).perimeter() -> Float32 =
     math::pi * self.diameter()
 
 
-define (Circle).area() -> Float32 =
+public (Circle).area() -> Float32 =
     math::pi * (self.radius ** 2)
 
 
-define (Circle).scale-by(factor: Float32) -> Circle =
+public (Circle).scale-by(factor: Float32) -> Circle =
     self.with{radius: self.radius * factor}
 
 
-define BBox =
+public BBox =
     struct {
         min: Point,
         max: Point,
         local _: () = (),
-        has #movable, #scalabe
-        has #scalable
     }
+    has #movable, #scalable
 
 
-define BBox.new(a: Point, b: Point) -> BBox =
+public BBox.new(a: Point, b: Point) -> BBox =
     min-x, max-x = ...((a.x, b.x).sorted)
     min-y, max-y = ...((a.y, b.y).sorted)
     
@@ -104,30 +97,30 @@ define BBox.new(a: Point, b: Point) -> BBox =
     }
 
 
-define Square =
+public Square =
     struct {
         center: Point,
         side: Int,
-        has #movable
-        has #scalable
-        has #with-center
     }
+    has #movable
+    has #scalable
+    has #with-center
 
 
-define Rectangle =
+public Rectangle =
     struct {
         center: Point,
         width: Int,
         height: Int,
-        has #movable
-        has #scalable
-        has #with-center
     }
+    has #movable
+    has #scalable
+    has #with-center
 
 
-define Polygon =
+public Polygon =
     struct {
         ...points: Array[Point]
-        has #movable
-        has #scalable
     }
+    has #movable
+    has #scalable

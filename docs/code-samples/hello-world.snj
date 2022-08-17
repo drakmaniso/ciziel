@@ -2,5 +2,5 @@ module main
 
 use std::io (Io)
 
-define main() -> Io[] =
+public main() -> Io[] =
 	Io.print("Hello, World!")

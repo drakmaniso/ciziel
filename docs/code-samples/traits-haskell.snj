@@ -1,58 +1,59 @@
 -- [Haskell's Typeclassopedia]: https://wiki.haskell.org/Typeclassopedia
 
 
-trait #functor =
-    (Self[A]).fmap(transform: Func(A) -> B) -> Self[B]
+public #functor =
+    has (Self[A]).fmap(transform: fun(A) -> B) -> Self[B]
 
-    (Self[B]) $> (value: A) -> Self[A] =
-        self.map(\_ => value)
+    has (Self[B]) $> (value: A) -> Self[A] =
+        self.map(fun(_) -> value)
     
-    Self[_]'lift(transform: Func(A) -> B) -> Func(Self[A]) -> Self[B] =
-        => ___.map(transform)
+    has Self[A].lift(transform: fun(A) -> B) -> fun(Self[A]) -> Self[B] =
+        ___.map(transform)
 
 ---
 
-trait #applicative =
-    #functor
+public #applicative =
+    has #functor
 
     -- aka `wrap`
-    Self[A]'pure(value: A) -> Self[A]
+    has Self[A].pure(value: A) -> Self[A]
 
     -- aka `apply`
-    (Self[A -> B]) <*> (functor: Self[A]) -> Self[B]
+    has (Self[fun(A) -> B]) <*> (functor: Self[A]) -> Self[B]
 
     -- aka `and-then`?
-    (Self[A]) *> (other: Self[B]) -> Self[B] =
+    has (Self[A]) *> (other: Self[B]) -> Self[B] =
         (identity <$ a) <*> b
 
     -- aka `discard`? `when-also`?
-    (Self[A]) <* (other: Self[B]) -> Self[A] =
-        const-f = \x \_ => x
+    has (Self[A]) <* (other: Self[B]) -> Self[A] =
+        let const-f = fun(x, _) -> x
         Self.lift-2(const-f)
     
-    Self[_]'lift-2(f: (A, B) -> C) -> ((Self[A], Self[B]) -> Self[C]) =
-        curried-f: Func(A) -> Func(B) -> C =
-            \a => \b => f(a, b)
-        \a \b =>
-            Self'pure(curried-f) <*> Self'pure(a) <*> Self'pure(b)
+    has Self[_].lift-2(f: fun(A, B) -> C) -> fun(Self[A], Self[B]) -> Self[C] =
+        let curried-f: fun(A) -> fun(B) -> C =
+            fun(a) -> fun(b) -> f(a, b)
+        fun(a, b) ->
+            Self.pure(curried-f) <*> Self.pure(a) <*> Self.pure(b)
 
 ---
 
-trait #monad =
-    #applicative
+public #monad =
+    has #applicative
     -- aka `chain`, `flat-map`, `bind`...
-    (Self[A]) >>= (operation: Func(A) -> Self[B]) -> Self[B]
+    has (Self[A]) >>= (operation: fun(A) -> Self[B]) -> Self[B]
 
-    (Self[A]) >> (other: Self[B]) -> Self[B] =
-        self >>= (\_ => other)
+    has (Self[A]) >> (other: Self[B]) -> Self[B] =
+        self >>= (fun(_) -> other)
 
-    forall M #monad
-    (Self[M[A]]).join -> Self[A] =
+    has (Self[M[A]]).join -> Self[A]
+        forall M #monad
+        =
         self.chain(identity)
 
-trait #monad-fail =
-    #monad
-    Self'fail(msg: String) -> Self[_]
+public #monad-fail =
+    has #monad
+    has Self.fail(msg: String) -> Self[_]
 
 --TODO: is this correct?
 trait #monad-trans =
@@ -67,7 +68,7 @@ trait #comonad =
     func (Self[A]).duplicate -> Self[Self[A]] =
         self.extend(identity)
 
-    func (Self[A]).extend(f: Func(Self[A]) -> B) -> Self[B] =
+    func (Self[A]).extend(f: fun(Self[A]) -> B) -> Self[B] =
         self.duplicate.map(f)
 
 
@@ -97,17 +98,17 @@ def [T] #monad-plus =
 ------
 
 def [T #monoid] #reduce =
-    has reduce(self, operation: Func(T, T) -> T) -> T
-    has fold-map(self, operation: Func(T) -> A) -> A
+    has reduce(self, operation: fun(T, T) -> T) -> T
+    has fold-map(self, operation: fun(T) -> A) -> A
 
 def [T #monoid] #reduce =
-    has reduce(self, operation: Func(T, T) -> T) -> T
-    has fold-map(self, operation: Func(T) -> A) -> A
+    has reduce(self, operation: fun(T, T) -> T) -> T
+    has fold-map(self, operation: fun(T) -> A) -> A
 
 -- Catamorphisms
 def [T] #foldable =
-    has fold(self, initial: A, operation: Func(A, T) -> A) -> A
-    has rev-fold(self, initial: A, operation: Func(T, A) -> A) -> A
+    has fold(self, initial: A, operation: fun(A, T) -> A) -> A
+    has rev-fold(self, initial: A, operation: fun(T, A) -> A) -> A
 
 -- Anamorphisms
 def [T] #unfoldable =
@@ -116,17 +117,17 @@ def [T] #unfoldable =
 def [T] #traversable =
     has Self[T] #functor
     has Self[T] #foldable -- or #reduce?
-    has traverse(self, operation: Func(T) -> F[B] #functor) -> F[Self[B]]
+    has traverse(self, operation: fun(T) -> F[B] #functor) -> F[Self[B]]
     has sequence(stuff: Self[F[T] #functor]) -> F[Self[T]]
 
 
 ------
 
 def [T, U] #bifunctor =
-    has bimap(self, left-operation: Func(T) -> A, right-operation: Func(U) -> B) -> Self[A, B]
-    has left-map(self, left-operation: Func(T) -> A) -> Self[A, U] =
+    has bimap(self, left-operation: fun(T) -> A, right-operation: fun(U) -> B) -> Self[A, B]
+    has left-map(self, left-operation: fun(T) -> A) -> Self[A, U] =
         self.bimap(left-operation, identity)
-    has right-map(self, right-operation: Func(U) -> A) -> Self[T, A] =
+    has right-map(self, right-operation: fun(U) -> A) -> Self[T, A] =
         self.bimap(identity, right-operation)
 
 
@@ -134,7 +135,7 @@ def [T, U] #bifunctor =
 
 def [T, U] #category =
     has id: Self[T, T]
-    has compose(self, other: Self[Func(U) -> A]) -> Self[Func(T) -> A]
+    has compose(self, other: Self[fun(U) -> A]) -> Self[fun(T) -> A]
 
 def [T, U] #arrow =
     has Self[T, U] #category

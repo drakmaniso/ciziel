@@ -4,53 +4,47 @@ module std'list
 use std::iter (#iterator, #iterable)
 
 
-define List[T] =
-    enum {
-        Empty, *Node[T]
-        has #eq forall T #eq
-        has #functor
-        has #iterable
-    }
+public List[T] =
+    enum(Empty | *Node[T])
+    has #eq forall T #eq
+    has #functor
+    has #iterable
 
 
-define Node[T] =
-    struct {
-        item: T,
-        tail: List[T],
-        has #eq forall T #eq
-        has #functor
-        has #iterable
-    }
+public Node[T] =
+    struct(item: T, tail: List[T])
+    has #eq forall T #eq
+    has #functor
+    has #iterable
 
 
-define Empty =
-    struct {
-        has #eq
-        has #iterable
-    }
+public Empty =
+    struct()
+    has #eq
+    has #iterable
 
 
-define List[T].new(...items: Array[T]) -> List[T] =
+public List[T].new(...items: Array[T]) -> List[T] =
     items.fold-rev(
-        Empty,
-        fun(item, acc) -> Node(item, acc)
+        List.Empty,
+        fun(item, acc) -> List.Node(item, acc)
     )
 
 
 -- Equality
 
 
-define (Empty) == (other: Empty) -> Bool =
+public (Empty) == (other: Empty) -> Bool =
     True
 
 
-define (Node[T]) == (other: Node[T]) -> Bool
+public (Node[T]) == (other: Node[T]) -> Bool
     forall T #eq
     =
     self.item == other.item and self.tail == other.tail
 
 
-define (List[T]) == (other: List[T]) -> Bool
+public (List[T]) == (other: List[T]) -> Bool
     forall T #eq
     =
     match (self, other)
@@ -62,61 +56,56 @@ define (List[T]) == (other: List[T]) -> Bool
 -- Pushing and poping
 
     
-define (Node[T]).push(item: T) -> Node[T] =
+public (Node[T]).push(item: T) -> Node[T] =
     Node(item, self)
 
 
-define (Empty).push(item: T) -> Node[T] =
+public (Empty).push(item: T) -> Node[T] =
     Node(item, Empty)
 
 
-define (Node[T]).pop -> (Some[T], List[T]) =
+public (Node[T]).pop() -> (Some[T], List[T]) =
     (Some(self.item), self.tail)
 
 
-define (Empty).pop -> (None, Empty) =
+public (Empty).pop() -> (None, Empty) =
     (None, Empty)
 
 
 -- Functor implementation
 
 
-define (Empty).map(f: fun(T) -> U) -> Empty
+public (Empty).map(f: fun(T) -> U) -> Empty
     forall T, U
     =
     Empty
 
 
-define (Node[T]).map(f: fun(T) -> U) -> Node[U]
+public (Node[T]).map(f: fun(T) -> U) -> Node[U]
     forall T, U
     =
-    Node {
-        item = f(self.item),
-        tail = self.tail.map(f)
-    }
+    Node(f(self.item), self.tail.map(f))
 
 
 -- Iterator stuff
 
 
-define List[T].Iterator = alias Iterator[T]
+public List[T].Iterator = alias Iterator[T]
 
 
-define (List[T]).iterator -> Iterator[T] =
+public (List[T]).iterator -> Iterator[T] =
     Iterator(self)
 
 
-define Iterator[T] =
-    opaque struct {
-        current: List[T],
-    }
+public Iterator[T] =
+    opaque struct(current: List[T])
     has #iterator
 
 
-define Iterator[T].Item = alias T
+public Iterator[T].Item = alias T
 
 
-define (Iterator[T]).next -> (Iterator[T], Option[T]) =
+public (Iterator[T]).next -> (Iterator[T], Option[T]) =
     match self.current
     case Empty then
         (self, None)
@@ -135,9 +124,9 @@ local double(list: List[Int]) -> List[Int] =
     list.map(___ * 2)
 
 
-define main() -> Io[] =
-    local a = Node(1, Node(2, Node(3, Empty)))
-    local b = List.new(1, 2, 3)
+public main() -> Io[] =
+    let a = Node(1, Node(2, Node(3, Empty)))
+    let b = List.new(1, 2, 3)
 
     Io.do {
         Io.print(a.type)
