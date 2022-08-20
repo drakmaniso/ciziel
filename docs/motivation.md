@@ -1,17 +1,57 @@
-# Motivation
+# Why design a new language?
 
-The desire to design a new programming language came from my frustration with
-two existing languages, Rust and Haskell, and the realisation that each of these
-frustrations was actually the solution to the other.
+My initial motivation for this project came from the desire to find a language
+that was both:
 
-## Rust, but simpler
+- purely functional,
+- and reasonably close to the hardware.
 
-Rust is a beautiful language. But because it is laser-focused on performance and
-system programming, it has a lot of complexity. And no, I am not talking about
-the borrow checker: this is the one thing I absolutely love in Rust.
+I find it easier to construct a mental map of the codebase in a pure funcional
+language (i.e. one with referential transparency). Which in turn leads to
+better maintenance and easier debugging. It's always possible segment your code
+and your data-structures into truly independent entities; something that is
+rarely true in an imperative setting.
 
-I'm talking about all the design decisions made to satisfy the desire for
-zero-cost abstractions, and maximum flexibility. Things like:
+On the other hand, I also fint it important to not be wasteful with computer
+resources. Modern computers are incredibly fast, and their storage capacity can
+seem limitless. It is reasonable to sacrifice *some* performance when it makes
+code simpler. But I think it's easy to go too far on this path, and modern
+software sometimes feel much less responsive than their older counterpart.
+
+This being said, designing and implementing a new language is a colossal task,
+one which has almost zero chance to result in something that is actually used.
+
+Therefore it's important to ask the question: what is lacking in existing
+languages?
+
+
+## What about Haskell?
+
+Haskell is a really beautiful language. But it is also a very high-level
+language, where it is difficult to understand how the code will perform.
+
+It's not about the absence of mutation, or the extensive use of monads: lazy
+evaluation is what makes the performance of Haskell code difficult to predict.
+Unfortunately, laziness is also very useful in a "pure" functional language, in
+order to have decent performance.
+
+The use of linked lists as the main collection type is also a problem for
+performance, since they are not well suited to current computer architecture
+(especially memory caches).
+
+We think both of these problems can be solved in a functional language by using
+an ownership-base type system.
+
+
+## What about Rust?
+
+Rust is a fascinating, but complex language. Its complexity does not only come
+from its ownership system. In fact, I think that most of it comes from being
+laser-focused on performance and system programming.
+
+Many design decisions seem to have been for the sake of achieving best
+performance, zero-cost abstractions, and maximum flexibility:
+
 - the difference between functions and closures;
 - borrowing and references are mixed together;
 - the existence of mutable references, and two kind of borrowing;
@@ -21,38 +61,26 @@ zero-cost abstractions, and maximum flexibility. Things like:
 - trait objects;
 - macros;
 
-None of those are essential to an ownership type system. They make sense for
-Rust, because its goals. But what if you don't share most of these goals, but
-still wanted automatic memory management through ownership?
+None of those are essential to an ownership type system. They make complete
+sense for Rust, because of its goals. But what if you don't share most of these
+goals, but still wanted to use ownership for automatic memory management?
 
 
-## Haskell, but closer to the hardware
+## What about OCaml?
 
-Haskell is also a really beautiful language. But it is also a very high-level
-language, detached from how computers actually work. And no, I am not talking about the absence of mutation, the use of monads or the higher-kinded type-classes: those are great!
-
-I'm talking about the lazy evaluation, which make thinking about what the code
-actually does a lot harder. Lazyness forces you to think in term of
-abstractions. Unfortunately, it is also very useful in a "pure" functional
-language, in order to have decent performance.
-
-I'm also talking about the use of linked lists as the main collection type.
-Those are not well suited to current computer architecture (especially memory
-caches).
+- module type system (elegant, but not easy to reason about);
+- no type-classes/traits;
 
 
-## A beautiful synergy
+## What about Scala?
 
-Here are the two realisations that sparked the creation of Sona-Jo:
-- Functional programming -- and especially referential transparency (aka
-  "purity") -- can simplify the ownership system of Rust. Also, higher-order
-  abstractions can bring flexibility without too much complexity;
-- Ownership-base memory management can bring decent performance to a pure
-  functional language, and allow the use arrays instead of linked lists.
+- JVM
+- complexity
 
-It's the perfect match! At least when what you really want is a simple
-functional language that is sufficiently close to the hardware.
 
+## What about Clojure?
+
+- dynamic type system
 
 ---
 [Back to index](index.md)

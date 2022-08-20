@@ -2,10 +2,11 @@
 
 ## Easy to read and easy to reason about
 
-The main activity of a programmer is to think about code and data. The language
-design should reflect that: programs should be easy to read and reason about,
-more than convenient to write. In other words, the language should help build a
-mental model of the codebase.
+The main activity of a programmer is to *think* about code and data. When
+designing a programming language, it's tempting to make it convenient to write.
+But it's actually much more important to make it easy to read, and easy to
+reason about. The language should help the programmer build a mental of the
+codebase.
 
 Corresponding characteristics:
 - functions associated with types (aka methods);
@@ -13,6 +14,8 @@ Corresponding characteristics:
 - orthogonality of features;
 - low noise syntax;
 - no automatic currying;
+- high-level code;
+- immutable data (referential transparency);
 
 Maybe:
 - supports both imperative and functional style?
@@ -23,8 +26,9 @@ Maybe:
 Ultimately, data is what matters: the only purpose of code is to manipulate data.
 
 Correspongind characteristics:
-- zero-cost data abstractions;
-- functions associated with types (aka methods);
+- arrays instead of linked lists;
+- low-level data (everything is value, explicit pointers);
+- separation between methods and type definitions (using traits);
 
 
 ## Embrace change
@@ -32,8 +36,8 @@ Correspongind characteristics:
 Exploratory programming and refactoring are important.
 
 Corresponding characteristics:
-- static type checking with type inference;
-- immutability with optional mutability;
+- static type checking (with local type inference);
+- immutable data (and referential transparency);
 - open sum types (no inheritance);
 
 

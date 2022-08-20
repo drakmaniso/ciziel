@@ -1,23 +1,64 @@
--- Desugaring of methods ------------------------------------------------------
+-- ASSOCIATED FUNCTIONS -------------------------------------------------------
 
-func Foo'type-method(a: Int, b: Bool) -> String = ...
+local Foo.bar(a: Int, b: Bool) -> String =
+    ...
 
-func (Foo).value-method(a: Int, b: Bool) -> String = ...
+-- desugars to the associated constant:
 
--- is sugar for:
-
-const Foo'type-method: Func(Int, Bool) -> String =
-    \a \b => ...
-
-const Foo'value-method: Func(Foo, Int, Bool) -> String =
-    \self \a \b => ...
+local Foo.bar: fun(Int, Bool) -> String =
+    fun(a, b) ->
+        ...
 
 
--- Desugaring of method calls -------------------------------------------------
+-- METHODS --------------------------------------------------------------------
+
+local (Foo).baz(a: Int, b: Bool) -> String =
+    ...
+
+-- desugars to the associated function:
+
+local Foo.baz(self: Foo, a: Int, b: Bool) -> String =
+    ...
+
+-- desugars to:
+
+local Foo.baz: fun(Foo, Int, Bool) -> String =
+    fun(self, a, b) ->
+        ...
+
+
+-- Value method calls ---------------------------------------------------------
 
 a.my-method
 
--- is sugar for (`A` is the type of `a`):
+-- desugars to:
 
-A'my-method(a)
+A.my-method(a) -- `A` being the type of `a`.
 
+
+-- Constructor calls ----------------------------------------------------------
+
+Foo { b = True, a = 1 }
+
+-- desugars to:
+
+Foo.make(a = 1, b = True)
+
+
+-- Trait #data-constructor ----------------------------------------------------
+
+local Foo =
+    struct {
+        a: A,
+        b: B,
+    }
+
+-- implicitly local the default constructor:
+
+local Foo.make(a: A, b: B)
+
+-- and the functional update functions:
+
+local (Foo).with(a: A)
+local (Foo).with(b: B)
+local (Foo).with(a: A, b: B)

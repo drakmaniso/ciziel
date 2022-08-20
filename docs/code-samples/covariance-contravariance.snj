@@ -1,45 +1,53 @@
 -- [from the blog article]: https://quuxplusone.github.io/blog/2019/01/20/covariance-and-contravariance/
 
-trait #animal =
-    (Self).make-noise -> String
+local #animal =
+    has (Self).make-noise() -> String
+    impl Cat, Horse
 
-struct Cat
-func (Cat).make-noise -> String = "meow"
+local Cat = struct()
+local (Cat).make-noise() -> String = "meow!"
 
-struct Horse
-func (Horse).make-noise -> String = "neigh"
-func (Horse).ride -> String = "Ok, sure."
+local Horse = struct()
+local (Horse).make-noise() -> String = "neigh!"
+local (Horse).ride() -> String = "Ok, sure."
 
 
-trait #animal-breeder =
-    Self'Animal
-    (Self).produce -> Self'Animal
+-- Breeders
 
-struct Cat-Breeder
-alias Cat-Breeder'Animal = Cat
-func (Cat-Breeder).produce -> Cat = Cat
 
-struct Horse-Breeder
-alias Horse-Breeder'Animal = Horse
-func (Horse-Breeder).produce -> Horse = Horse
+local #animal-breeder =
+    has Self.Animal
+    has (Self).produce() -> Self.Animal
 
-trait #animal-doctor =
-    (Self).treat(patient: #animal) -> ()
+local Cat-Breeder = struct()
+local Cat-Breeder.Animal = alias Cat
+local (Cat-Breeder).produce() -> Cat = Cat
 
-trait #cat-doctor =
-    (Self).treat(patient: Cat) -> ()
+local Horse-Breeder = struct()
+local Horse-Breeder.Animal = Horse
+local (Horse-Breeder).produce() -> Horse = Horse
 
-trait #horse-doctor =
-    (Self).treat(patient: Horse) -> ()
 
-struct Dr-Dolittle
-    implement #animal-doctor, #cat-doctor, #horse-doctor
-func (Dr-Dolittle).treat(patient: #animal) -> () = ()
+-- Doctors
 
-struct Dr-Keat
-    implement #cat-doctor
-func (Dr-Keat).treat(patient: Cat) -> () = ()
 
-struct Dr-Hackenbush
-    implement #horse-doctor
-func (Dr-Hackenbush).treat(patient: Horse) -> () = ()
+local #animal-doctor =
+    has (Self).treat(patient: #animal) -> ()
+    implement Dr-Dolittle, Dr-Keat, Dr-Hackenbush
+
+local #cat-doctor =
+    has (Self).treat(patient: Cat) -> ()
+    implement Dr-Dolittle, Dr-Keat
+
+local #horse-doctor =
+    has (Self).treat(patient: Horse) -> ()
+    implement Dr-Dolittle, Dr-Hackenbush
+
+local Dr-Dolittle = struct()
+local (Dr-Dolittle).treat(patient: #animal) -> () = ()
+
+local Dr-Keat = struct()
+local (Dr-Keat).treat(patient: Cat) -> () = ()
+
+local Dr-Hackenbush = struct()
+local (Dr-Hackenbush).treat(patient: Horse) -> () = ()

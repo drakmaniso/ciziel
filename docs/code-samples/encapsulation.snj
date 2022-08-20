@@ -1,0 +1,191 @@
+-- PRIVATE STRUCTS ------------------------------------------------------------
+
+
+[[ A local struct is completely private: the type cannot be used in the public
+interface of the module. ]]
+
+
+local Private =
+    struct {
+        foo: Int,
+        bar: Bool,
+    }
+
+
+-- OPAQUE STRUCTS -------------------------------------------------------------
+
+
+[[ The whole struct can be declared local: this is equivalent to declaring
+each individual field local. ]]
+
+
+public Opaque =
+    local struct {
+        foo: Int,
+        bar: Bool,
+    }
+
+
+public some-function() -> Opaque =
+    Opaque { foo = 1, bar = False }
+
+
+-- TRANSLUCENT STRUCTS --------------------------------------------------------
+
+
+[[ If at least one field of a public struct is declared local, the default
+constructor can no longer be used outside the module. All the local fields are
+also inaccessible. ]]
+
+
+public Translucent =
+    struct {
+        foo: Int,
+        local bar: Bool,
+    }
+
+
+public Translucent.make(foo: Int) -> Translucent =
+    Translucent { foo, bar = foo.is-even }
+
+
+-- TRANSPARENT STRUCTS --------------------------------------------------------
+
+
+[[ Defined structs are by default transparent: all their fields are accessible
+outside the module, as well as the default constructor and the `with`
+construct. ]]
+
+
+public Transparent =
+    struct {
+        foo: Int,
+        bar: Bool,
+    }
+
+
+-- PRIVATE ENUMS --------------------------------------------------------------
+
+
+[[ A local enum is completely private: it cannot appear in the public interface
+of the module. ]]
+
+
+local Private =
+    enum(Foo | Bar)
+
+
+-- OPAQUE ENUMS ---------------------------------------------------------------
+
+
+[[ The whole enum can be declared opaque: this is equivalent to declaring each
+variant opaque. ]]
+
+
+public Opaque =
+    local enum(Foo | Bar)
+
+
+public some-function() -> Opaque =
+    Foo
+
+
+-- TRANSLUCENT ENUMS ----------------------------------------------------------
+
+
+[[ A public enum where at least one variant is declared local can no longer be
+matched exhaustively: the match must have an `else` branch. Also, it can only
+be constructed from non-opaque variants. ]]
+
+
+public Translucent =
+    enum(Foo | local Bar)
+
+
+-- TRANSPARENT ENUMS ----------------------------------------------------------
+
+
+[[ A public enum is completely transparent: it can be constructed and matched
+outside the module. ]]
+
+
+public Transparent =
+    enum(Foo | Bar)
+
+
+-- TRANSPARENT TRAITS ---------------------------------------------------------
+
+
+public #transparent =
+    has (Self).foo() -> Int
+    has (Self).bar() -> Bool
+
+
+-- TRANSLUCENT TRAITS ---------------------------------------------------------
+
+
+[[ If a member of a trait is declared opaque, the trait can no longer be
+implemented outside the module. Only the non-opaque members can be called from
+outside the module. ]]
+
+
+public #translucent =
+    has (Self).foo() -> Int
+    local has (Self).bar() -> Bool
+
+
+-- OPAQUE TRAITS --------------------------------------------------------------
+
+
+public #opaque =
+    local has (Self).foo() -> Int
+    local has (Self).bar() -> Bool
+
+
+-- PRIVATE TRAITS -------------------------------------------------------------
+
+
+local #private =
+    has (Self).foo() -> Int
+    has (Self).bar() -> Bool
+
+
+-- PROXY STRUCTS --------------------------------------------------------------
+
+
+public Pseudo-Struct =
+    proxy(Underlying-Type)
+    
+
+
+public Pseudo-Struct {
+        foo: Int,
+        bar: Bool,
+    }
+    =
+    Underlying-Type.from(foo, bar)
+
+
+public (Pseudo-Struct).foo -> Int =
+    self.extract-foo()
+
+
+public (Pseudo-Struct).bar -> Bool =
+    self.extract-bar()
+
+
+-- PROXY ENUMS ----------------------------------------------------------------
+
+
+public Pseudo-Enum =
+    proxy(Underlying-Type)
+
+
+public Pseudo-Enum(Foo | Bar) =
+    Underlying-Type.from(variant)
+
+
+public (Pseudo-Enum).case -> enum(Foo | Bar) =
+    ...
+
+

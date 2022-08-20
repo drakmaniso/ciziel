@@ -1,24 +1,32 @@
-func foo(a: Int, b: String) -> String =
+local foo(a: Int, b: Float) -> String =
 	"{a} and {b}"
 
-func (Int).bar(b: String) -> String =
+local (Int).bar(b: Float) -> String =
 	"{a} and {b}"
 
-func example-partial-application!() -> Io[] =
-	do Io'print(=> foo(___, "abc").type-info)
-	--> "Func(Int) -> String"
-	do Io'print(=> foo(123, ___).type-info)
-	--> "Func(String) -> String"
-	do Io'print(=> ___.bar("abc").type-info)
-	--> "Func(Int) -> String"
-	do Io'print(=> 123.bar(___).type-info)
-	--> "Func(String) -> String"
-	do Io'print(=> ___.bar(___).type-info)
-	--> "Func(Int, String) -> String"
-	Io'done
+local example-partial-application() -> Io[] =
+	Io.do {
+		Io.print(foo(___, 0.5).type-info)
+		-- "fun(Int) -> String"
 
-func main() =
-	ex1 = 123.(\x => foo(x, "abc"))
-	ex2 = 123.(=> foo(___, "abc"))
+		Io.print(foo(123, ___).type-info)
+		-- "fun(Float) -> String"
+
+		Io.print(foo(___, ___).type-info)
+		-- "fun(Int, Float) -> String"
+
+		Io.print(___.bar(0.5).type-info)
+		-- "fun(Int) -> String"
+
+		Io.print(123.bar(___).type-info)
+		-- "fun(Float) -> String"
+
+		Io.print(___.bar(___).type-info)
+		-- "fun(Int, Float) -> String"
+	}
+
+public main() =
+	ex1 = 123.(foo(___, "abc"))
+	ex2 = 123.(fun(x) -> foo(x, "abc"))
 	()
 

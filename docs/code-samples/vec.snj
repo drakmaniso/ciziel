@@ -1,138 +1,122 @@
 module vec
 
 
-trait #vector =
-    Self'Scalar #num
-    Self'zero: Self
-    (Self).length -> Self.Scalar
-    (Self).normalize -> Self
-    (Self) + (other: Self) -> Self
-    (Self) - (other: Self) -> Self
-    (Self) * (other: Self.Scalar) -> Self
-    -- If operators have double-dispatch:
-    -- (Self.Scalar) * (other: Self) -> Self
+public #vector =
+    has Self.Scalar #num
+    has Self.zero: Self
+    has (Self).length -> Self.Scalar
+    has (Self).normalize -> Self
+    has (Self) + (other: Self) -> Self
+    has (Self) - (other: Self) -> Self
+    has (Self) * (other: Self.Scalar) -> Self
+    -- If operators have double dispatch:
+    has (Self.Scalar) * (other: Self) -> Self
 
 
-trait #vec2 =
-    #vector
-    Self(x: Self.Scalar, y: Self.Scalar)
+public #vec2 =
+    has Self {
+        x: Self.Scalar,
+        y: Self.Scalar,
+    }
+
+    has #vector
+
+    has Self.zero: Self =
+        Self { x = Self.Scalar.zero, y = Self.Scalar.zero }
+        
+    has (Self).length -> Self.Scalar =
+        ((self.x ^ 2) + (self.y ^ 2)).square-root
 
 
-trait #vec3 =
-    #vector
-    Self(x: Self.Scalar, y: Self.Scalar, z: Self.Scalar)
+    has (Self).normalize -> Self =
+        let l = self.length
+        Self { x = self.x / l, y = self.y / l }
 
 
--- Generic Implementations ----------------------------------------------------
+    has (Self) + (other: Self) -> Self =
+        Self { x = self.x + other.x, y = self.y + other.y }
 
 
-func vec2-length(vector: #vec2) -> Float =
-    math'sqrt((vector.x ^ 2) + (vector.y ^ 2))
+    has (Self) - (other: Self) -> Self =
+        Self { x = self.x - other.x, y = self.y - other.y }
 
 
-forall V #vec2
-func vec2-normalize(vector: V) -> V =
-    l = length(vector)
-    V(x: vector.x / l, y: vector.y / l)
+    has (Self) * (scalar: Self.Scalar) -> Self =
+        Self { x = self.x * scalar, y = self.y * scalar }
+    
+    -- If operators have double dispatch:
+    has (Self.Scalar) * (other: Self) -> Self =
+        self * other
 
 
-forall V #vec2
-func vec2-add(vector: V, other: V) -> V =
-    V(x: vector.x + other.x, y: vector.y + other.y)
+public #vec3 =
+    has Self {
+        x: Self.Scalar,
+        y: Self.Scalar,
+        z: Self.Scalar,
+    }
 
+    has #vector
 
-forall V #vec2
-func vec2-sub(vector: V) - (other: V) -> V =
-    V(x: vector.x - other.x, y: vector.y - other.y)
-
-
-forall V #vec2
-func vec2-mul(vector: V, scalar: Float) -> V =
-    V(x: vector.x * scalar, y: vector.y * scalar)
+    ...
 
 
 -- Concrete Types -------------------------------------------------------------
 
 
-struct Vec2 =
-    x: Float32
-    y: Float32
-    implement #vec2
+public Vec2 =
+    struct {
+        x: Float32
+        y: Float32
+    }
+    has #vec2
 
-alias Vec2'Scalar = Float32
+public Vec2.Scalar = Float32
 
-const Vec2'zero = Vec2(0, 0)
+public Vec2.zero = Vec2(0, 0)
 
-func (Vec2).length -> Float32 = length(self)
+public (Vec2).length -> Float32 = vec2-length(self)
 
-func (Vec2).normalize -> Vec2 = normalize(self)
+public (Vec2).normalize -> Vec2 = vec2-normalize(self)
 
-func (Vec2) + (other: Vec2) -> Vec2 =
-    Vec2(x: self.x + other.x, y: self.y + other.y)
+public (Vec2) + (other: Vec2) -> Vec2 =
+    Vec2 { x = self.x + other.x, y = self.y + other.y }
 
-func (Vec2) - (other: Vec2) -> Vec2 =
-    Vec2(x: self.x - other.x, y: self.y - other.y)
+public (Vec2) - (other: Vec2) -> Vec2 =
+    Vec2 { x = self.x - other.x, y = self.y - other.y }
 
-func (Vec2) * (other: Float32) -> Vec2 =
-    Vec2(x: self.x * other, y: self.y * other)
+public (Vec2) * (other: Float32) -> Vec2 =
+    Vec2 { x = self.x * other, y = self.y * other }
 
 -- If operators have double-dispatch:
--- func (Float32) * (other: Vec2) -> Vec2 =
---     other * self
+public (Float32) * (other: Vec2) -> Vec2 =
+    other * self
 
 
-struct IVec2 =
-    x: Int32
-    y: Int32
-    implement #vec2
+public IVec2 =
+    struct {
+        x: Int32
+        y: Int32
+    }
+    has #vec2
 
-alias IVec2'Scalar = Int32
+public IVec2.Scalar = Int32
 
-const IVec2'zero = IVec2(0, 0)
+public IVec2.zero = IVec2(0, 0)
 
-func (IVec2).length -> Int32 = length(self)
+public (IVec2).length -> Int32 = length(self)
 
-func (IVec2).normalize -> IVec2 = normalize(self)
+public (IVec2).normalize -> IVec2 = normalize(self)
 
-func (IVec2) + (other: IVec2) -> IVec2 =
+public (IVec2) + (other: IVec2) -> IVec2 =
     IVec2(x: self.x + other.x, y: self.y + other.y)
 
-func (IVec2) - (other: IVec2) -> IVec2 =
+public (IVec2) - (other: IVec2) -> IVec2 =
     IVec2(x: self.x - other.x, y: self.y - other.y)
 
-func (IVec2) * (other: Int32) -> IVec2 =
+public (IVec2) * (other: Int32) -> IVec2 =
     IVec2(x: self.x * other, y: self.y * other)
 
 -- If operators have double-dispatch:
--- func (Int32) * (other: IVec2) -> IVec2 =
---     other * self
-
-
-struct Point =
-    x: Float32
-    y: Float32
-    implement #tuple
-    implement #vec2
-
-alias Point'Scalar = Float32
-
-const Point'zero = Point(0, 0)
-
-func (Point).length -> Float32 =
-    length(self)
-
-func (Point).normalize -> Point =
-    normalize(self)
-
-func (Point) + (other: Point) -> Point =
-    add(self, other)
-
-func (Point) - (other: Point) -> Point =
-    sub(self, other)
-
-func (Point) * (other: Float32) -> Point =
-    mul(self, other)
-
--- If operators have double-dispatch:
--- func (Float32) * (other: Point) -> Point =
---     vec'mul(other, self)
+public (Int32) * (other: IVec2) -> IVec2 =
+    other * self

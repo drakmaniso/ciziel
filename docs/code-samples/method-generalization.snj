@@ -7,7 +7,7 @@ func (Bar).fn1(arg: String) -> Char = ...
 func (Bar).fn2(arg: #stringable) -> #numeric = ...
 
 
-union Foo-Bar =
+enum Foo-Bar =
     Foo | Bar
     dispatch fn1, fn2
 
@@ -21,7 +21,7 @@ func (Foo-Bar).fn2(arg: #stringable) -> #comparable | #numeric = ...
 
 module trivial-generalization
 
-union Pet = Cat | Dog
+enum Pet = Cat | Dog
     dispatch happy, unhappy
 
 struct Cat = name: String
@@ -65,7 +65,7 @@ let incorrect_example =
 ------
 module simple-generalization
 
-union FooBar = Foo | Bar
+enum FooBar = Foo | Bar
     dispatch generalized
 struct Foo
 struct Bar

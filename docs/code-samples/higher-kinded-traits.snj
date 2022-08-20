@@ -1,0 +1,9 @@
+define #foldable =
+    trait {
+        has (Self[T]).fold(A, operation: fun(A, T) -> A) -> A
+    }
+
+
+define convert-to-int-array(this: F[Int]) -> Array[Int]
+    forall F #foldable =
+    this.fold(Array {}, Array.push)

@@ -1,26 +1,50 @@
 --- [from wikipedia]: https://en.wikipedia.org/wiki/Generalized_algebraic_data_type
 module gadt_example_1
 
-union Expr = EBool | EInt | Equality | Addition
-union IntegerExpr = EInt | Addition
-union BooleanExpr = EBool | Equality
 
-struct EBool =
-    eval: Bool
+public Expr = enum(EBool | EInt | EEqual)
+public EBool = struct(value: Bool)
+public EInt = struct(value: Int)
+public EEqual = struct(left: *EInt, right: *EInt)
 
-struct EInt = 
-    eval: Int
 
-struct Equality =
-    left: EInt
-    right: EInt
+public #expr =
+    has Self.Output #eq
+    has (Self).eval() -> Output
+    implement Expr, EBool, EInt, EEqual
 
-struct Addition =
-    left: EInt
-    right: EInt
 
-func (Equality).eval -> Bool = self.left.eval == self.right.eval
-func (Addition).eval -> Int = self.left.eval + self.right.eval
+public EBool.Output = Bool
+public (EBool).eval() -> Bool = self.value
+
+
+public EInt.Output = Int
+public (EInt).eval() -> Int = self.value
+
+
+public EEqual.Output = Bool
+public (EEqual).eval() -> Bool = self.left.eval() == self.right.eval()
+
+[[ implicitly defines: ]]
+public Expr.Output = enum(Int | Bool)
+public (Expr).eval() -> enum(Int | Bool) =
+    match self
+    case e: EBool then e.eval()
+    case e: Eint then e.eval()
+    case e: EEqual then e.eval()
+    end
+
+
+local expr1 = EEqual(EInt 2, EInt 3)
+    -- expr1: EEqual
+local ret = expr1.eval()
+    -- ret: Bool
+
+
+local exprs = Array(Expr.EInt 2, Expr.EBool True, Expr.EEqual(EInt 2, EInt 3))
+    -- exprs: Array[Expr]
+local rets = exprs.map(___.eval())
+    -- rets: Array[enum(Int | Bool)]
 
 
 -------------------------------------------------------------------------------
@@ -30,44 +54,59 @@ func (Addition).eval -> Int = self.left.eval + self.right.eval
 --- ["Fun with phantom types"]: https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
 module
 
-trait #term =
-    Self'Output
-    (Self).eval -> Self'Output
 
-union Term =
-    Zero | Succ | Pred | IsZero | If[C, T]
-    dispatch #term
+public Term[T] =
+    enum(Zero[T], Succ[T], Pred[T], IsZero[T], If[T])
 
-struct Zero implement #term
-struct Succ = arg: TermInt implement #term
-struct Pred = arg: TermInt implement #term
-struct IsZero = arg: TermInt implement #term
 
-forall C #term, C'Output == Bool, T #term
-struct If[C, T] =
-    condition: C
-    thenBranch: T
-    elseBranch: T
-    implement #term
+public Zero[T] =
+    struct()
+    
+public Succ[T] =
+    struct(arg: Term[T])
 
-alias Zero'Output = Int
-func (Zero).eval -> Int = 0
+public Pred[T] =
+    struct(arg: Term[T])
 
-alias Succ'Output = Int
-func (Succ).eval -> Int = self.arg.eval + 1
+public IsZero[T] =
+    struct(arg: Term[Int])
 
-alias Pred'Output = Int
-func (Pred).eval -> Int = self.arg.eval - 1
+public If[T] =
+    struct {
+        condition: Term[Bool],
+        then-branch: Term[T],
+        else-branch: Term[T],
+    }
 
-alias IsZero'Output = Bool
-func (IsZero).eval -> Int = self.arg.eval == 0
 
-alias If[C, T]'Output = T
-func (If[C, T]).eval -> T.Output =
-    if self.condition.eval then
-        self.thenBranch.eval
+public (Zero[Int]).eval() -> Int =
+    0
+
+public (Succ[Int]).eval() -> Int =
+    self.arg.eval() + 1
+
+public (Pred[Int]).eval() -> Int =
+    self.arg.eval() - 1
+
+public (IsZero[Bool]).eval() -> Bool =
+    (self.arg.eval() == 0)
+
+public (If[T]).eval() -> T =
+    if self.condition.eval() then
+        self.then-branch.eval()
     else
-        self.elseBranch.eval
+        self.else-branch.eval()
+
+
+-- (implicitly defined)
+public (Term[T]).eval() -> T =
+    match self
+    case z: Zero[T] then z.eval()
+    case s: Succ[T] then s.eval()
+    case p: Pred[T] then p.eval()
+    case iz: IsZero[T] then iz.eval()
+    case i: If[T] then i.eval()
+    end
 
 
 -------------------------------------------------------------------------------
@@ -75,59 +114,81 @@ func (If[C, T]).eval -> T.Output =
 --- From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
 module
 
-trait #eval =
-    Self'Output
-    (Self).eval -> Self'Output
 
-struct Lift[T] =
-    eval: T
-    implement #eval
+public #expr =
+    has Self.Output
+    has (Self).eval() -> Self.Output
 
-forall T #eval, U #eval
-struct Pair[T, U] =
-    first: T
-    second: U
-    implement #eval
 
-forall T #eval, U #eval
-struct Lambda[T, U] =
-    function: Func(T) -> U
-    implement #eval
+public Lift[T] =
+    struct(value: T)
+    has #expr
 
-forall T #eval, U #eval
-struct Apply[T, U] =
-    function: Lambda[T, U]
-    argument: U
-    implement #eval
 
-forall T #eval
-struct Fix[T] =
-    function: Lambda[T, T]
-    implement #eval
+public Pair[T, U] =
+    struct(first: T, second: U)
+    has #expr
 
-alias Pair[T, U]'Output = (T, U)
-func (Pair[T, U]).eval -> (T, U) =
-    (self.first.eval, self.second.eval)
-    
-alias Lambda[T, U]'Output = Func(T) -> U
-func (Lambda[T, U]).eval -> Func(T) -> U =
-    => self.function(Lift(___)).eval
 
-alias Apply[T, U]'Output = U
-func (Apply[T, U]).eval -> U =
-    self.function.eval(self.argument.eval)
+public Lambda[T, U] =
+    struct(function: Func(T) -> U)
+    has #expr
 
-alias Fix[T]'Output = T
-func (Fix[T]).eval -> T =
-    self.function.eval(Fix(self.function).eval)
 
-func example() =
-    factorial =
+public Apply[T, U] =
+    struct(function: Lambda[T, U], argument: U)
+    has #expr
+
+
+public Fix[T] =
+    struct(function: Lambda[T, T])
+    has #expr
+
+
+public Lift[T].Output = alias T
+public (Lift[T]).eval() -> T =
+    self.first.value
+
+
+public Pair[T, U].Output = alias (T, U)
+public (Pair[T, U]).eval() -> (T, U)
+    forall T #expr, U #expr
+    =
+    (self.first.eval(), self.second.eval())
+
+
+public Lambda[T, U].Output = alias Func(T) -> U
+public (Lambda[T, U]).eval() -> fun(T) -> U
+    forall T #expr, U #expr
+    =
+    fun(x) -> self.function(Lift(x)).eval()
+
+
+public Apply[T, U].Output = alias U
+public (Apply[T, U]).eval() -> U
+    forall T #expr, U #expr
+    =
+    self.function.eval()(self.argument.eval())
+
+
+public Fix[T].Output = alias T
+public (Fix[T]).eval() -> T
+    forall T #expr
+    =
+    self.function.eval()(Fix(self.function).eval())
+
+
+local example() =
+    let factorial =
         Fix(
-            Lambda(\f =>
-                Lambda(\y =>
-                    Lift(if y.eval == 0 then 1 else y.eval * f.eval(y.eval - 1))
+            Lambda(fun(f) ->
+                Lambda(fun(y) ->
+                    Lift(
+                        let y' = y.eval()
+                        let f' = f.eval()
+                        if y' == 0 then 1 else y' * f'(y' - 1)
+                    )
                 )
             )
         )
-    io'print(factorial.eval(10))
+    Io.print(Apply(factorial, Lift(10)).eval())
