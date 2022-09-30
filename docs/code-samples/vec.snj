@@ -1,122 +1,136 @@
 module vec
 
 
-public #vector =
-    has Self.Scalar #num
-    has Self.zero: Self
-    has (Self).length -> Self.Scalar
-    has (Self).normalize -> Self
-    has (Self) + (other: Self) -> Self
-    has (Self) - (other: Self) -> Self
-    has (Self) * (other: Self.Scalar) -> Self
+def #vector {
+    has ::Scalar: #num
+    has ::zero: Self
+    has .length -> Self::Scalar
+    has .normalize -> Self
+    has + (other: Self) -> Self
+    has - (other: Self) -> Self
+    has * (other: Self::Scalar) -> Self
     -- If operators have double dispatch:
-    has (Self.Scalar) * (other: Self) -> Self
+    has (other: Self::Scalar) * self -> Self
+}
 
 
-public #vec2 =
-    has Self {
-        x: Self.Scalar,
-        y: Self.Scalar,
+def #vec2 {
+    has ::Scalar: #num
+    has Self(x: Self::Scalar, y: Self::Scalar)
+
+    for Self: #vector {
+        def ::Scalar = Self#vec2::Scalar
+
+        def ::zero: Self {
+            Self(x = Self::Scalar::zero, y = Self::Scalar::zero)
+        }
+            
+        def .length -> Self::Scalar {
+            math::sqrt((self.x ^ 2) + (self.y ^ 2))
+        }
+
+        def .normalize -> Self {
+            let l = self.length
+            Self(x = self.x / l, y = self.y / l)
+        }
+
+        def + (other: Self) -> Self {
+            Self(x = self.x + other.x, y = self.y + other.y)
+        }
+
+        def - (other: Self) -> Self {
+            Self(x = self.x - other.x, y = self.y - other.y)
+        }
+
+        def * (scalar: Self::Scalar) -> Self {
+            Self(x = self.x * scalar, y = self.y * scalar)
+        }
+
+        -- If operators have double dispatch:
+        def (other: Self::Scalar) * self -> Self {
+            self * other
+        }
     }
-
-    has #vector
-
-    has Self.zero: Self =
-        Self { x = Self.Scalar.zero, y = Self.Scalar.zero }
-        
-    has (Self).length -> Self.Scalar =
-        ((self.x ^ 2) + (self.y ^ 2)).square-root
+}
 
 
-    has (Self).normalize -> Self =
-        let l = self.length
-        Self { x = self.x / l, y = self.y / l }
+def #vec3 {
+    has ::Scalar: #num
+    has Self(
+        x: Self::Scalar,
+        y: Self::Scalar,
+        z: Self::Scalar,
+    )
 
-
-    has (Self) + (other: Self) -> Self =
-        Self { x = self.x + other.x, y = self.y + other.y }
-
-
-    has (Self) - (other: Self) -> Self =
-        Self { x = self.x - other.x, y = self.y - other.y }
-
-
-    has (Self) * (scalar: Self.Scalar) -> Self =
-        Self { x = self.x * scalar, y = self.y * scalar }
-    
-    -- If operators have double dispatch:
-    has (Self.Scalar) * (other: Self) -> Self =
-        self * other
-
-
-public #vec3 =
-    has Self {
-        x: Self.Scalar,
-        y: Self.Scalar,
-        z: Self.Scalar,
+    for Self: #vector {
+        ...
     }
-
-    has #vector
-
-    ...
+}
 
 
 -- Concrete Types -------------------------------------------------------------
 
 
-public Vec2 =
-    struct {
-        x: Float32
-        y: Float32
+def Vec2 {
+    var x: Float32
+    var y: Float32
+}
+
+
+for Vec2: #vec2 {
+    def ::Scalar = Float32
+}
+
+
+for Vec2: #vector {
+    def ::Scalar = Float32
+
+    def ::zero = Vec2(0, 0)
+
+    def .length -> Float32 {
+        math::sqrt((self.x ^ 2) + (self.y ^ 2))
     }
-    has #vec2
 
-public Vec2.Scalar = Float32
-
-public Vec2.zero = Vec2(0, 0)
-
-public (Vec2).length -> Float32 = vec2-length(self)
-
-public (Vec2).normalize -> Vec2 = vec2-normalize(self)
-
-public (Vec2) + (other: Vec2) -> Vec2 =
-    Vec2 { x = self.x + other.x, y = self.y + other.y }
-
-public (Vec2) - (other: Vec2) -> Vec2 =
-    Vec2 { x = self.x - other.x, y = self.y - other.y }
-
-public (Vec2) * (other: Float32) -> Vec2 =
-    Vec2 { x = self.x * other, y = self.y * other }
-
--- If operators have double-dispatch:
-public (Float32) * (other: Vec2) -> Vec2 =
-    other * self
-
-
-public IVec2 =
-    struct {
-        x: Int32
-        y: Int32
+    def .normalize -> Vec2 {
+        let l = self.length
+        Self(x = self.x / l, y = self.y / l)
     }
-    has #vec2
 
-public IVec2.Scalar = Int32
+    def + (other: Vec2) -> Vec2 {
+        Vec2(x = self.x + other.x, y = self.y + other.y)
+    }
 
-public IVec2.zero = IVec2(0, 0)
+    def - (other: Vec2) -> Vec2 {
+        Vec2(x = self.x - other.x, y = self.y - other.y)
+    }
 
-public (IVec2).length -> Int32 = length(self)
+    def * (other: Float32) -> Vec2 {
+        Vec2(x = self.x * other, y = self.y * other)
+    }
 
-public (IVec2).normalize -> IVec2 = normalize(self)
+    -- If operators have double-dispatch:
+    def (other: Float32) * self -> Vec2 {
+        self * other
+    }
+}
 
-public (IVec2) + (other: IVec2) -> IVec2 =
-    IVec2(x: self.x + other.x, y: self.y + other.y)
+-- or simply:
 
-public (IVec2) - (other: IVec2) -> IVec2 =
-    IVec2(x: self.x - other.x, y: self.y - other.y)
+def IVec2 {
+    var x: Int32
+    var y: Int32
+}
 
-public (IVec2) * (other: Int32) -> IVec2 =
-    IVec2(x: self.x * other, y: self.y * other)
+for IVec2: #vec2 #vector {
+    def ::Scalar = Int32
+}
 
--- If operators have double-dispatch:
-public (Int32) * (other: IVec2) -> IVec2 =
-    other * self
+
+def UVec2 = struct(var x: UInt64, var y: UInt64)
+
+
+struct DVec2(x: Float64, y: Float64)
+
+for DVec2 {
+    def DVec2(x, y)
+}

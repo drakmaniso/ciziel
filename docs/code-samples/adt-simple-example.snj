@@ -2,125 +2,155 @@ module geom
 use std::vec (Point)
 
 
-public Shape =
-    enum(Circle | Square | Rectangle)
+def Shape {
+    case Circle
+    case Square
+    case Rectangle
+    case BBox
+    case Polygon
+}
 
 
-public #movable =
-    has (Self).move-to(destination: Point) -> Self
-    implement Circle, BBox
+def #movable {
+    has .move-to(destination: Point) -> Type
+}
 
 
-public #scalable =
-    has (Self).scale-by(factor: Float32) -> Self
-    implement Circle, BBox
+def #scalable {
+    has .scale-by(factor: Float64) -> Type
+}
 
 
-local #with-center =
-    has Self { center: Point, ... }
+def #origin {
+    has Self(origin: Point, ...)
 
-    has (Self).move-to(destination: Point) =
-        self.with { center = destination }
-    
-    implement Circle
-
-
-local switch-places(shape-1: A, shape-2: B) -> (A, B)
-    forall A #with-center, B #with-center
-=
-    let c1 = shape-1.center
-    let c2 = shape-2.center
-    (shape-1.with { center = c2 }, shape-2.with { center = c1 })
-
-
-public Circle =
-    struct {
-        center: Point,
-        radius: Float32,
+    def Self as #movable {
+        def .move-to(destination: Point) -> Self {
+            self.with(origin = destination)
+        }
     }
-    has #movable, #scalable
-    has #with-center
+}
 
 
-public Circle.bounding-of(points: Array[Point]) -> Circle =
-    let welzl(points, boundary) =
-        match points
-        case _ and boundary.length() == 3 then
-            trivial(boundary)
-
-        case [] then
-            trivial(boundary)
-
-        case [p, rest] then
-            d = welzl(points.remove(p), boundary)
-            if d.encloses(p) then
-                d
-            else
-                welzl(points.remove(p), boundary.push(p))
-        end
-
-    welzl(points, [])
+def switch-places(shape-1: S1, shape-2: S2) -> (S1, S2)
+forall S1: #origin, S2: #origin {
+    let o1 = shape-1.origin
+    let o2 = shape-2.origin
+    (shape-1.with(origin = o2), shape-2.with(origin = o1))
+}
 
 
-public (Circle).diameter() -> Float32 =
-    self.radius * 2
+def Circle {
+    var .center: Point
+    var .radius: Float64
+}
 
 
-public (Circle).perimeter() -> Float32 =
-    math::pi * self.diameter()
+for Circle {
+    def ::bounding-of(points: Array[Point]) -> Circle {
+        let welzl(points, boundary) {
+            match points {
+            case _ and boundary.length() == 3 =>
+                trivial(boundary)
 
+            case Array() =>
+                trivial(boundary)
 
-public (Circle).area() -> Float32 =
-    math::pi * (self.radius ** 2)
+            case Array(p, rest) =>
+                let d = welzl(points.remove(p), boundary)
+                if d.encloses(p) {
+                    d
+                } else {
+                    welzl(points.remove(p), boundary.push(p))
+                }
+            }
+        }
 
-
-public (Circle).scale-by(factor: Float32) -> Circle =
-    self.with{radius: self.radius * factor}
-
-
-public BBox =
-    struct {
-        min: Point,
-        max: Point,
-        local _: () = (),
-    }
-    has #movable, #scalable
-
-
-public BBox.new(a: Point, b: Point) -> BBox =
-    min-x, max-x = ...((a.x, b.x).sorted)
-    min-y, max-y = ...((a.y, b.y).sorted)
-    
-    BBox {
-        min = Point(min-x, min-y),
-        max = Point(max-x, max-y),
+        welzl(points, [])
     }
 
-
-public Square =
-    struct {
-        center: Point,
-        side: Int,
+    def .diameter -> Float64 {
+        self.radius * 2
     }
-    has #movable
-    has #scalable
-    has #with-center
 
-
-public Rectangle =
-    struct {
-        center: Point,
-        width: Int,
-        height: Int,
+    def .perimeter -> Float64 {
+        math::pi * self.diameter
     }
-    has #movable
-    has #scalable
-    has #with-center
 
-
-public Polygon =
-    struct {
-        ...points: Array[Point]
+    def .area -> Float64 {
+        math::pi * (self.radius ** 2)
     }
-    has #movable
-    has #scalable
+}
+
+
+for Circle: #origin #movable {
+    def .origin -> Point {
+        self.center
+    }
+}
+
+
+for Circle: #scalable {
+    def .scale-by(factor: Float64) -> Circle {
+        self.with(radius = self.radius * factor)
+    }
+}
+
+
+def BBox {
+    def .min: Point
+    def .max: Point
+}
+
+
+for BBox {
+    def ::new(a: Point, b: Point) -> BBox {
+        let (min-x, max-x) = (a.x, b.x).sorted()
+        let (min-y, max-y) = (a.y, b.y).sorted()
+        
+        BBox(
+            min = Point(min-x, min-y),
+            max = Point(max-x, max-y),
+        )
+    }
+}
+
+
+for BBox: #movable {    
+    def .move-to(destination: Point) -> BBox {
+        let size = self.max - self.min
+        self.with(
+            min = destination
+            max = destination + size
+        )
+    }
+}
+
+
+def Square {
+    var .origin: Point
+    var .side: Int
+}
+
+
+def Rectangle {
+    var .origin: Point
+    var .width: Int
+    var .height: Int
+}
+
+
+def Polygon {
+    def .points: Array[Point]
+}
+
+
+for Polygon {
+    def ::new(...points: Array[Point]) -> Polygon {
+        Polygon(points)
+    }
+
+    def [index: Int] -> Point {
+        self.points[index]
+    }
+}

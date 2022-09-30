@@ -3,96 +3,121 @@ module main
 use std::io (Io)
 
 
-define main() -> Io[] =
-	let get-number() =
-		Io.do {
-			Io.put-string("Please enter a number: ")
-			let answer <- Io.input()
-			match answer.to-int()
-			case Some(n) then Io.of(n)
-			else get-number()
+def main() -> Io[Void] {
+	let get-number() {
+		Io::put-string("Please enter a number: ")
+		let? answer = Io::input()
+		match answer.to-int {
+		case Some(n) =>
+			Io(n)
+		case None =>
+			get-number()
 		}
+    }
 
-	Io.do {
-		let number <- get-number()
-		let naive = naive-factorial(number)
-		let tail = tail-factorial(number)
-		let folded = folded-factorial(number)
+	let? number = get-number()
+	let naive = naive-factorial(number)
+	let tail = tail-factorial(number)
+	let folded = folded-factorial(number)
 
-		Io.print("naive factorial: {naive}")
-		Io.print("tail recursice factorial: {tail}")
-		Io.print("fold-based factorial: {folded}")
-	}
-
-
---- A naive implementation of factorial.
-local naive-factorial(n) =
-	if n <= 1 then 1
-	else n * naive-factorial(n - 1)
+	Io::print("naive factorial: {naive}")
+	Io::print("tail recursice factorial: {tail}")
+	Io::print("fold-based factorial: {folded}")
+}
 
 
-local tail-factorial(n: Int) -> Int =
-	let step(n, accum) =
-		if n <= 1 then accum
-		else step(n - 1, n * accum)
+[[ A naive implementation of factorial. ]]
+let naive-factorial(n) {
+	if n <= 1 {
+		1
+	} else {
+		n * naive-factorial(n - 1)
+    }
+}
+
+
+let tail-factorial(n: Int) -> Int {
+	let step(n, accum) {
+		if n <= 1 {
+			accum
+		} else {
+			step(n - 1, n * accum)
+        }
+    }
 
 	step(n, 1)
+}
 
 
-local fold-factorial(n: Int) -> Int =
+let fold-factorial(n: Int) -> Int {
 	(2 'upto n).fold(1, ___ * ___)
+}
 
 
-
-local generic-tail-factorial(number: N) -> N
-	forall N #num
-	=
-    let step(num, accum) =
-        if num <= N.one then accum
-        else step(num - N.one, num * accum)
+let generic-tail-factorial(number: N) -> N 
+forall N: #num {
+    let step(num, accum) {
+        if num <= N.one {
+			accum
+        } else {
+			step(num - N.one, num * accum)
+        }
+    }
 
 	step(number, N.one)
+}
 
 
-local generic-fold-factorial(number: N) -> N
-	forall N #num #range
-	=
+let generic-fold-factorial(number: N) -> N
+forall N: #num #range {
 	(N.one 'upto number).fold(N.one, N.*)
+}
 
 
-local gcd(n: Int, m: Int) -> Int =
+let gcd(n: Int, m: Int) -> Int {
 	require n > 0
 	require m > 0
 	ensure result > 0
 
 	let (a, b) = (max(n, m), min(n, m))
-	if b == 0 then a
-	else gcd(b, a 'mod b)
+	if b == 0 {
+		a
+	} else {
+		gcd(b, a' ~mod~ b')
+    }
+}
 
 	
-local fibonacci(n: Int) -> Int =
+let fibonacci(n: Int) -> Int {
 	require n > 0
 	ensure result > 0
 
-	let step(n, previous, current) =
-		if n == 0 then current
-		else step(n - 1, current, previous + current)
+	let step(n, previous, current) {
+		if n == 0 {
+			current
+		} else {
+			step(n - 1, current, previous + current)
+        }
+    }
 
 	step(n, 1, 1)
+}
 
 
-local pipeline-example() =
-	let my-array = [1, 2, 3, 4, 5, 6, 7]
+let pipeline-example() {
+	let my-array = Array(1, 2, 3, 4, 5, 6, 7)
 	my-array
-        .iterator
-		.filter(___.is-even)
+        .iterator()
+		.filter(___.is-even())
 		.map(___ * 2)
-		.fold("", fun(s, n) ->
-            "{s}, {n.to-string}"
-		)
-		.map(fun(rune) ->
-            if rune.is-letter then
-                rune.to-upper
-            else
-                "?".to-rune
-		)
+		.fold("") \ string, number {
+            "{string}, {number.to-string()}"
+		}
+		.map \ rune {
+            if rune.is-letter() {
+                rune.to-upper()
+            } else {
+                Rune("?")
+            }
+		}
+}

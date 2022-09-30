@@ -1,32 +1,35 @@
 module ownership-examples
 
 
-owned struct Book =
-    title: String
-    author: String
-    pages: Int32
+owned struct Book {
+    title: String,
+    author: String,
+    pages: Int32,
+}
 
 
-owned struct Library =
-    owner: String
-    books: Array[Book]
+owned struct Library {
+    owner: String,
+    books: Array[Book],
+}
 
 
-owned struct Selection[a] =
-    owner: String
-    books: Array[&a Book]
+owned struct Selection[a] {
+    owner: String,
+    books: Array[&a Book],
+}
 
 
 func example-1() -> () =
-    my-book = Book(
-        title: "sdfsd",
-        pages: 432,
-        author: "adfaas",
-    )
+    my-book = Book {
+        title = "sdfsd",
+        pages = 432,
+        author = "adfaas",
+    }
 
 
 func (Book).rename(new-title: String) -> Book =
-    self.with(title: new-title)
+    self with { title = new-title }
 
 
 forall c <= (a, b)
@@ -41,12 +44,12 @@ func (Library).add(book: Book) ->  Library =
 
 forall a <= b
 func (Selection[a]).add(book: &b Book) -> Selection[a] =
-    self.with(books: [...library.books, book])
+    self with  { books = Array { ...library.books, book } }
 
 
 func example-add-book() -> () =
     -- Creating a unique library of unique books:
-    my-library = Library(owner: "Myself", books: {...})
+    my-library = Library { owner = "Myself", books = Array {...} }
     -- my-library :: Library
 
     -- Creating a unique selection of shared books:
@@ -78,8 +81,8 @@ func (&a Selection[b]).count-books -> Size =
 
 func all-books-by(author: & String, library: & Library) -> Array[& Book] =
     library.books.fold(
-        [],
-        \array \book =>
+        Array {},
+        lambda(array, book) =>
             if book.author == author then
                 array.push(book)
             else
@@ -89,7 +92,7 @@ func all-books-by(author: & String, library: & Library) -> Array[& Book] =
 
 func all-books-by(author: & String, library: & Library) -> Array[& Book] =
     library.books.clone
-        .filter(=> ___.author == author)
+        .filter(lambda(b) => b.author == author)
 
 
 func (Array[T]).filter(condition: Func(& T) -> Bool) -> Array[T]

@@ -1,99 +1,130 @@
-module foo
+module basic
 
 
-public Literal =
-	struct(value: Int)
+def #eval {
+	has .eval -> Int
+}
 
 
-public Addition[T] =
-	struct(left: T, right: T)
+def Literal {
+    var .value: Int
+}
 
 
-public #eval =
-	has (Self).eval() -> Int
-	implement Literal
-	implement Addition[#eval]
+for Literal: #eval {
+    def .eval -> Int {
+        self.value
+    }
+}
 
 
-public (Literal).eval() -> Int =
-	self.value
+def Addition[A] {
+    var .left: A
+    var .right: A
+}
 
 
-public (Addition[#eval]).eval() -> Int =
-	self.left.eval() + self.right.eval()
+for Addition[A]: #eval forall A: #eval {
+    def .eval -> Int {
+        self.left.eval + self.right.eval
+    }
+}
 
 
 ------
-module bar
+module advanced
 
 
-use foo (#eval, Literal, Addition)
+use basic (#eval, Literal, Addition)
 
 
-public Negation[T] =
-	struct(subexpr: T)
-	implement #eval forall T #eval
+def #pretty {
+	has .pretty -> String
+}
 
 
-public (Negation[#eval]).eval() -> Int =
-	- self.subexpr.eval()
+def Negation[A] {
+    var .subexpr: A
+}
 
 
-public #pretty =
-	has (Self).pretty() -> String
-	implement Literal
-	implement Addition[#pretty]
-	implement Negation[#pretty]
+for Negation[A]: #eval forall A: #eval {
+    def .eval -> Int {
+        - self.subexpr.eval
+    }
+}
 
 
-public (Literal).pretty() -> String =
-	self.eval().to-string()
+for Literal: #pretty {
+    def .pretty -> String {
+        self.eval.to-string
+    }
+}
 
 
-public (Addition[#pretty]).pretty() -> String =
-	"{self.left.pretty()} + {self.right.pretty()}"
+for Addition[A]: #pretty forall A: #pretty {
+    def pretty -> String {
+        "{self.left.pretty} + {self.right.pretty}"
+    }
+}
 
 
-public (Negation[#pretty]).pretty() -> String =
-	match self.subexpr
-	case e: Literal then
-		"-{e.pretty()}"
-	case e then
-		"- ({e.pretty()})"
-	end
+for Negation[A]: #pretty forall A: #pretty {
+    def .pretty -> String {
+        self.subexpr.match {
+            case e: Literal =>
+                "-{e.pretty}"
+            case e =>
+                "- ({e.pretty})"
+        }
+    }
+}
 
 
 ------
 module main
 
-use foo (#eval, Literal, Addition)
-use bar (#pretty, Negation)
+use basic (#eval, Literal, Addition)
+use advanced (#pretty, Negation)
 
 
-local Expr =
-	enum(Literal | Addition[Expr] | Negation[Expr])
-	implement #eval, #pretty
+let Expr {
+    case Literal
+    case Addition[Expr]
+    case Negation[Expr]
+}
+for Expr: #eval {}
+for Expr: #pretty {}
 
 
 [[ Expr automatically has implementations for #eval and #pretty:
 
-	local (Expr).eval() -> Int =	
-		match self
-		case e: Literal then e.eval()
-		case e: Addition[Expr] then e.eval()
-		case e: Negation[Expr] then e.eval()
+    for Expr: #eval {
+        let eval() -> Int {
+            match self {
+            case e: Literal => e.eval()
+            case e: Addition[Expr] => e.eval()
+            case e: Negation[Expr] => e.eval()
+            }
+        }
+    }
 	
-	local (Expr).pretty() -> String =
-		match self
-		case e: Literal then e.pretty()
-		case e: Addition[Expr] then e.pretty()
-		case e: Negation[Expr] then e.pretty()
+    for Expr: #pretty {
+        let pretty() -> String {
+            match self {
+            case e: Literal => e.pretty()
+            case e: Addition[Expr] => e.pretty()
+            case e: Negation[Expr] => e.pretty()
+            }
+        }
+    }
 ]]
 
 
-public main() -> Io[] =
+def main(Void) -> Io[Void] {
 	let e1 = Expr.Addition(
-		Expr.Literal(77),
-		 Expr.Negation(Expr.Literal(12)),
+		Literal(77),
+		Negation(Literal(12)),
 	)
 	Io.print("{e1.pretty()} = {e1.eval()}")
+}
