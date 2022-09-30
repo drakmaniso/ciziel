@@ -1,191 +1,210 @@
--- PRIVATE STRUCTS ------------------------------------------------------------
+-- # Encapsulation
+
+[[ There is four levels of visibility for data for data structures:
+- fully private,
+- opaque (can be used but not constructed or deconstructed),
+- read-only (can be used and deconstructed, but not constructed),
+- and fully public.
+]]
 
 
-[[ A local struct is completely private: the type cannot be used in the public
-interface of the module. ]]
+-- ## Structs
+
+-- ### Private Structs
+
+[[ A local struct is completely private: it cannot appear in the public
+interface of the module, and cannot be used outside the module. ]]
+
+let Private {
+    let foo: Int
+    let bar: Bool
+}
 
 
-local Private =
-    struct {
-        foo: Int,
-        bar: Bool,
-    }
+-- ### Opaque Structs
+
+[[ An opaque struct can be used outside the module, but its fields cannot be
+accessed, its default constructor cannot be used, and it cannot be updated. ]]
+
+def Opaque {
+    let foo: Int
+    let bar: Bool
+}
+
+def some-function() -> Opaque {
+    Opaque(foo = 1, bar = False)
+}
 
 
--- OPAQUE STRUCTS -------------------------------------------------------------
+-- ### Read-Only Structs
+
+[[ An opaque struct can publish some (or all) of its fields, which can then be
+accessed outside the module. However the constructor and the functional update
+are still private. ]]
+
+def Read-Only {
+    def foo: Int
+    def bar: Bool
+}
+
+def some-function() -> Read-Only {
+    Read-Only(foo = 1, bar = False)
+}
 
 
-[[ The whole struct can be declared local: this is equivalent to declaring
-each individual field local. ]]
+-- ### Public Structs
+
+[[ A public struct is completely transparent: all its fields are accessible
+outside the module, as well as the default constructor and the functional
+update syntax. ]]
+
+def Transparent {
+    var foo: Int
+    var bar: Bool
+}
 
 
-public Opaque =
-    local struct {
-        foo: Int,
-        bar: Bool,
-    }
+-- ### Semi-Opaque Structs
+
+def Semi-Opaque {
+    var foo: Int
+    def bar: Bool
+    let baz: String
+}
+
+def some-function(foo: Int) -> Semi-Opaque {
+    Semi-Opaque(foo, bar = foo.is-even(), baz = foo.to-string())
+}
 
 
-public some-function() -> Opaque =
-    Opaque { foo = 1, bar = False }
+-- ## Unions
 
-
--- TRANSLUCENT STRUCTS --------------------------------------------------------
-
-
-[[ If at least one field of a public struct is declared local, the default
-constructor can no longer be used outside the module. All the local fields are
-also inaccessible. ]]
-
-
-public Translucent =
-    struct {
-        foo: Int,
-        local bar: Bool,
-    }
-
-
-public Translucent.make(foo: Int) -> Translucent =
-    Translucent { foo, bar = foo.is-even }
-
-
--- TRANSPARENT STRUCTS --------------------------------------------------------
-
-
-[[ Defined structs are by default transparent: all their fields are accessible
-outside the module, as well as the default constructor and the `with`
-construct. ]]
-
-
-public Transparent =
-    struct {
-        foo: Int,
-        bar: Bool,
-    }
-
-
--- PRIVATE ENUMS --------------------------------------------------------------
-
+-- ### Private Unions
 
 [[ A local enum is completely private: it cannot appear in the public interface
-of the module. ]]
+of the module, and cannot be used outside the module. ]]
+
+let Private {
+    case Foo
+    case Bar
+}
 
 
-local Private =
-    enum(Foo | Bar)
+-- ### Opaque Unions
+
+[[ An opaque enum can be used outside the module. However it cannot be
+constructed or matched outside the module (even if its variants are public
+types). ]]
+
+def Opaque {
+    case Foo
+    case Bar
+}
+let Foo
+let Bar
 
 
--- OPAQUE ENUMS ---------------------------------------------------------------
-
-
-[[ The whole enum can be declared opaque: this is equivalent to declaring each
-variant opaque. ]]
-
-
-public Opaque =
-    local enum(Foo | Bar)
-
-
-public some-function() -> Opaque =
+def some-function() -> Opaque {
     Foo
+}
 
 
--- TRANSLUCENT ENUMS ----------------------------------------------------------
+-- ### Public Unions
+
+[[ A public enum is completely transparent: it can be used, constructed and
+matched outside the module. ]]
+
+def Transparent {
+    case Foo
+    case Bar
+}
+def Foo
+def Bar
 
 
-[[ A public enum where at least one variant is declared local can no longer be
-matched exhaustively: the match must have an `else` branch. Also, it can only
-be constructed from non-opaque variants. ]]
+-- ### Opaque Unions of Public Types?
+
+def Opaque {
+    let case Foo
+    let case Bar
+}
+def Foo
+def Bar
 
 
-public Translucent =
-    enum(Foo | local Bar)
+-- ### Read-Only Union?
+
+[[ An opaque enum can publish some or all of its variants. It can then be
+matched outside the module, but still cannot be constructed. ]]
+
+def Opaque {
+    def case Foo
+    def case Bar
+}
+def Foo
+def Bar
 
 
--- TRANSPARENT ENUMS ----------------------------------------------------------
+-- ## Traits
+
+-- ### Private Traits
+
+let #private {
+    has foo() -> Int
+    has bar() -> Bool
+}
 
 
-[[ A public enum is completely transparent: it can be constructed and matched
-outside the module. ]]
+-- ### Public Traits
+
+def #transparent {
+    has foo() -> Int
+    has bar() -> Bool
+}
 
 
-public Transparent =
-    enum(Foo | Bar)
+-- ### Opaque Traits?
+
+def #opaque {
+    let has foo() -> Int
+    let has bar() -> Bool
+}
 
 
--- TRANSPARENT TRAITS ---------------------------------------------------------
 
+-- ## Proxy Types?
 
-public #transparent =
-    has (Self).foo() -> Int
-    has (Self).bar() -> Bool
+-- ### Proxy Structs?
 
+def Pseudo-Struct {
+    proxy Underlying-Type
 
--- TRANSLUCENT TRAITS ---------------------------------------------------------
-
-
-[[ If a member of a trait is declared opaque, the trait can no longer be
-implemented outside the module. Only the non-opaque members can be called from
-outside the module. ]]
-
-
-public #translucent =
-    has (Self).foo() -> Int
-    local has (Self).bar() -> Bool
-
-
--- OPAQUE TRAITS --------------------------------------------------------------
-
-
-public #opaque =
-    local has (Self).foo() -> Int
-    local has (Self).bar() -> Bool
-
-
--- PRIVATE TRAITS -------------------------------------------------------------
-
-
-local #private =
-    has (Self).foo() -> Int
-    has (Self).bar() -> Bool
-
-
--- PROXY STRUCTS --------------------------------------------------------------
-
-
-public Pseudo-Struct =
-    proxy(Underlying-Type)
-    
-
-
-public Pseudo-Struct {
+    def Pseudo-Struct(
         foo: Int,
         bar: Bool,
+    ) {
+        Underlying-Type.make-from(foo, bar)
     }
-    =
-    Underlying-Type.from(foo, bar)
 
+    def foo -> Int {
+        self.extract-foo()
+    }
 
-public (Pseudo-Struct).foo -> Int =
-    self.extract-foo()
+    def bar -> Bool {
+        self.extract-bar()
+    }
+}
 
+-- ### Proxy Unions
 
-public (Pseudo-Struct).bar -> Bool =
-    self.extract-bar()
+def Pseudo-Enum {
+    proxy Underlying-Type
 
+    def Pseudo-Enum(variant: Foo | Bar) {
+        Underlying-Type.make-from(variant)
+    }
 
--- PROXY ENUMS ----------------------------------------------------------------
-
-
-public Pseudo-Enum =
-    proxy(Underlying-Type)
-
-
-public Pseudo-Enum(Foo | Bar) =
-    Underlying-Type.from(variant)
-
-
-public (Pseudo-Enum).case -> enum(Foo | Bar) =
-    ...
-
-
+    def (Pseudo-Enum).match -> Foo | Bar {
+        self.extract-variant()
+    }
+}

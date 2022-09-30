@@ -1,75 +1,136 @@
 def Nil
 
-enum Bool = False | True
+def Bool {
+    case False
+    case True
+}
+def False
+def True
 
-struct False
-
-struct True
 
 --- The "maybe" monad
-enum Option[T] = Some[T] | None
-    implement #monad
 
-struct Some[T] = item: T
 
-struct None
+def Option[A] {
+    case None
+    case Some[A]
+}
+def None
+def Some[A] {
+    var item: A
+}
 
-func (Option[T]).map(f: Func(T) -> U) -> Some[U] =
-    match self
-    case Some(item) then Some(f(self.item))
-    case None then None
 
-func (Option[T]).chain(f: Func(T) -> Option[U]) -> Option[U] =
-    match self
-    case Some(item) then f(item)
-    case None then None
+for Option[A]: #functor[A] forall A {
+    def .map(transform: Fun(A) -> B) -> Option[B] forall B {
+        match self {
+        case Some(item) => Some(transform(self.item))
+        case None => None
+        }
+    }
+}
+
+for Some[A]: #functor[A] forall A {
+    def .map(transform: Fun(A) -> B) -> Some[B] forall B {
+        Some(transform(self.item))
+    }
+}
+
+for None: #functor[A] forall A {
+    def map(transform: Fun(A) -> B) -> None
+    forall B {
+        None
+    }
+}
+
+for Option[A]: #monad[A] forall A {
+    def Option.of(value: A) -> Option[A] {
+        Some(value)
+    }
+
+    def chain(f: Fun(A) -> Option[B]) -> Option[B]
+    forall B {
+        match self {
+        case Some(item) => f(item)
+        case None => None
+        }
+    }
+}
+
+def Option[A] {
+    def Some[A] {
+        var item: A
+        has #functor
+    }
+
+    def None {
+        has #functor
+    }
+
+    has #functor, #monad
+}
+
+def Some[A].map(self, transform: Fun(A) -> B) -> Some[B] {
+
+}
+---
+
+def Result[A, E] forall E: #error {
+    case Ok[A]
+    case Error[E]
+}
+
+def Ok[A] {
+    var value: A
+}
+
+def Error[E] forall E: #error {
+    var error: E
+}
+
+
+for Result[A, E]: #monad[A] {
+    def ::wrap(value: A) -> Result[A, E] {
+        Result(Ok(value))
+    }
+
+    def .chain(operation: func(A) -> Result[A, E]) -> Result[A, E] {
+        match self {
+        case Ok(value) => operation(value)
+        case e: Error[E] => Result(e)
+        }
+    }
+}
+
 
 ---
 
-enum Result[A, E #error] = Ok[A] | Error[E]
-    implement #monad
 
-struct Ok[A] = value: A
+def Map[I, A]: forall I #iterator {
+    let iterator: I
+    let transform: func(I::Item) -> A
+}
 
-forall E #error
-struct Error[E] = error: E
-
-func Result[A, E]'wrap(value: A) -> Result[A, E] =
-    Ok(value)
-
-func (Result[A, E]).chain(operation: Func(A) -> Result[A, E]) -> Result[A, E] =
-    match self
-    case Ok(value) then operation(value)
-    case e = Error(...) then e
+for Map[I, A] forall I: #iterator {
+    def ::new(iterator: I, transform: func(I'Item) -> A) -> Map[I, A] {
+        Map(iterator, transform)
+    }
+}
 
 
----
+for Map[I, A]: #iterator forall I: #iterator {
+    def ::Item = A
 
-forall I #iterator
-unique struct Map[I, A] =
-    iterator: I
-    function: Func(I'Item) -> A
-    implement #iterator
+    def .next -> (Map[I, A], Option[A]) {
+        match self.iterator.next {
+        case (_, None) =>
+            (Self, None)
 
-func Map[I, A]'new(iterator: I, function: Func(I'Item) -> A) -> Map[I, A] =
-    Map(iterator, function)
+        case (iter, Some(item)) =>
+            let new-self = self.with(iterator: iter)
+            let transformed = transform(item)
+            (new-self, Some(transformed))
+        }
+    }
+}
 
-alias Map[I, A]'Item = A
-
-func (Map[I, A]).next -> (Map[I, A], Option[A]) =
-    match self.iterator.next
-    case (_, None) then None
-    case (iter, Some(item)) then
-        (
-            self.with{iterator: iter},
-            Some(self.function(item),
-        )
-
-
----
-
-func (Array[A]).fold(accum: B, function: Func(B, T) -> B) -> B =
-    ...
-
-func Array[B]'unfold(first: A, function: Func(A) -> Option[(B, A)]) -> Array[B] =
-    ...

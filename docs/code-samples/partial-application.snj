@@ -1,32 +1,36 @@
-local foo(a: Int, b: Float) -> String =
+let foo(a: Int, b: Float) -> String {
 	"{a} and {b}"
+}
 
-local (Int).bar(b: Float) -> String =
+
+let (Int).bar(b: Float) -> String {
 	"{a} and {b}"
+}
 
-local example-partial-application() -> Io[] =
-	Io.do {
-		Io.print(foo(___, 0.5).type-info)
-		-- "fun(Int) -> String"
 
-		Io.print(foo(123, ___).type-info)
-		-- "fun(Float) -> String"
+let example-partial-application() -> Io[Void] {
+	Io::print(foo(___, 0.5).Type)
+	-- func(Int) -> String
 
-		Io.print(foo(___, ___).type-info)
-		-- "fun(Int, Float) -> String"
+	Io::print(foo(123, ___).Type)
+	-- func(Float) -> String
 
-		Io.print(___.bar(0.5).type-info)
-		-- "fun(Int) -> String"
+	Io::print(foo(___, ___).Type)
+	-- func(Int, Float) -> String
 
-		Io.print(123.bar(___).type-info)
-		-- "fun(Float) -> String"
+	Io::print(___.bar(0.5).Type)
+	-- func(Int) -> String
 
-		Io.print(___.bar(___).type-info)
-		-- "fun(Int, Float) -> String"
-	}
+	Io::print(123.bar(___).Type)
+	-- func(Float) -> String
 
-public main() =
-	ex1 = 123.(foo(___, "abc"))
-	ex2 = 123.(fun(x) -> foo(x, "abc"))
+	Io::print(___.bar(___).Type)
+	-- func(Int, Float) -> String
+}
+
+
+def main() {
+	let ex1 = 123 |> foo(___, "abc")
+	let ex2 = 123 |> \ x { foo(x, "abc"}
 	()
-
+}

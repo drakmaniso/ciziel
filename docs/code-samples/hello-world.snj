@@ -2,5 +2,6 @@ module main
 
 use std::io (Io)
 
-public main() -> Io[] =
-	Io.print("Hello, World!")
+def main() -> Io[Void] {
+	Io::print("Hello, World!")
+}
