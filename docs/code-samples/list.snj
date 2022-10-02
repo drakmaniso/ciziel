@@ -1,140 +1,177 @@
-------
-module std'list
-
-use std::iter (#iterator, #iterable)
+[[ # Linked List ]]
+module std::list
 
 
-public List[T] =
-    enum(Empty | *Node[T])
-    has #eq forall T #eq
-    has #functor
-    has #iterable
+use std::iter { #iterator, #iterable }
 
 
-public Node[T] =
-    struct(item: T, tail: List[T])
-    has #eq forall T #eq
-    has #functor
-    has #iterable
+def List[A] = Empty | *Node[A]
+def Empty
+def Node[A] {
+    var .item: A
+    var .rest: List[A]
+}
 
 
-public Empty =
-    struct()
-    has #eq
-    has #iterable
+for List[A] {
+    def ::new(...items: Array[A]) -> List[A] {
+        items.rev-fold(Empty) \ item, acc {
+            List.Node(item, acc)
+        }
+    }
+}
 
 
-public List[T].new(...items: Array[T]) -> List[T] =
-    items.fold-rev(
-        List.Empty,
-        fun(item, acc) -> List.Node(item, acc)
-    )
+[[ ## Equality ############################################################## ]]
 
 
--- Equality
+for List[A] as #eq forall A: #eq {
+    def == (other: List[A]) -> Bool {
+        match (self, other) {
+        case (Empty, Empty) =>
+            True
+        case (a: Node, b: Node) =>
+            a == b
+        case (_, _) =>
+            False
+    }
+}
 
 
-public (Empty) == (other: Empty) -> Bool =
-    True
+[[ If binary operators have double-dispatch: ]]
 
 
-public (Node[T]) == (other: Node[T]) -> Bool
-    forall T #eq
-    =
-    self.item == other.item and self.tail == other.tail
+for Empty as #eq {
+    def == (other: Empty) -> Bool {
+        True
+    }
+}
 
 
-public (List[T]) == (other: List[T]) -> Bool
-    forall T #eq
-    =
-    match (self, other)
-    case (Empty, Empty) then True
-    case (a: Node, b: Node) then a == b
-    else False
+for Node[A] as #eq forall A: #eq {
+    def == (other: Node[A]) -> Bool {
+        self.item == other.item
+            and self.rest == other.rest
+    }
+}
 
 
--- Pushing and poping
+[[ ## Pushing and Poping #################################################### ]]
 
+
+for List[A] {
+    def .push(item: A) -> ref Node[A] {
+        Node(item, self)
+    }
+
+    derive .head -> Option[A]
+
+    derive .tail -> List[A]
+}
+
+
+for Empty[A] {
+    def .head -> None {
+        None
+    }
+
+    def .tail -> Empty {
+        Empty
+    }
+}
+
+
+for Node[A] {
+    def .head -> Some[A] {
+        Some(self.item)
+    }
+
+    def .tail -> List[A] {
+        self.rest
+    }
+}
+
+
+[[ ## Functor Implementation ################################################ ]]
+
+
+for List[A] derive #functor forall A {
+    derive .map(transform: func(A) -> B) -> List[B] forall B
+}
+
+
+for Empty as #functor forall A {
+    def .map(transform: func(A) -> B) -> Empty forall B {
+        Empty
+    }
+}
+
+
+for Node[A] as #functor forall A {
+    def .map(f: func(A) -> B) -> Node[B] forall B {
+        Node(f(self.item), self.rest.map(f))
+    }
+}
+
+
+[[ ## Iterator Implementation ############################################### ]]
+
+
+for List[A] as #iterable {
+    def ::Iterator = List-Iterator[A]
+
+    def .iterator -> List-Iterator[A] {
+        List-Iterator(self)
+    }
+}
+
+
+def List-Iterator[A] {
+    let .current: List[A]
+}
+
+
+for List-Iterator[A] as #iterator {
+    def ::Item = A
+
+    def .next -> (List-Iterator[A], Option[A]) {
+        match self.current {
+        case Empty =>
+            (self, None)
+        case Node(item, rest) =>
+            let new-self = self.with(current = rest)
+            (new-self, Some(item))
+        }
+    }
+}
     
-public (Node[T]).push(item: T) -> Node[T] =
-    Node(item, self)
+
+--------------------------------------------------------------------------------
 
 
-public (Empty).push(item: T) -> Node[T] =
-    Node(item, Empty)
-
-
-public (Node[T]).pop() -> (Some[T], List[T]) =
-    (Some(self.item), self.tail)
-
-
-public (Empty).pop() -> (None, Empty) =
-    (None, Empty)
-
-
--- Functor implementation
-
-
-public (Empty).map(f: fun(T) -> U) -> Empty
-    forall T, U
-    =
-    Empty
-
-
-public (Node[T]).map(f: fun(T) -> U) -> Node[U]
-    forall T, U
-    =
-    Node(f(self.item), self.tail.map(f))
-
-
--- Iterator stuff
-
-
-public List[T].Iterator = alias Iterator[T]
-
-
-public (List[T]).iterator -> Iterator[T] =
-    Iterator(self)
-
-
-public Iterator[T] =
-    opaque struct(current: List[T])
-    has #iterator
-
-
-public Iterator[T].Item = alias T
-
-
-public (Iterator[T]).next -> (Iterator[T], Option[T]) =
-    match self.current
-    case Empty then
-        (self, None)
-    case Node(item, tail) then
-        (self.with { current = tail }, Some(item))
-    
-
-------
+[[ # Example of Utilisation for Linked List ]]
 module std::list::test
 
 
-use std::list (List, Node, Empty)
+use std::list { List, Node, Empty }
 
 
-local double(list: List[Int]) -> List[Int] =
+let double(list: List[Int]) -> List[Int] {
     list.map(___ * 2)
+}
 
 
-public main() -> Io[] =
+let main() -> Io[] =
     let a = Node(1, Node(2, Node(3, Empty)))
     let b = List.new(1, 2, 3)
 
-    Io.do {
-        Io.print(a.type)
+        Io.print(type-of(a))
         --> Node[Int]
 
-        Io.print(b.type)
+        Io.print(type-of(b))
         --> List[Int]
 
-        Io.print(a.map.type)
+        Io.print(type-of(a.map))
         --> fun(Node[Int], fun(Int) -> A) -> Node[A]
     }
+}

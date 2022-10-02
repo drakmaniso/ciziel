@@ -9,8 +9,6 @@ def #vector {
     has + (other: Self) -> Self
     has - (other: Self) -> Self
     has * (other: Self::Scalar) -> Self
-    -- If operators have double dispatch:
-    has (other: Self::Scalar) * self -> Self
 }
 
 
@@ -18,7 +16,7 @@ def #vec2 {
     has ::Scalar: #num
     has Self(x: Self::Scalar, y: Self::Scalar)
 
-    for Self: #vector {
+    for Self as #vector {
         def ::Scalar = Self#vec2::Scalar
 
         def ::zero: Self {
@@ -45,11 +43,6 @@ def #vec2 {
         def * (scalar: Self::Scalar) -> Self {
             Self(x = self.x * scalar, y = self.y * scalar)
         }
-
-        -- If operators have double dispatch:
-        def (other: Self::Scalar) * self -> Self {
-            self * other
-        }
     }
 }
 
@@ -68,7 +61,7 @@ def #vec3 {
 }
 
 
--- Concrete Types -------------------------------------------------------------
+--## Concrete Types ##
 
 
 def Vec2 {
@@ -77,17 +70,38 @@ def Vec2 {
 }
 
 
-for Vec2: #vec2 {
+for Vec2 as #vec2 #vector {
     def ::Scalar = Float32
 }
 
 
-for Vec2: #vector {
-    def ::Scalar = Float32
+for Float32 {
+    def * (other: Vec2) -> Vec2 {
+        other * self
+    }
+}
+
+
+[[ It's possible to override the default implementation: ]]
+
+
+def IVec2 {
+    var x: Int32
+    var y: Int32
+}
+
+
+for IVec2 as #vec2 {
+    def ::Scalar = Int32
+}
+
+
+for IVec2 as #vector {
+    def ::Scalar = Int32
 
     def ::zero = Vec2(0, 0)
 
-    def .length -> Float32 {
+    def .length -> Int32 {
         math::sqrt((self.x ^ 2) + (self.y ^ 2))
     }
 
@@ -104,33 +118,14 @@ for Vec2: #vector {
         Vec2(x = self.x - other.x, y = self.y - other.y)
     }
 
-    def * (other: Float32) -> Vec2 {
+    def * (other: Int32) -> Vec2 {
         Vec2(x = self.x * other, y = self.y * other)
     }
+}
 
-    -- If operators have double-dispatch:
-    def (other: Float32) * self -> Vec2 {
-        self * other
+
+for Int32 {
+    def * (other: IVec2) -> IVec2 {
+        other * self
     }
-}
-
--- or simply:
-
-def IVec2 {
-    var x: Int32
-    var y: Int32
-}
-
-for IVec2: #vec2 #vector {
-    def ::Scalar = Int32
-}
-
-
-def UVec2 = struct(var x: UInt64, var y: UInt64)
-
-
-struct DVec2(x: Float64, y: Float64)
-
-for DVec2 {
-    def DVec2(x, y)
 }

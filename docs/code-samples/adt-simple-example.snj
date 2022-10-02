@@ -1,13 +1,42 @@
 module geom
-use std::vec (Point)
+use std::vec { Point }
 
 
-def Shape {
-    case Circle
-    case Square
-    case Rectangle
-    case BBox
-    case Polygon
+def Shape = 
+    | Circle
+    | BBox
+    | Square
+    | Rectangle
+    | Polygon
+
+
+def Circle {
+    var .center: Point
+    var .radius: Float6
+}
+
+
+def BBox {
+    def .min: Point
+    def .max: Point
+}
+
+
+def Square {
+    var .origin: Point
+    var .side: Int
+}
+
+
+def Rectangle {
+    var .origin: Point
+    var .width: Int
+    var .height: Int
+}
+
+
+def Polygon {
+    def .points: Array[Point]
 }
 
 
@@ -24,7 +53,7 @@ def #scalable {
 def #origin {
     has Self(origin: Point, ...)
 
-    def Self as #movable {
+    for Self as #movable {
         def .move-to(destination: Point) -> Self {
             self.with(origin = destination)
         }
@@ -36,13 +65,7 @@ def switch-places(shape-1: S1, shape-2: S2) -> (S1, S2)
 forall S1: #origin, S2: #origin {
     let o1 = shape-1.origin
     let o2 = shape-2.origin
-    (shape-1.with(origin = o2), shape-2.with(origin = o1))
-}
-
-
-def Circle {
-    var .center: Point
-    var .radius: Float64
+    ( shape-1.with(origin = o2), shape-2.with(origin = o1) )
 }
 
 
@@ -83,23 +106,17 @@ for Circle {
 }
 
 
-for Circle: #origin #movable {
+for Circle as #origin #movable {
     def .origin -> Point {
         self.center
     }
 }
 
 
-for Circle: #scalable {
+for Circle as #scalable {
     def .scale-by(factor: Float64) -> Circle {
         self.with(radius = self.radius * factor)
     }
-}
-
-
-def BBox {
-    def .min: Point
-    def .max: Point
 }
 
 
@@ -116,7 +133,7 @@ for BBox {
 }
 
 
-for BBox: #movable {    
+for BBox as #movable {    
     def .move-to(destination: Point) -> BBox {
         let size = self.max - self.min
         self.with(
@@ -124,24 +141,6 @@ for BBox: #movable {
             max = destination + size
         )
     }
-}
-
-
-def Square {
-    var .origin: Point
-    var .side: Int
-}
-
-
-def Rectangle {
-    var .origin: Point
-    var .width: Int
-    var .height: Int
-}
-
-
-def Polygon {
-    def .points: Array[Point]
 }
 
 

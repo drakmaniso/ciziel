@@ -1,16 +1,15 @@
--- # Encapsulation
+[[ # Encapsulation ]]
+
+[[ ## Structs ############################################################### ]]
 
 [[ There is four levels of visibility for data for data structures:
 - fully private,
 - opaque (can be used but not constructed or deconstructed),
 - read-only (can be used and deconstructed, but not constructed),
-- and fully public.
-]]
+- and fully public. ]]
 
 
--- ## Structs
-
--- ### Private Structs
+[[ ### Private Structs ]]
 
 [[ A local struct is completely private: it cannot appear in the public
 interface of the module, and cannot be used outside the module. ]]
@@ -21,7 +20,7 @@ let Private {
 }
 
 
--- ### Opaque Structs
+[[ ### Opaque Structs ]]
 
 [[ An opaque struct can be used outside the module, but its fields cannot be
 accessed, its default constructor cannot be used, and it cannot be updated. ]]
@@ -36,7 +35,7 @@ def some-function() -> Opaque {
 }
 
 
--- ### Read-Only Structs
+[[ ### Read-Only Structs ]]
 
 [[ An opaque struct can publish some (or all) of its fields, which can then be
 accessed outside the module. However the constructor and the functional update
@@ -52,102 +51,82 @@ def some-function() -> Read-Only {
 }
 
 
--- ### Public Structs
+[[ ### Public Structs ]]
 
 [[ A public struct is completely transparent: all its fields are accessible
 outside the module, as well as the default constructor and the functional
 update syntax. ]]
 
-def Transparent {
+def Public {
     var foo: Int
     var bar: Bool
 }
 
 
--- ### Semi-Opaque Structs
+[[ ### Mixed Visibility Structs ]]
 
-def Semi-Opaque {
+def Mixed {
     var foo: Int
     def bar: Bool
     let baz: String
 }
 
-def some-function(foo: Int) -> Semi-Opaque {
-    Semi-Opaque(foo, bar = foo.is-even(), baz = foo.to-string())
+def some-function(foo: Int) -> Mixed {
+    Mixed(foo, bar = foo.is-even(), baz = foo.to-string())
 }
 
 
--- ## Unions
+[[ ## Unions ################################################################ ]]
 
--- ### Private Unions
+
+[[ ### Private Unions ]]
 
 [[ A local enum is completely private: it cannot appear in the public interface
 of the module, and cannot be used outside the module. ]]
 
-let Private {
-    case Foo
-    case Bar
-}
+let Private = Foo | Bar
+let Foo
+let Bar
 
 
--- ### Opaque Unions
+[[ ### Public Unions ]]
+
+[[ A public enum is completely transparent: it can be used, constructed and
+matched outside the module. ]]
+
+def Transparent = Foo | Bar
+def Foo
+def Bar
+
+
+[[ ### Opaque Unions ]]
 
 [[ An opaque enum can be used outside the module. However it cannot be
 constructed or matched outside the module (even if its variants are public
 types). ]]
 
-def Opaque {
-    case Foo
-    case Bar
-}
+def Opaque = Foo | Bar
 let Foo
 let Bar
-
 
 def some-function() -> Opaque {
     Foo
 }
 
 
--- ### Public Unions
+[[ Opaque Unions of Public Types: ]]
 
-[[ A public enum is completely transparent: it can be used, constructed and
-matched outside the module. ]]
-
-def Transparent {
-    case Foo
-    case Bar
-}
 def Foo
 def Bar
 
-
--- ### Opaque Unions of Public Types?
-
-def Opaque {
-    let case Foo
-    let case Bar
-}
-def Foo
-def Bar
+def Opaque = Opaque-Foo | Opaque-Bar
+let Opaque-Foo = Foo
+let Opaque-Bar = Bar
 
 
--- ### Read-Only Union?
+[[ ## Traits ################################################################ ]]
 
-[[ An opaque enum can publish some or all of its variants. It can then be
-matched outside the module, but still cannot be constructed. ]]
-
-def Opaque {
-    def case Foo
-    def case Bar
-}
-def Foo
-def Bar
-
-
--- ## Traits
-
--- ### Private Traits
+[[ ### Private Traits ]]
 
 let #private {
     has foo() -> Int
@@ -155,7 +134,7 @@ let #private {
 }
 
 
--- ### Public Traits
+[[ ### Public Traits ]]
 
 def #transparent {
     has foo() -> Int
@@ -163,22 +142,25 @@ def #transparent {
 }
 
 
--- ### Opaque Traits?
+[[ ### Opaque Traits ]]
 
 def #opaque {
-    let has foo() -> Int
-    let has bar() -> Bool
+    has #private
 }
 
+let #private {
+    has foo() -> Int
+    has bar() -> Bool
+}    
 
 
--- ## Proxy Types?
+[[ ## Proxy Types? ]]
 
--- ### Proxy Structs?
+[[ ### Proxy Structs? ]]
 
-def Pseudo-Struct {
-    proxy Underlying-Type
+def Pseudo-Struct = proxy Underlying-Type
 
+for Pseudo-Struct {
     def Pseudo-Struct(
         foo: Int,
         bar: Bool,
@@ -195,7 +177,7 @@ def Pseudo-Struct {
     }
 }
 
--- ### Proxy Unions
+[[ ### Proxy Unions ]]
 
 def Pseudo-Enum {
     proxy Underlying-Type

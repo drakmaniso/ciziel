@@ -11,20 +11,20 @@ def Literal {
 }
 
 
-for Literal: #eval {
-    def .eval -> Int {
-        self.value
-    }
-}
-
-
 def Addition[A] {
     var .left: A
     var .right: A
 }
 
 
-for Addition[A]: #eval forall A: #eval {
+for Literal as #eval {
+    def .eval -> Int {
+        self.value
+    }
+}
+
+
+for Addition[A] as #eval forall A: #eval {
     def .eval -> Int {
         self.left.eval + self.right.eval
     }
@@ -35,7 +35,7 @@ for Addition[A]: #eval forall A: #eval {
 module advanced
 
 
-use basic (#eval, Literal, Addition)
+use basic { #eval, Literal, Addition }
 
 
 def #pretty {
@@ -48,28 +48,28 @@ def Negation[A] {
 }
 
 
-for Negation[A]: #eval forall A: #eval {
+for Negation[A] as #eval forall A: #eval {
     def .eval -> Int {
         - self.subexpr.eval
     }
 }
 
 
-for Literal: #pretty {
+for Literal as #pretty {
     def .pretty -> String {
         self.eval.to-string
     }
 }
 
 
-for Addition[A]: #pretty forall A: #pretty {
+for Addition[A] as #pretty forall A: #pretty {
     def pretty -> String {
         "{self.left.pretty} + {self.right.pretty}"
     }
 }
 
 
-for Negation[A]: #pretty forall A: #pretty {
+for Negation[A] as #pretty forall A: #pretty {
     def .pretty -> String {
         self.subexpr.match {
             case e: Literal =>
@@ -84,47 +84,15 @@ for Negation[A]: #pretty forall A: #pretty {
 ------
 module main
 
-use basic (#eval, Literal, Addition)
-use advanced (#pretty, Negation)
+use basic { #eval, Literal, Addition }
+use advanced { #pretty, Negation }
 
 
-let Expr {
-    case Literal
-    case Addition[Expr]
-    case Negation[Expr]
-}
-for Expr: #eval {}
-for Expr: #pretty {}
-
-
-[[ Expr automatically has implementations for #eval and #pretty:
-
-    for Expr: #eval {
-        let eval() -> Int {
-            match self {
-            case e: Literal => e.eval()
-            case e: Addition[Expr] => e.eval()
-            case e: Negation[Expr] => e.eval()
-            }
-        }
-    }
-	
-    for Expr: #pretty {
-        let pretty() -> String {
-            match self {
-            case e: Literal => e.pretty()
-            case e: Addition[Expr] => e.pretty()
-            case e: Negation[Expr] => e.pretty()
-            }
-        }
-    }
-]]
+def Expr = Literal | Addition[Expr] | Negation[Expr]
+for Expr derive #eval #pretty
 
 
 def main(Void) -> Io[Void] {
-	let e1 = Expr.Addition(
-		Literal(77),
-		Negation(Literal(12)),
-	)
-	Io.print("{e1.pretty()} = {e1.eval()}")
+	let e1: Expr = Addition( Literal(77), Negation( Literal(12) ) )
+	Io::print("{e1.pretty()} = {e1.eval()}")
 }

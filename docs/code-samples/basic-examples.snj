@@ -1,9 +1,9 @@
 module main
 
-use std::io (Io)
+use std::io { Io }
 
 
-def main() -> Io[Void] {
+def main() -> Io[] {
 	let get-number() {
 		Io::put-string("Please enter a number: ")
 		let? answer = Io::input()

@@ -1,7 +1,7 @@
 module main
 
-use std::io (Io)
+use std::io { Io }
 
-def main() -> Io[Void] {
+let main() -> Io[] {
 	Io::print("Hello, World!")
 }

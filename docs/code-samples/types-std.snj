@@ -1,95 +1,67 @@
 def Nil
 
-def Bool {
-    case False
-    case True
-}
+def Bool = False | True
 def False
 def True
 
 
---- The "maybe" monad
+[[ ## Option ]]
 
 
-def Option[A] {
-    case None
-    case Some[A]
-}
+def Option[A] = None | Some[A]
 def None
 def Some[A] {
-    var item: A
+    var .item: A
 }
 
 
-for Option[A]: #functor[A] forall A {
-    def .map(transform: Fun(A) -> B) -> Option[B] forall B {
-        match self {
-        case Some(item) => Some(transform(self.item))
-        case None => None
-        }
-    }
-}
+for Option[A] derive #functor[A] forall A
 
-for Some[A]: #functor[A] forall A {
-    def .map(transform: Fun(A) -> B) -> Some[B] forall B {
+
+for Some[A] as #functor[A] forall A {
+    def .map(transform: func(A) -> B) -> Some[B] forall B {
         Some(transform(self.item))
     }
 }
 
-for None: #functor[A] forall A {
-    def map(transform: Fun(A) -> B) -> None
+
+for None as #functor[A] forall A {
+    def .map(transform: func(A) -> B) -> None
     forall B {
         None
     }
 }
 
-for Option[A]: #monad[A] forall A {
-    def Option.of(value: A) -> Option[A] {
+
+for Option[A] as #monad[A] forall A {
+    def ::wrap(value: A) -> Option[A] {
         Some(value)
     }
 
-    def chain(f: Fun(A) -> Option[B]) -> Option[B]
+    def .chain(operation: func(A) -> Option[B]) -> Option[B]
     forall B {
         match self {
-        case Some(item) => f(item)
+        case Some(item) => operation(item)
         case None => None
         }
     }
 }
 
-def Option[A] {
-    def Some[A] {
-        var item: A
-        has #functor
-    }
 
-    def None {
-        has #functor
-    }
+[[ ## Result ]]
 
-    has #functor, #monad
-}
 
-def Some[A].map(self, transform: Fun(A) -> B) -> Some[B] {
-
-}
----
-
-def Result[A, E] forall E: #error {
-    case Ok[A]
-    case Error[E]
-}
-
+def Result[A, E] forall E: #error = Ok[A] | Error[E]
 def Ok[A] {
-    var value: A
+    var .value: A
 }
-
 def Error[E] forall E: #error {
-    var error: E
+    var .error: E
 }
 
 
-for Result[A, E]: #monad[A] {
+
+for Result[A, E] as #monad[A] {
     def ::wrap(value: A) -> Result[A, E] {
         Result(Ok(value))
     }
@@ -103,13 +75,14 @@ for Result[A, E]: #monad[A] {
 }
 
 
----
+[[ ## Map Iterator ]]
 
 
-def Map[I, A]: forall I #iterator {
+def Map[I, A] forall I: #iterator {
     let iterator: I
     let transform: func(I::Item) -> A
 }
+
 
 for Map[I, A] forall I: #iterator {
     def ::new(iterator: I, transform: func(I'Item) -> A) -> Map[I, A] {
@@ -118,7 +91,7 @@ for Map[I, A] forall I: #iterator {
 }
 
 
-for Map[I, A]: #iterator forall I: #iterator {
+for Map[I, A] as #iterator forall I: #iterator {
     def ::Item = A
 
     def .next -> (Map[I, A], Option[A]) {

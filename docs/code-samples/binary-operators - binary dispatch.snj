@@ -1,11 +1,12 @@
 module std::ops
 
 
-def #add =
-    has Self.Other
-    has Self.Output
-    has (Self) + (other: Self.Other) -> Self.Output
-    has (other: Self.Other) + (Self) -> Self.Output
+def #add {
+    has ::Other
+    has ::Output
+    has + (other: Self.Other) -> Self.Output
+}
+
 
 def #zero =
     has #add
