@@ -8,7 +8,7 @@ let (Int).bar(b: Float) -> String {
 }
 
 
-let example-partial-application() -> Io[Void] {
+let example-partial-application() -> Io[] {
 	Io::print(foo(___, 0.5).Type)
 	-- func(Int) -> String
 

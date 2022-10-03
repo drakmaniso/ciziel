@@ -1,25 +1,36 @@
 module std::ops
 
 
-public #add =
-    has Self.RightHand
-    has Self.Output
-    has (Self) + (other: Self.RightHand) -> Self.Output
-
-public #zero =
-    has ...#add
-    has Self.zero: Self
+def #add {
+    has ::Other
+    has ::Output
+    has operator self + (other: Self::Other) -> Self::Output
+    has operator (other: Self::Other) + self -> Self::Output
+}
 
 
-public #mul =
-    has Self.RightHand
-    has Self.Output
-    has (Self) * (other: Self.RightHand) -> Self.Output
+def #add-with-zero {
+    has #add
+    has #add::Other == Self
+    has #add::Output == Self
+    has ::zero: Self
+}
 
 
-public #one =
-    has ...#mul
-    has Self.one: Self
+def #mul {
+    has ::Other
+    has ::Output
+    has operator self * (other: Self::Other) -> Self::Output
+    has operator (other: Self::Other) * self -> Self::Output
+}
+
+
+def #mul-with-one {
+    has #mul
+    has #mul::Other == Self
+    has #mul::Output == Self
+    has Self::one: Self
+}
 
 
 -------------------------------------------------------------------------------
@@ -31,32 +42,38 @@ module vec
 use std::ops (#add, #mul)
 
 
-public Vec2 =
-    struct(
-        x: Float,
-        y: Float,
-    )
-    impl #add, #zero, #mul
+def Vec2 = struct(var x: Float, var y: Float)
+
+for Vec2 as #add {
+    def ::Other = Vec2
+
+    def ::Output = Vec2
+
+    def operator self + (other: Vec2) -> Vec2 {
+        Vec2(self.x + other.x, self.y + other.y)
+    }
+
+    def operator (other: Vec2) + self -> Vec2 {
+        Vec2(other.x + self.x, other.y + self.x)
+    }
+}
 
 
-public Vec2#add.RightHand = alias Vec2
+for Vec2 as #zero {
+    def Vec2.zero = Vec2(0, 0)
+}
 
 
-public Vec2#add.Output = alias Vec2
+for Vec2 as #mul {
+    def ::Other = Float
 
+    def ::Output = Vec2
 
-public (Vec2) + (other: Vector) -> Vec2 =
-    Vec2(self.x + other.x, self.y + other.y)
+    def operator self * (other: Float) -> Vec2 {
+        Vec2(self.x * other, self.y * other)
+    }
 
-
-public Vec2.zero = Vec2(0, 0)
-
-
-public Vec2#mul.RightHand = alias Float
-
-
-public Vec2#mul.Output = alias Vec2
-
-
-public (Vec2) * (other: Float) -> Vec2 =
-    Vec2(self.x * other, self.y * other)
+    def operator (other: Float) * self -> Vec2 {
+        Vec2(other * self.x, other * self.y)
+    }
+}

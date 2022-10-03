@@ -1,72 +1,68 @@
-[[ # The Expression Problem ]]
-
-
-[[ ## Base Module ########################################################## ]]
-
-
 module basic
 
 
-def #eval {
+pub trait #eval {
 	has .eval -> Int
 }
 
 
-def Literal = struct(var value: Int)
+pub struct Literal(
+    var value: Int,
+)
 
 
-def Addition[A] = struct(var left: A, var right: A)
+pub struct Addition[A](
+    var left: A,
+    var right: A,
+)
 
 
-for Literal as #eval {
-    def .eval -> Int {
+for Literal trait #eval {
+    pub fun .eval -> Int {
         self.value
     }
 }
 
 
-forall A: #eval
-for Addition[A] as #eval {
-    def .eval -> Int {
+for Addition[A] trait #eval forall A: #eval {
+    pub fun .eval -> Int {
         self.left.eval + self.right.eval
     }
 }
 
 
-[[ ## Extension Module ##################################################### ]]
-
-
+------
 module advanced
 
 
 use basic { #eval, Literal, Addition }
 
 
-def #pretty {
+pub trait #pretty {
 	has .pretty -> String
 }
 
 
-def Negation[A] = struct(var subexpr: A)
+pub struct Negation[A](
+    var subexpr: A,
+)
 
 
-forall A: #eval
-for Negation[A] as #eval {
-    def .eval -> Int {
+for Negation[A] trait #eval forall A: #eval {
+    pub fun .eval -> Int {
         - self.subexpr.eval
     }
 }
 
 
-for Literal as #pretty {
+for Literal trait #pretty {
     def .pretty -> String {
         self.eval.to-string
     }
 }
 
 
-forall A: #pretty
-for Addition[A] as #pretty {
+for Addition[A] trait #pretty forall A: #pretty {
     def .pretty -> String {
         let l = self.left.pretty
         let r = self.right.pretty
@@ -85,8 +81,7 @@ for Addition[A] as #pretty {
 }
 
 
-forall A: #pretty
-for Negation[A] as #pretty {
+for Negation[A] trait #pretty forall A: #pretty {
     def .pretty -> String {
         self.subexpr.match {
             case e: Literal =>
@@ -98,17 +93,14 @@ for Negation[A] as #pretty {
 }
 
 
-[[ ## Usage ################################################################ ]]
-
-
+------
 module main
-
 
 use basic { #eval, Literal, Addition }
 use advanced { #pretty, Negation }
 
 
-def Expr = union(Literal | Addition[Expr] | Negation[Expr])
+def Expr = Literal | Addition[Expr] | Negation[Expr]
 for Expr derive #eval #pretty
 
 

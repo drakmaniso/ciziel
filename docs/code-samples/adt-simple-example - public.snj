@@ -2,7 +2,7 @@ module geom
 use std::vec { Point }
 
 
-def Shape = union(
+pub union Shape(
     | Circle
     | BBox
     | Square
@@ -11,69 +11,69 @@ def Shape = union(
 )
 
 
-def Circle = struct(
+pub struct Circle(
     var center: Point,
     var radius: Float64,
 )
 
 
-def Triangle = struct(
+pub struct Triangle(
     var a: Point,
     var b: Point,
     var c: Point,
 )
 
 
-def Rectangle = struct(
+pub struct Rectangle(
     var origin: Point,
     var width: Float64,
     var height: Float64,
-    def angle: Float64,
+    pub angle: Float64,
 )
 
 
-def BBox = struct(
-    def min: Point,
-    def max: Point,
+pub struct BBox(
+    pub min: Point,
+    pub max: Point,
 )
 
 
-def Polygon = struct(
-    def ...points: Array[Point],
+pub struct Polygon(
+    pub ...points: Array[Point],
 )
 
 
-def #shape {
-    has .perimeter -> Float64
-    has .area -> Float64
+pub trait #shape {
+    func .perimeter -> Float64
+    func .area -> Float64
 }
 
 
-def #movable {
-    has .move-to(destination: Point) -> Self
+pub trait #movable {
+    func .move-to(destination: Point) -> Self
 }
 
 
-def #scalable {
-    has .scale-by(factor: Float64) -> Self
+pub trait #scalable {
+    func .scale-by(factor: Float64) -> Self
 }
 
 
-def #origin {
-    has Self(origin: Point, ...)
+pub trait #origin {
+    func Self(origin: Point, ...)
 }
 
 
 forall A: #origin
 extend A as #movable {
-    def .move-to(destination: Point) -> A {
+    pub func .move-to(destination: Point) -> A {
         self.with(origin = destination)
     }
 }
 
 
 forall S1: #origin, S2: #origin
-def switch-places(shape-1: S1, shape-2: S2) -> (S1, S2) {
+pub func switch-places(shape-1: S1, shape-2: S2) -> (S1, S2) {
     let o1 = shape-1.origin
     let o2 = shape-2.origin
     ( shape-1.with(origin = o2), shape-2.with(origin = o1) )
@@ -84,8 +84,8 @@ def switch-places(shape-1: S1, shape-2: S2) -> (S1, S2) {
 
 
 extend Circle {
-    def ::bounding-of(points: Array[Point]) -> Circle {
-        let welzl(points, boundary) {
+    pub func ::bounding-of(points: Array[Point]) -> Circle {
+        func welzl(points, boundary) {
             match points {
             case _ and boundary.length == 3 =>
                 trivial(boundary)
@@ -106,18 +106,18 @@ extend Circle {
         welzl(points, [])
     }
 
-    def .diameter -> Float64 {
+    func .diameter -> Float64 {
         self.radius * 2
     }
 }
 
 
 extend Circle as #shape {
-    def .perimeter -> Float64 {
+    pub func .perimeter -> Float64 {
         math::pi * self.diameter
     }
 
-    def .area -> Float64 {
+    pub func .area -> Float64 {
         math::pi * (self.radius ** 2)
     }
 }
@@ -128,7 +128,7 @@ extend Circle as #movable
 
 
 extend Circle as #scalable {
-    def .scale-by(factor: Float64) -> Circle {
+    pub func .scale-by(factor: Float64) -> Circle {
         self.with(radius = self.radius * factor)
     }
 }
@@ -138,7 +138,7 @@ extend Circle as #scalable {
 
 
 extend BBox {
-    def ::new(a: Point, b: Point) -> BBox {
+    pub func ::new(a: Point, b: Point) -> BBox {
         let (x-min, x-max) = (a.x, b.x).sorted()
         let (y-min, y-max) = (a.y, b.y).sorted()
         
@@ -149,24 +149,24 @@ extend BBox {
     }
 
 
-    def .width -> Float64 { self.max.x - self.min.x }
-    def .height -> Float64 { self.max.y - self.min.y }
-    def .size -> Vec2 { Vec2(self.width, self.height) }
+    pub func .width -> Float64 { self.max.x - self.min.x }
+    pub func .height -> Float64 { self.max.y - self.min.y }
+    pub func .size -> Vec2 { Vec2(self.width, self.height) }
 
 
-    def .perimeter -> Float64 {
+    pub func .perimeter -> Float64 {
         (2 * self.width) + (2 * self.height)
     }
 
 
-    def .area -> Float64 {
+    pub func .area -> Float64 {
         self.width * self.height
     }
 }
 
 
 extend BBox as #movable {    
-    def .move-to(destination: Point) -> BBox {
+    pub func .move-to(destination: Point) -> BBox {
         self.with(
             min = destination
             max = destination + self.size
@@ -176,7 +176,7 @@ extend BBox as #movable {
 
 
 extend BBox as #scalable {    
-    def .scale-by(factor: Float64) -> BBox {
+    pub func .scale-by(factor: Float64) -> BBox {
         let delta = (factor * self.size) - self.size
         self.with(
             min = self.min - (delta / 2)
@@ -187,11 +187,7 @@ extend BBox as #scalable {
 
 
 extend Polygon {
-    def ::new(...points: Array[Point]) -> Polygon {
-        Polygon(points)
-    }
-
-    def [index: Int] -> Point {
+    pub operator self[index: Int] -> Point {
         self.points[index]
     }
 }

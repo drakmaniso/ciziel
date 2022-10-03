@@ -26,7 +26,6 @@ def main() -> Io[] {
 }
 
 
-[[ A naive implementation of factorial. ]]
 let naive-factorial(n) {
 	if n <= 1 {
 		1
@@ -54,8 +53,8 @@ let fold-factorial(n: Int) -> Int {
 }
 
 
-let generic-tail-factorial(number: N) -> N 
-forall N: #num {
+forall N: #num
+let generic-tail-factorial(number: N) -> N {
     let step(num, accum) {
         if num <= N.one {
 			accum
@@ -68,30 +67,32 @@ forall N: #num {
 }
 
 
-let generic-fold-factorial(number: N) -> N
-forall N: #num #range {
+forall N: #num #range
+let generic-fold-factorial(number: N) -> N {
 	(N.one 'upto number).fold(N.one, N.*)
 }
 
 
-let gcd(n: Int, m: Int) -> Int {
-	require n > 0
-	require m > 0
-	ensure result > 0
-
+let gcd(n: Int, m: Int) -> Int
+	require
+		n > 0
+		m > 0
+	ensure
+		result > 0
+{
 	let (a, b) = (max(n, m), min(n, m))
 	if b == 0 {
 		a
 	} else {
-		gcd(b, a' ~mod~ b')
+		gcd(b, a' 'mod b')
     }
 }
 
 	
-let fibonacci(n: Int) -> Int {
+let fibonacci(n: Int) -> Int
 	require n > 0
 	ensure result > 0
-
+{
 	let step(n, previous, current) {
 		if n == 0 {
 			current

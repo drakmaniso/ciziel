@@ -1,0 +1,79 @@
+module basic
+
+
+def #eval
+	has .eval -> Int
+
+
+def Literal
+    var .value: Int
+
+
+def Addition[A]
+    var .left: A
+    var .right: A
+
+
+for Literal as #eval
+    def .eval -> Int
+        self.value
+
+
+for Addition[A] as #eval forall A: #eval
+    def .eval -> Int
+        self.left.eval + self.right.eval
+
+
+------
+module advanced
+
+
+use basic { #eval, Literal, Addition }
+
+
+def #pretty
+	has .pretty -> String
+
+
+def Negation[A]
+    var .subexpr: A
+
+
+for Negation[A] as #eval forall A: #eval
+    def .eval -> Int
+        - self.subexpr.eval
+
+
+for Literal as #pretty
+    def .pretty -> String
+        self.eval.to-string
+
+
+for Addition[A] as #pretty forall A: #pretty
+    def .pretty -> String
+        "{self.left.pretty} + {self.right.pretty}"
+
+
+for Negation[A] as #pretty forall A: #pretty
+    def .pretty -> String
+        self.subexpr.match
+            case e: Literal =>
+                "-{e.pretty}"
+            case e =>
+                "- ({e.pretty})"
+
+
+------
+module main
+
+use basic { #eval, Literal, Addition }
+use advanced { #pretty, Negation }
+
+
+def Expr = Literal | Addition[Expr] | Negation[Expr]
+for Expr derive #eval #pretty
+
+
+def main() -> Io[]
+	let e1: Expr = Addition( Literal(77), Negation( Literal(12) ) )
+	Io::print("{e1.pretty()} = {e1.eval()}")

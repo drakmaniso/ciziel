@@ -1,16 +1,15 @@
 [[ # Linked List ]]
+
+
 module std::list
 
 
 use std::iter { #iterator, #iterable }
 
 
-def List[A] = Empty | *Node[A]
-def Empty
-def Node[A] {
-    var .item: A
-    var .rest: List[A]
-}
+def List[A] = union(Empty | *Node[A])
+def Empty = struct()
+def Node[A] = struct(var item: A, var tail: List[A])
 
 
 for List[A] {
@@ -22,99 +21,80 @@ for List[A] {
 }
 
 
-[[ ## Equality ############################################################## ]]
+[[ ## Equality ############################################################# ]]
 
 
 for List[A] as #eq forall A: #eq {
-    def == (other: List[A]) -> Bool {
+    def operator self == (other: List[A]) -> Bool {
         match (self, other) {
-        case (Empty, Empty) =>
-            True
-        case (a: Node, b: Node) =>
-            a == b
-        case (_, _) =>
-            False
+            case (Empty, Empty) =>
+                True
+            case (a: Node, b: Node) =>
+                a == b
+            case (_, _) =>
+                False
     }
 }
 
 
-[[ If binary operators have double-dispatch: ]]
-
-
 for Empty as #eq {
-    def == (other: Empty) -> Bool {
+    def operator self == (other: Empty) -> Bool {
         True
     }
 }
 
 
 for Node[A] as #eq forall A: #eq {
-    def == (other: Node[A]) -> Bool {
+    def operator self == (other: Node[A]) -> Bool {
         self.item == other.item
-            and self.rest == other.rest
+            and self.tail == other.tail
     }
 }
 
 
-[[ ## Pushing and Poping #################################################### ]]
+[[ ## Pushing and Poping ################################################### ]]
 
 
 for List[A] {
-    def .push(item: A) -> ref Node[A] {
+    def .push(item: A) -> *Node[A] {
         Node(item, self)
     }
 
-    derive .head -> Option[A]
+    def .head -> Option[A] {
+        match self {
+            case Empty => None
+            case Node(item, ...) => Some(item)
+        }
+    }
 
     derive .tail -> List[A]
 }
 
 
-for Empty[A] {
-    def .head -> None {
-        None
-    }
-
-    def .tail -> Empty {
-        Empty
-    }
-}
-
-
-for Node[A] {
-    def .head -> Some[A] {
-        Some(self.item)
-    }
-
+for Empty {
     def .tail -> List[A] {
-        self.rest
-    }
-}
-
-
-[[ ## Functor Implementation ################################################ ]]
-
-
-for List[A] derive #functor forall A {
-    derive .map(transform: func(A) -> B) -> List[B] forall B
-}
-
-
-for Empty as #functor forall A {
-    def .map(transform: func(A) -> B) -> Empty forall B {
         Empty
     }
 }
 
 
-for Node[A] as #functor forall A {
-    def .map(f: func(A) -> B) -> Node[B] forall B {
-        Node(f(self.item), self.rest.map(f))
+[[ ## Functor Implementation ############################################### ]]
+
+
+for List[A] as #functor forall A {
+    def .map(transform: func(A) -> B) -> List[B] forall B {
+        match self {
+            case Empty =>
+                Emtpy
+            
+            case Node(item, tail) =>
+                Node(transform(item), tail)
+        }
     }
 }
 
 
-[[ ## Iterator Implementation ############################################### ]]
+[[ ## Iterator Implementation ############################################## ]]
 
 
 for List[A] as #iterable {
@@ -136,21 +116,21 @@ for List-Iterator[A] as #iterator {
 
     def .next -> (List-Iterator[A], Option[A]) {
         match self.current {
-        case Empty =>
-            (self, None)
-        case Node(item, rest) =>
-            let new-self = self.with(current = rest)
-            (new-self, Some(item))
+            case Empty =>
+                (self, None)
+
+            case Node(item, tail) =>
+                let new-self = self.with(current = tail)
+                (new-self, Some(item))
         }
     }
 }
-    
-
---------------------------------------------------------------------------------
 
 
-[[ # Example of Utilisation for Linked List ]]
-module std::list::test
+[[ ## Usage ################################################################ ]]
+
+
+module main
 
 
 use std::list { List, Node, Empty }
