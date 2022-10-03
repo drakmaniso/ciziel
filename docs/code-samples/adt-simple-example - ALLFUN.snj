@@ -1,0 +1,143 @@
+module geom
+use std::vec { Point }
+
+
+[[ ## Types and Traits ###################################################### ]]
+
+
+def Shape = Circle | BBox
+
+
+def Circle(
+    var center: Point,
+    var radius: Float64,
+)
+
+
+def BBox(
+    def min: Point,
+    def max: Point,
+)
+
+
+def #shape {
+    has perimeter(shape: Self) -> Float64
+    has area(shape: Self) -> Float64
+}
+
+
+def #movable {
+    has move-to(shape: Self, destination: Point) -> Self
+}
+
+
+def #scalable {
+    has scale-by(shape: Self, factor: Float64) -> Self
+}
+
+
+[[ ## Circle Functions ###################################################### ]]
+
+
+def bounding-circle(points: Array[Point]) -> Circle {
+    let welzl(points, boundary) {
+        match points {
+        case _ and boundary.length == 3 =>
+            trivial(boundary)
+
+        case Array() =>
+            trivial(boundary)
+
+        case Array(p, rest) =>
+            let d = welzl(points.remove(p), boundary)
+            if d.encloses(p) {
+                d
+            } else {
+                welzl(points.remove(p), boundary.push(p))
+            }
+        }
+    }
+
+    welzl(points, [])
+}
+
+
+def diameter(circle: Circle) -> Float64 {
+    circle.radius * 2
+}
+
+
+def #shape::perimeter(circle: Circle) -> Float64 {
+    math::pi * circle.diameter
+}
+
+
+def area#shape(circle: Circle) -> Float64 {
+    math::pi * (circle.radius ** 2)
+}
+
+
+def #movable move-to(circle: Circle, destination: Point) -> Circle {
+    circle.with(center = destination
+}
+
+
+def #scalable scale-by(circle: Circle, factor: Float64) -> Circle {
+    circle.with(radius = circle.radius * factor)
+}
+
+
+[[ ## BBox Functions ######################################################## ]]
+
+
+def bbox(a: Point, b: Point) -> BBox {
+    let (min-x, max-x) = (a.x, b.x).sorted()
+    let (min-y, max-y) = (a.y, b.y).sorted()
+    
+    BBox(
+        min = Point(min-x, min-y),
+        max = Point(max-x, max-y),
+    )
+}
+
+
+def width(self: BBox) -> Float64 {
+    self.max-x - self.min-x
+}
+
+
+def height(self: BBox) -> Float64 {
+    self.max-y - self.min-y
+}
+
+
+def #shape perimeter(self: BBox) -> Float64 {
+    (2 * self.width) + (2 * self.height)
+}
+
+
+def #shape area(self: BBox) -> Float64 {
+    self.width * self.height
+}
+
+
+def #movable move-to(self: BBox, destination: Point) -> BBox {
+    let size = self.max - self.min
+    self.with(
+        min = destination
+        max = destination + size
+    )
+}
+
+
+def #scalable scale-by(self: BBox, factor: Float64) -> BBox {
+    let w = factor * self.width
+    let h = factor * self.height
+    
+    self.with(
+        min-x = self.min-x - (w / 2),
+        min-y = self.min-y - (h / 2),
+        max-x = self.max-x + (w / 2),
+        max-y = self.max-y + (h / 2),
+    )
+}

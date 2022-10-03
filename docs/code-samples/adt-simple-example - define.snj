@@ -2,7 +2,7 @@ module geom
 use std::vec { Point }
 
 
-def Shape = union(
+define Shape = union(
     | Circle
     | BBox
     | Square
@@ -11,69 +11,69 @@ def Shape = union(
 )
 
 
-def Circle = struct(
+define Circle = struct(
     var center: Point,
     var radius: Float64,
 )
 
 
-def Triangle = struct(
+define Triangle = struct(
     var a: Point,
     var b: Point,
     var c: Point,
 )
 
 
-def Rectangle = struct(
+define Rectangle = struct(
     var origin: Point,
     var width: Float64,
     var height: Float64,
-    def angle: Float64,
+    val angle: Float64,
 )
 
 
-def BBox = struct(
-    def min: Point,
-    def max: Point,
+define BBox = struct(
+    val min: Point,
+    val max: Point,
 )
 
 
-def Polygon = struct(
-    def ...points: Array[Point],
+define Polygon = struct(
+    val ...points: Array[Point],
 )
 
 
-def #shape {
+define #shape {
     has .perimeter -> Float64
     has .area -> Float64
 }
 
 
-def #movable {
+define #movable {
     has .move-to(destination: Point) -> Self
 }
 
 
-def #scalable {
+define #scalable {
     has .scale-by(factor: Float64) -> Self
 }
 
 
-def #origin {
+define #origin {
     has Self(origin: Point, ...)
 }
 
 
 forall A: #origin
 extend A as #movable {
-    def .move-to(destination: Point) -> A {
+    define .move-to(destination: Point) -> A {
         self.with(origin = destination)
     }
 }
 
 
 forall S1: #origin, S2: #origin
-def switch-places(shape-1: S1, shape-2: S2) -> (S1, S2) {
+define switch-places(shape-1: S1, shape-2: S2) -> (S1, S2) {
     let o1 = shape-1.origin
     let o2 = shape-2.origin
     ( shape-1.with(origin = o2), shape-2.with(origin = o1) )
@@ -84,7 +84,7 @@ def switch-places(shape-1: S1, shape-2: S2) -> (S1, S2) {
 
 
 extend Circle {
-    def ::bounding-of(points: Array[Point]) -> Circle {
+    define ::bounding-of(points: Array[Point]) -> Circle {
         let welzl(points, boundary) {
             match points {
             case _ and boundary.length == 3 =>
@@ -106,18 +106,18 @@ extend Circle {
         welzl(points, [])
     }
 
-    def .diameter -> Float64 {
+    define .diameter -> Float64 {
         self.radius * 2
     }
 }
 
 
 extend Circle as #shape {
-    def .perimeter -> Float64 {
+    define .perimeter -> Float64 {
         math::pi * self.diameter
     }
 
-    def .area -> Float64 {
+    define .area -> Float64 {
         math::pi * (self.radius ** 2)
     }
 }
@@ -128,7 +128,7 @@ extend Circle as #movable
 
 
 extend Circle as #scalable {
-    def .scale-by(factor: Float64) -> Circle {
+    define .scale-by(factor: Float64) -> Circle {
         self.with(radius = self.radius * factor)
     }
 }
@@ -138,7 +138,7 @@ extend Circle as #scalable {
 
 
 extend BBox {
-    def ::new(a: Point, b: Point) -> BBox {
+    define ::new(a: Point, b: Point) -> BBox {
         let (x-min, x-max) = (a.x, b.x).sorted()
         let (y-min, y-max) = (a.y, b.y).sorted()
         
@@ -149,24 +149,24 @@ extend BBox {
     }
 
 
-    def .width -> Float64 { self.max.x - self.min.x }
-    def .height -> Float64 { self.max.y - self.min.y }
-    def .size -> Vec2 { Vec2(self.width, self.height) }
+    define .width -> Float64 { self.max.x - self.min.x }
+    define .height -> Float64 { self.max.y - self.min.y }
+    define .size -> Vec2 { Vec2(self.width, self.height) }
 
 
-    def .perimeter -> Float64 {
+    define .perimeter -> Float64 {
         (2 * self.width) + (2 * self.height)
     }
 
 
-    def .area -> Float64 {
+    define .area -> Float64 {
         self.width * self.height
     }
 }
 
 
 extend BBox as #movable {    
-    def .move-to(destination: Point) -> BBox {
+    define .move-to(destination: Point) -> BBox {
         self.with(
             min = destination
             max = destination + self.size
@@ -176,7 +176,7 @@ extend BBox as #movable {
 
 
 extend BBox as #scalable {    
-    def .scale-by(factor: Float64) -> BBox {
+    define .scale-by(factor: Float64) -> BBox {
         let delta = (factor * self.size) - self.size
         self.with(
             min = self.min - (delta / 2)
@@ -187,11 +187,7 @@ extend BBox as #scalable {
 
 
 extend Polygon {
-    def ::new(...points: Array[Point]) -> Polygon {
-        Polygon(points)
-    }
-
-    def [index: Int] -> Point {
+    define [index: Int] -> Point {
         self.points[index]
     }
 }

@@ -15,34 +15,36 @@ def #vector {
 def #vec2 {
     has ::Scalar: #num
     has Self(x: Self::Scalar, y: Self::Scalar)
+    has #vector
+}
 
-    for Self as #vector {
-        def ::Scalar = Self#vec2::Scalar
 
-        def ::zero: Self {
-            Self(x = Self::Scalar::zero, y = Self::Scalar::zero)
-        }
-            
-        def .length -> Self::Scalar {
-            math::sqrt((self.x ^ 2) + (self.y ^ 2))
-        }
+derive A as #vector forall A: #vec2 {
+    def ::Scalar = Self#vec2::Scalar
 
-        def .normalize -> Self {
-            let l = self.length
-            Self(x = self.x / l, y = self.y / l)
-        }
+    def ::zero: Self {
+        Self(x = Self::Scalar::zero, y = Self::Scalar::zero)
+    }
+        
+    def .length -> Self::Scalar {
+        math::sqrt((self.x ^ 2) + (self.y ^ 2))
+    }
 
-        def + (other: Self) -> Self {
-            Self(x = self.x + other.x, y = self.y + other.y)
-        }
+    def .normalize -> Self {
+        let l = self.length
+        Self(x = self.x / l, y = self.y / l)
+    }
 
-        def - (other: Self) -> Self {
-            Self(x = self.x - other.x, y = self.y - other.y)
-        }
+    def + (other: Self) -> Self {
+        Self(x = self.x + other.x, y = self.y + other.y)
+    }
 
-        def * (scalar: Self::Scalar) -> Self {
-            Self(x = self.x * scalar, y = self.y * scalar)
-        }
+    def - (other: Self) -> Self {
+        Self(x = self.x - other.x, y = self.y - other.y)
+    }
+
+    def * (scalar: Self::Scalar) -> Self {
+        Self(x = self.x * scalar, y = self.y * scalar)
     }
 }
 
@@ -61,18 +63,21 @@ def #vec3 {
 }
 
 
---## Concrete Types ##
+[[ ## Concrete Types ####################################################### ]]
 
 
-def Vec2 {
-    var x: Float32
-    var y: Float32
-}
+def Vec2 = struct(
+    var x: Float32,
+    var y: Float32,
+)
 
 
-for Vec2 as #vec2 #vector {
+for Vec2 as #vec2 {
     def ::Scalar = Float32
 }
+
+
+for Vec2 derive #vector
 
 
 for Float32 {
@@ -82,13 +87,13 @@ for Float32 {
 }
 
 
-[[ It's possible to override the default implementation: ]]
+[[ Or, without using the derivation: ]]
 
 
-def IVec2 {
-    var x: Int32
-    var y: Int32
-}
+def IVec2 = struct(
+    var x: Int32,
+    var y: Int32,
+)
 
 
 for IVec2 as #vec2 {
