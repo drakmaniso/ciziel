@@ -10,36 +10,36 @@ def Shape =
     | Polygon
 
 
-def Circle {
-    var .center: Point
-    var .radius: Float64
-}
+def Circle(
+    var center: Point,
+    var radius: Float64,
+)
 
 
-def Triangle {
-    var .a: Point
-    var .b: Point
-    var .c: Point
-}
+def Triangle(
+    var a: Point,
+    var b: Point,
+    var c: Point,
+)
 
 
-def Rectangle {
-    var .origin: Point
-    var .width: Float64
-    var .height: Float64
-    def .angle: Float64
-}
+def Rectangle(
+    var origin: Point,
+    var width: Float64,
+    var height: Float64,
+    def angle: Float64,
+)
 
 
-def BBox {
-    def .min: Point
-    def .max: Point
-}
+def BBox(
+    def min: Point,
+    def max: Point,
+)
 
 
-def Polygon {
-    def .points: Array[Point]
-}
+def Polygon(
+    def ...points: Array[Point],
+)
 
 
 def #shape {

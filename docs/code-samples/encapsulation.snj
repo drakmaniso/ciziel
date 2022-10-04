@@ -15,10 +15,10 @@
 public interface of the module, and cannot be used outside the module. All its
 fields must be declared with `let`. ]]
 
-let Private {
-    let .foo: Int
-    let .bar: Bool
-}
+let Private(
+    let foo: Int,
+    let bar: Bool,
+)
 
 
 [[### Opaque Structs ]]
@@ -26,10 +26,10 @@ let Private {
 [[ An opaque struct can be used outside the module, but its fields cannot be
 accessed, its default constructor cannot be used, and it cannot be updated. ]]
 
-def Opaque {
-    let .foo: Int
-    let .bar: Bool
-}
+def Opaque(
+    let foo: Int,
+    let bar: Bool,
+)
 
 def some-function() -> Opaque {
     Opaque(foo = 1, bar = False)
@@ -42,10 +42,10 @@ def some-function() -> Opaque {
 accessed outside the module. However the constructor and the functional update
 are still private. ]]
 
-def Read-Only {
-    def .foo: Int
-    def .bar: Bool
-}
+def Read-Only(
+    def foo: Int,
+    def bar: Bool,
+)
 
 def some-function() -> Read-Only {
     Read-Only(foo = 1, bar = False)
@@ -58,19 +58,16 @@ def some-function() -> Read-Only {
 outside the module, as well as the default constructor and the functional
 update syntax. ]]
 
-def Public {
-    var .foo: Int
-    var .bar: Bool
-}
+def Public(var foo: Int, var bar: Bool)
 
 
 [[### Mixed Visibility Structs ]]
 
-def Mixed {
-    var .foo: Int
-    def .bar: Bool
-    let .baz: String
-}
+def Mixed(
+    var foo: Int,
+    def bar: Bool,
+    let baz: String,
+)
 
 def some-function(foo: Int) -> Mixed {
     Mixed(foo, bar = foo.is-even(), baz = foo.to-string())
@@ -131,16 +128,16 @@ let Opaque-Bar = Bar
 [[### Private Traits ]]
 
 let #private {
-    has .foo() -> Int
-    has .bar() -> Bool
+    has .foo -> Int
+    has .bar(arg: Bool) -> String
 }
 
 
 [[### Public Traits ]]
 
 def #transparent {
-    has .foo() -> Int
-    has .bar() -> Bool
+    has .foo -> Int
+    has .bar(arg: Bool) -> String
 }
 
 
@@ -151,8 +148,8 @@ def #opaque {
 }
 
 let #private {
-    has .foo() -> Int
-    has .bar() -> Bool
+    has .foo -> Int
+    has .bar(arg: Bool) -> String
 }    
 
 
@@ -178,7 +175,12 @@ for Pseudo-Struct as #proxy {
     }
 
     def ::construct(value: Pseudo-Struct::Interface) -> Pseudo-Struct {
-        Self(storage: Underlying-Type.make-from(value))
+        Pseudo-Struct(
+            storage = Pseudo-Struct::Interface(
+                foo = foo-from(value)
+                bar = bar-from(value)
+            )
+        )
     }
 
     def .deconstruct -> Pseudo-Struct::Interface {
@@ -196,7 +198,9 @@ for Pseudo-Enum as #proxy {
     def ::Interface = Foo | Bar
 
     def ::construct(value: Pseudo-Enum::Interface) -> Pseudo-Enum {
-        Self(storage: Underlying-Type.make-from(value))
+        Pseudo-Enum(
+            storage = foo-or-bar-from(value)
+        )
     }
 
     def .deconstruct -> Pseudo-Enum::Interface {
