@@ -12,18 +12,18 @@ def #eval {
 }
 
 
-def Literal {
-    var .value: Int
-}
+def Literal(
+    var value: Int,
+)
 
 
-def Addition[A] { 
-    var .left: A
-    var .right: A
-}
+def Addition[A](
+    var left: A,
+    var right: A,
+)
 
 
-for Literal as #eval {
+extend Literal as #eval {
     def .eval -> Int {
         self.value
     }
@@ -31,7 +31,7 @@ for Literal as #eval {
 
 
 forall A: #eval
-for Addition[A] as #eval {
+extend Addition[A] as #eval {
     def .eval -> Int {
         self.left.eval + self.right.eval
     }
@@ -52,20 +52,20 @@ def #pretty {
 }
 
 
-def Negation[A] {
-    var .subexpr: A
-}
+def Negation[A](
+    var subexpr: A,
+)
 
 
 forall A: #eval
-for Negation[A] as #eval {
+extend Negation[A] as #eval {
     def .eval -> Int {
         - self.subexpr.eval
     }
 }
 
 
-for Literal as #pretty {
+extend Literal as #pretty {
     def .pretty -> String {
         self.eval.to-string
     }
@@ -73,7 +73,7 @@ for Literal as #pretty {
 
 
 forall A: #pretty
-for Addition[A] as #pretty {
+extend Addition[A] as #pretty {
     def .pretty -> String {
         let l = self.left.pretty
         let r = self.right.pretty
@@ -93,7 +93,7 @@ for Addition[A] as #pretty {
 
 
 forall A: #pretty
-for Negation[A] as #pretty {
+extend Negation[A] as #pretty {
     def .pretty -> String {
         self.subexpr.match {
             case e: Literal =>
@@ -116,7 +116,7 @@ use advanced { #pretty, Negation }
 
 
 def Expr = Literal | Addition[Expr] | Negation[Expr]
-for Expr derive #eval #pretty
+extend Expr derive #eval #pretty
 
 
 def main() -> Io[] {

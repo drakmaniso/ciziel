@@ -42,7 +42,8 @@ module vec
 use std::ops (#add, #mul)
 
 
-def Vec2 = struct(var x: Float, var y: Float)
+def Vec2(var x: Float, var y: Float)
+
 
 for Vec2 as #add {
     def ::Other = Vec2
@@ -60,7 +61,7 @@ for Vec2 as #add {
 
 
 for Vec2 as #zero {
-    def Vec2.zero = Vec2(0, 0)
+    def ::zero = Vec2(0, 0)
 }
 
 

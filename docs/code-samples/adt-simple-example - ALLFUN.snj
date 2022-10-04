@@ -27,12 +27,18 @@ def #shape {
 
 
 def #movable {
-    has move-to(shape: Self, destination: Point) -> Self
+    has move(shape: Self, destination: Point) -> Self
 }
 
 
 def #scalable {
-    has scale-by(shape: Self, factor: Float64) -> Self
+    has scale(shape: Self, factor: Float64) -> Self
+}
+
+
+ensure {
+    Circle is #shape #movable #scalable
+    BBox is #shape #movable #scalable
 }
 
 
@@ -62,28 +68,28 @@ def bounding-circle(points: Array[Point]) -> Circle {
 }
 
 
-def diameter(circle: Circle) -> Float64 {
-    circle.radius * 2
+def diameter(c: Circle) -> Float64 {
+    c.radius * 2
 }
 
 
-def perimeter(circle: Circle) -> Float64 {
-    math::pi * circle.diameter
+def perimeter(c: Circle) -> Float64 {
+    math::pi * c.diameter
 }
 
 
-def area(circle: Circle) -> Float64 {
-    math::pi * (circle.radius ** 2)
+def area(c: Circle) -> Float64 {
+    math::pi * (c.radius ** 2)
 }
 
 
-def move-to(circle: Circle, destination: Point) -> Circle {
-    circle.with(center = destination
+def move(c: Circle, destination: Point) -> Circle {
+    c.with(center = destination
 }
 
 
-def scale-by(circle: Circle, factor: Float64) -> Circle {
-    circle.with(radius = circle.radius * factor)
+def scale(c: Circle, factor: Float64) -> Circle {
+    c.with(radius = c.radius * factor)
 }
 
 
@@ -101,43 +107,43 @@ def bbox(a: Point, b: Point) -> BBox {
 }
 
 
-def width(self: BBox) -> Float64 {
-    self.max-x - self.min-x
+def width(b: BBox) -> Float64 {
+    b.max-x - b.min-x
 }
 
 
-def height(self: BBox) -> Float64 {
-    self.max-y - self.min-y
+def height(b: BBox) -> Float64 {
+    b.max-y - b.min-y
 }
 
 
-def perimeter(self: BBox) -> Float64 {
-    (2 * self.width) + (2 * self.height)
+def perimeter(b: BBox) -> Float64 {
+    (2 * b.width) + (2 * b.height)
 }
 
 
-def area(self: BBox) -> Float64 {
-    self.width * self.height
+def area(b: BBox) -> Float64 {
+    b.width * b.height
 }
 
 
-def move-to(self: BBox, destination: Point) -> BBox {
-    let size = self.max - self.min
-    self.with(
+def move(b: BBox, destination: Point) -> BBox {
+    let size = b.max - b.min
+    b.with(
         min = destination
         max = destination + size
     )
 }
 
 
-def scale-by(self: BBox, factor: Float64) -> BBox {
-    let w = factor * self.width
-    let h = factor * self.height
+def scale(b: BBox, factor: Float64) -> BBox {
+    let w = factor * b.width
+    let h = factor * b.height
     
-    self.with(
-        min-x = self.min-x - (w / 2),
-        min-y = self.min-y - (h / 2),
-        max-x = self.max-x + (w / 2),
-        max-y = self.max-y + (h / 2),
+    b.with(
+        min-x = b.min-x - (w / 2),
+        min-y = b.min-y - (h / 2),
+        max-x = b.max-x + (w / 2),
+        max-y = b.max-y + (h / 2),
     )
 }

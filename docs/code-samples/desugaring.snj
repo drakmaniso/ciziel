@@ -1,64 +1,98 @@
--- ASSOCIATED FUNCTIONS -------------------------------------------------------
-
-local Foo.bar(a: Int, b: Bool) -> String =
-    ...
-
--- desugars to the associated constant:
-
-local Foo.bar: fun(Int, Bool) -> String =
-    fun(a, b) ->
-        ...
+[[ ## CONSTRUCTORS ######################################################### ]]
 
 
--- METHODS --------------------------------------------------------------------
-
-local (Foo).baz(a: Int, b: Bool) -> String =
-    ...
-
--- desugars to the associated function:
-
-local Foo.baz(self: Foo, a: Int, b: Bool) -> String =
-    ...
-
--- desugars to:
-
-local Foo.baz: fun(Foo, Int, Bool) -> String =
-    fun(self, a, b) ->
-        ...
+let Foo(let a: Int, let b: Bool)
 
 
--- Value method calls ---------------------------------------------------------
-
-a.my-method
-
--- desugars to:
-
-A.my-method(a) -- `A` being the type of `a`.
+[[ implicitly declares the field getters: ]]
 
 
--- Constructor calls ----------------------------------------------------------
-
-Foo { b = True, a = 1 }
-
--- desugars to:
-
-Foo.make(a = 1, b = True)
+for Foo {
+    let .a -> Int
+    let .b -> Bool
+}
 
 
--- Trait #data-constructor ----------------------------------------------------
+[[ and the functional update functions: ]]
 
-local Foo =
-    struct {
-        a: A,
-        b: B,
+
+for Foo {
+    let .with(a: Int) -> Foo {
+        Foo(a = a, b = self.b)
     }
 
--- implicitly local the default constructor:
+    let .with(b: Bool) -> Foo {
+        Foo(a = self.a, b = b)
+    }
 
-local Foo.make(a: A, b: B)
+    let .with(a: Int, b: Bool) -> Foo {
+        Foo(a = a, b = b)
+    }
+}
 
--- and the functional update functions:
 
-local (Foo).with(a: A)
-local (Foo).with(b: B)
-local (Foo).with(a: A, b: B)
+[[ ## ASSOCIATED FUNCTIONS ################################################# ]]
+
+
+for Foo {
+    let ::bar(a: Int, b: Bool) -> String {
+        "foobar"
+    }
+}
+
+
+[[ desugars to an associated constant: ]]
+
+
+for Foo {
+    let ::bar: fun(Int, Bool) -> String =
+        \ a, b {
+            "foobar"
+        }
+}
+
+
+[[ ## METHODS ############################################################## ]]
+
+
+for Foo {
+    let .baz(a: Int, b: Bool) -> String {
+        "foobaz"
+    }
+}
+
+
+[[ desugars to an associated function: ]]
+
+
+for Foo {
+    let ::baz(self: Foo, a: Int, b: Bool) -> String {
+        "foobaz"
+    }
+}
+
+
+[[ which desugars to an associated constant: ]]
+
+
+for Foo {
+    let ::baz: fun(Foo, Int, Bool) -> String =
+        \ a, b {
+            "foobaz"
+        }
+}
+
+
+[[ ## METHOD CALLS ######################################################### ]]
+
+
+let my-foo = Foo(1, True)
+my-foo.baz
+
+
+[[ desugars to: ]]
+
+
+Foo::my-method(my-foo)
+
+
