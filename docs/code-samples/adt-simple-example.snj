@@ -2,45 +2,44 @@ module geom
 use std::vec { Point }
 
 
-def Shape = union(
+def Shape =
     | Circle
     | BBox
     | Square
     | Rectangle
     | Polygon
-)
 
 
-def Circle = struct(
-    var center: Point,
-    var radius: Float64,
-)
+def Circle {
+    var .center: Point
+    var .radius: Float64
+}
 
 
-def Triangle = struct(
-    var a: Point,
-    var b: Point,
-    var c: Point,
-)
+def Triangle {
+    var .a: Point
+    var .b: Point
+    var .c: Point
+}
 
 
-def Rectangle = struct(
-    var origin: Point,
-    var width: Float64,
-    var height: Float64,
-    def angle: Float64,
-)
+def Rectangle {
+    var .origin: Point
+    var .width: Float64
+    var .height: Float64
+    def .angle: Float64
+}
 
 
-def BBox = struct(
-    def min: Point,
-    def max: Point,
-)
+def BBox {
+    def .min: Point
+    def .max: Point
+}
 
 
-def Polygon = struct(
-    def ...points: Array[Point],
-)
+def Polygon {
+    def .points: Array[Point]
+}
 
 
 def #shape {
@@ -191,7 +190,7 @@ extend Polygon {
         Polygon(points)
     }
 
-    def [index: Int] -> Point {
+    def operator self[index: Int] -> Point {
         self.points[index]
     }
 }

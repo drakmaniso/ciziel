@@ -1,15 +1,15 @@
 module basic
 
 
-def #eval
+def #eval = trait
 	has .eval -> Int
 
 
-def Literal
+def Literal = struct
     var .value: Int
 
 
-def Addition[A]
+def Addition[A] = struct
     var .left: A
     var .right: A
 

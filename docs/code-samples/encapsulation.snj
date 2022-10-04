@@ -11,13 +11,14 @@
 
 [[### Private Structs ]]
 
-[[ A local struct is completely private: it cannot appear in the public
-interface of the module, and cannot be used outside the module. ]]
+[[ A struct declared with `let` is completely private: it cannot appear in the
+public interface of the module, and cannot be used outside the module. All its
+fields must be declared with `let`. ]]
 
-let Private = struct(
-    let foo: Int,
-    let bar: Bool,
-)
+let Private {
+    let .foo: Int
+    let .bar: Bool
+}
 
 
 [[### Opaque Structs ]]
@@ -25,10 +26,10 @@ let Private = struct(
 [[ An opaque struct can be used outside the module, but its fields cannot be
 accessed, its default constructor cannot be used, and it cannot be updated. ]]
 
-def Opaque = struct(
-    let foo: Int,
-    let bar: Bool,
-)
+def Opaque {
+    let .foo: Int
+    let .bar: Bool
+}
 
 def some-function() -> Opaque {
     Opaque(foo = 1, bar = False)
@@ -41,10 +42,10 @@ def some-function() -> Opaque {
 accessed outside the module. However the constructor and the functional update
 are still private. ]]
 
-def Read-Only = struct(
-    def foo: Int,
-    def bar: Bool,
-)
+def Read-Only {
+    def .foo: Int
+    def .bar: Bool
+}
 
 def some-function() -> Read-Only {
     Read-Only(foo = 1, bar = False)
@@ -57,19 +58,19 @@ def some-function() -> Read-Only {
 outside the module, as well as the default constructor and the functional
 update syntax. ]]
 
-def Public = struct(
-    var foo: Int,
-    var bar: Bool,
-)
+def Public {
+    var .foo: Int
+    var .bar: Bool
+}
 
 
 [[### Mixed Visibility Structs ]]
 
-def Mixed = struct(
-    var foo: Int,
-    def bar: Bool,
-    let baz: String,
-)
+def Mixed {
+    var .foo: Int
+    def .bar: Bool
+    let .baz: String
+}
 
 def some-function(foo: Int) -> Mixed {
     Mixed(foo, bar = foo.is-even(), baz = foo.to-string())
@@ -84,9 +85,9 @@ def some-function(foo: Int) -> Mixed {
 [[ A local enum is completely private: it cannot appear in the public interface
 of the module, and cannot be used outside the module. ]]
 
-let Private = union(Foo | Bar)
-let Foo = struct()
-let Bar = struct()
+let Private = Foo | Bar
+let Foo
+let Bar
 
 
 [[### Public Unions ]]
@@ -94,9 +95,9 @@ let Bar = struct()
 [[ A public enum is completely transparent: it can be used, constructed and
 matched outside the module. ]]
 
-def Transparent = union(Foo | Bar)
-def Foo = struct()
-def Bar = struct()
+def Transparent = Foo | Bar
+def Foo
+def Bar
 
 
 [[### Opaque Unions ]]
@@ -105,9 +106,9 @@ def Bar = struct()
 constructed or matched outside the module (even if its variants are public
 types). ]]
 
-def Opaque = union(Foo | Bar)
-let Foo = struct()
-let Bar = struct()
+def Opaque = Foo | Bar
+let Foo
+let Bar
 
 def some-function() -> Opaque {
     Foo
@@ -116,8 +117,8 @@ def some-function() -> Opaque {
 
 [[ Opaque Unions of Public Types: ]]
 
-def Foo = struct()
-def Bar = struct()
+def Foo
+def Bar
 
 def Opaque = Opaque-Foo | Opaque-Bar
 let Opaque-Foo = Foo
@@ -130,16 +131,16 @@ let Opaque-Bar = Bar
 [[### Private Traits ]]
 
 let #private {
-    has foo() -> Int
-    has bar() -> Bool
+    has .foo() -> Int
+    has .bar() -> Bool
 }
 
 
 [[### Public Traits ]]
 
 def #transparent {
-    has foo() -> Int
-    has bar() -> Bool
+    has .foo() -> Int
+    has .bar() -> Bool
 }
 
 
@@ -150,8 +151,8 @@ def #opaque {
 }
 
 let #private {
-    has foo() -> Int
-    has bar() -> Bool
+    has .foo() -> Int
+    has .bar() -> Bool
 }    
 
 
@@ -168,10 +169,13 @@ def #proxy {
 [[### Proxy Structs ]]
 
 
-def Pseudo-Struct = struct(let storage: Underlying-Type)
+def Pseudo-Struct(let storage: Underlying-Type)
 
 for Pseudo-Struct as #proxy {
-    def ::Interface = struct(var foo: Int, var bar: Bool)
+    def ::Interface {
+        var .foo: Int
+        var .bar: Bool
+    }
 
     def ::construct(value: Pseudo-Struct::Interface) -> Pseudo-Struct {
         Self(storage: Underlying-Type.make-from(value))
@@ -186,16 +190,16 @@ for Pseudo-Struct as #proxy {
 [[### Proxy Unions ]]
 
 
-def Pseudo-Enum = struct(let storage: Underlying-Type)
+def Pseudo-Enum(let storage: Underlying-Type)
 
 for Pseudo-Enum as #proxy {
     def ::Interface = Foo | Bar
 
-    def ::construct(value: Pseudo-Enum-Interface) -> Pseudo-Enum {
+    def ::construct(value: Pseudo-Enum::Interface) -> Pseudo-Enum {
         Self(storage: Underlying-Type.make-from(value))
     }
 
-    def .deconstruct -> Pseudo-Enum-Interface {
+    def .deconstruct -> Pseudo-Enum::Interface {
         self.storage.extract-interface
     }
 }

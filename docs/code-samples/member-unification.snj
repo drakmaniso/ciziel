@@ -1,44 +1,35 @@
-let Pet = union(Cat | Dog)
+let Pet = Cat | Dog
 
 
-let Cat = struct(
-    let name: String,
-    let favorite-toy: Cat-Toy,
-)
+let Cat {
+    let .name: String
+    let .favorite-toy: Cat-Toy
+}
 
 
-let Dog = struct(
-    let name: String,
-    let favorite-toy: Dog-Toy,
-)
+let Dog {
+    let .name: String
+    let .favorite-toy: Dog-Toy
+}
 
 
-let Pet-Toy = union(Cat-Toy | Dog-Toy)
+let Pet-Toy = Cat-Toy | Dog-Toy
 
 
-let Cat-Toy = union(Wool-Ball | Laser | Wand)
-let Wool-Ball = struct()
-let Laser = struct()
-let Wand = struct()
+let Cat-Toy = Wool-Ball | Laser | Wand
+let Wool-Ball
+let Laser
+let Wand
 
-let Dog-Toy = union(Chew-Bone | Stick | Squeaky-Ball)
-let Chew-Bone = struct()
-let Stick = struct()
-let Squeaky-Ball = struct()
+let Dog-Toy = Chew-Bone | Stick | Squeaky-Ball
+let Chew-Bone
+let Stick
+let Squeaky-Ball
 
 for Pet {
-    derive .name -> String
+    has .name -> String
             
-    [[ The field `favorite-toy` is not unified because its type is different for
-    `Cat` and `Dog`. The corresponding functionality must be implemented under a
-    new name: ]]
-
-    def pet-favorite-toy -> Pet-Toy {
-        match self {
-        case cat: Cat => cat.favorite-toy
-        case dog: Dog => dog.favorite-toy
-        }
-    }
+    has .favorite-toy -> Pet-Toy
 }
 
 

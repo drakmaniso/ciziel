@@ -67,22 +67,22 @@ def diameter(circle: Circle) -> Float64 {
 }
 
 
-def #shape::perimeter(circle: Circle) -> Float64 {
+def perimeter(circle: Circle) -> Float64 {
     math::pi * circle.diameter
 }
 
 
-def area#shape(circle: Circle) -> Float64 {
+def area(circle: Circle) -> Float64 {
     math::pi * (circle.radius ** 2)
 }
 
 
-def #movable move-to(circle: Circle, destination: Point) -> Circle {
+def move-to(circle: Circle, destination: Point) -> Circle {
     circle.with(center = destination
 }
 
 
-def #scalable scale-by(circle: Circle, factor: Float64) -> Circle {
+def scale-by(circle: Circle, factor: Float64) -> Circle {
     circle.with(radius = circle.radius * factor)
 }
 
@@ -111,17 +111,17 @@ def height(self: BBox) -> Float64 {
 }
 
 
-def #shape perimeter(self: BBox) -> Float64 {
+def perimeter(self: BBox) -> Float64 {
     (2 * self.width) + (2 * self.height)
 }
 
 
-def #shape area(self: BBox) -> Float64 {
+def area(self: BBox) -> Float64 {
     self.width * self.height
 }
 
 
-def #movable move-to(self: BBox, destination: Point) -> BBox {
+def move-to(self: BBox, destination: Point) -> BBox {
     let size = self.max - self.min
     self.with(
         min = destination
@@ -130,7 +130,7 @@ def #movable move-to(self: BBox, destination: Point) -> BBox {
 }
 
 
-def #scalable scale-by(self: BBox, factor: Float64) -> BBox {
+def scale-by(self: BBox, factor: Float64) -> BBox {
     let w = factor * self.width
     let h = factor * self.height
     

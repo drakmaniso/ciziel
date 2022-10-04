@@ -12,10 +12,15 @@ def #eval {
 }
 
 
-def Literal = struct(var value: Int)
+def Literal {
+    var .value: Int
+}
 
 
-def Addition[A] = struct(var left: A, var right: A)
+def Addition[A] { 
+    var .left: A
+    var .right: A
+}
 
 
 for Literal as #eval {
@@ -47,7 +52,9 @@ def #pretty {
 }
 
 
-def Negation[A] = struct(var subexpr: A)
+def Negation[A] {
+    var .subexpr: A
+}
 
 
 forall A: #eval
@@ -108,7 +115,7 @@ use basic { #eval, Literal, Addition }
 use advanced { #pretty, Negation }
 
 
-def Expr = union(Literal | Addition[Expr] | Negation[Expr])
+def Expr = Literal | Addition[Expr] | Negation[Expr]
 for Expr derive #eval #pretty
 
 
