@@ -7,9 +7,9 @@ module std::list
 use std::iter { #iterator, #iterable }
 
 
-def List[A] = union(Empty | *Node[A])
-def Empty = struct()
-def Node[A] = struct(var item: A, var tail: List[A])
+def List[A] = Empty | *Node[A]
+def Empty
+def Node[A](var item: A, var tail: List[A])
 
 
 for List[A] {
@@ -106,9 +106,7 @@ for List[A] as #iterable {
 }
 
 
-def List-Iterator[A] {
-    let .current: List[A]
-}
+def List-Iterator[A](let current: List[A])
 
 
 for List-Iterator[A] as #iterator {

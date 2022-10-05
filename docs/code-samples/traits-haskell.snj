@@ -2,7 +2,7 @@
 
 
 public #functor =
-    has (Self[A]).fmap(transform: fun(A) -> B) -> Self[B]
+    has (Self[A]).fmap(transform: \ A -> B) -> Self[B]
 
     has (Self[B]) $> (value: A) -> Self[A] =
         self.map(fun(_) -> value)

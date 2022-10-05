@@ -58,27 +58,6 @@ def #scalable {
 }
 
 
-def #origin {
-    has Self(origin: Point, ...)
-}
-
-
-forall A: #origin
-extend A as #movable {
-    def .move-to(destination: Point) -> A {
-        self.with(origin = destination)
-    }
-}
-
-
-forall S1: #origin, S2: #origin
-def switch-places(shape-1: S1, shape-2: S2) -> (S1, S2) {
-    let o1 = shape-1.origin
-    let o2 = shape-2.origin
-    ( shape-1.with(origin = o2), shape-2.with(origin = o1) )
-}
-
-
 [[ ## Circle ################################################################ ]]
 
 
@@ -122,8 +101,11 @@ extend Circle as #shape {
 }
 
 
-extend Circle as #origin
-extend Circle as #movable
+extend Circle as #movable {
+    def .move(destination: Point) -> Circle {
+        self.with(center = destination)
+    }
+}
 
 
 extend Circle as #scalable {
@@ -138,9 +120,9 @@ extend Circle as #scalable {
 
 extend BBox {
     def ::new(a: Point, b: Point) -> BBox {
-        let (x-min, x-max) = (a.x, b.x).sorted()
-        let (y-min, y-max) = (a.y, b.y).sorted()
-        
+        let (x-min, x-max) = (a.x, b.x).sorted
+        let (y-min, y-max) = (a.y, b.y).sorted
+
         BBox(
             min = Point(x-min, y-min),
             max = Point(x-max, y-max),
@@ -148,9 +130,19 @@ extend BBox {
     }
 
 
-    def .width -> Float64 { self.max.x - self.min.x }
-    def .height -> Float64 { self.max.y - self.min.y }
-    def .size -> Vec2 { Vec2(self.width, self.height) }
+    def .width -> Float64 {
+        self.max.x - self.min.x
+    }
+    
+    
+    def .height -> Float64 {
+        self.max.y - self.min.y
+    }
+    
+
+    def .size -> Vec2 {
+        Vec2(self.width, self.height)
+    }
 
 
     def .perimeter -> Float64 {

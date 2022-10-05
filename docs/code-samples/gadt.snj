@@ -2,52 +2,58 @@
 module gadt_example_1
 
 
-def #expr =
-    has Self.Output #eq
-    has (Self).eval() -> Output
+def #expr {
+    has ::Output: #eq
+    has .eval -> Output
+}
 
 
-def Expr = enum(EBool | EInt | EEqual)
-def EBool = struct(value: Bool)
-def EInt = struct(value: Int)
-def EEqual = struct(left: *EInt, right: *EInt)
+def Expr = EBool | EInt | EEqual
+def EBool(var value: Bool)
+def EInt(var value: Int)
+def EEqual(var left: *EInt, var right: *EInt)
 
 
-def Expr as #expr
+extend EBool as #expr {
+    def ::Output = Bool
+    def .eval -> Bool { self.value }
+}
 
 
-def EBool as #expr
-def EBool.Output = Bool
-def (EBool).eval() -> Bool = self.value
+extend EInt as #expr {
+    def ::Output = Int
+    def .eval -> Int { self.value }
+}
 
 
-def EInt as #expr
-def EInt.Output = Int
-def (EInt).eval() -> Int = self.value
+extend EEqual as #expr {
+    def ::Output = Bool
+    def .eval -> Bool { self.left.eval == self.right.eval }
+}
 
-
-def EEqual as #expr
-def EEqual.Output = Bool
-def (EEqual).eval() -> Bool = self.left.eval() == self.right.eval()
 
 [[ implicitly defines: ]]
-def Expr.Output = enum(Int | Bool)
-def (Expr).eval() -> enum(Int | Bool) =
-    match self
-    case e: EBool then e.eval()
-    case e: Eint then e.eval()
-    else e: EEqual then e.eval()
+
+
+derive Expr as #expr {
+    def ::Output = Int | Bool
+    def .eval -> Int | Bool
+}
 
 
 let expr1 = EEqual(EInt 2, EInt 3)
     -- expr1: EEqual
-let ret = expr1.eval()
+
+
+let ret = expr1.eval
     -- ret: Bool
 
 
 let exprs = Array(Expr.EInt 2, Expr.EBool True, Expr.EEqual(EInt 2, EInt 3))
     -- exprs: Array[Expr]
-let rets = exprs.map(___.eval())
+
+
+let rets = exprs.map(___.eval)
     -- rets: Array[enum(Int | Bool)]
 
 
@@ -59,57 +65,65 @@ let rets = exprs.map(___.eval())
 module
 
 
-def Term[T] =
-    enum(Zero[T] | Succ[T] | Pred[T] | IsZero[T] | If[T])
+def Term[T] = Zero[T] | Succ[T] | Pred[T] | IsZero[T] | If[T]
 
-
-def Zero[T] =
-    struct()
+def Zero[T]
     
-def Succ[T] =
-    struct(arg: Term[T])
+def Succ[T](var arg: Term[T])
 
-def Pred[T] =
-    struct(arg: Term[T])
+def Pred[T](var arg: Term[T])
 
-def IsZero[T] =
-    struct(arg: Term[Int])
+def IsZero[T](var arg: Term[Int])
 
-def If[T] =
-    struct {
-        condition: Term[Bool],
-        then-branch: Term[T],
-        else-branch: Term[T],
+def If[T](
+    var condition: Term[Bool],
+    var then-branch: Term[T],
+    var else-branch: Term[T],
+)
+
+
+for Term[T] {
+    has def .eval -> T
+}
+
+
+forall T = Int
+for Zero[T] {
+    def .eval -> Int {
+        0
     }
+}
 
+forall T = Int
+for Succ[T] {
+    def .eval -> Int {
+        self.arg.eval + 1
+    }
+}
 
-def (Zero[Int]).eval() -> Int =
-    0
+forall T = Int
+for Pred[T] {
+    def .eval -> Int {
+        self.arg.eval - 1
+    }
+}
 
-def (Succ[Int]).eval() -> Int =
-    self.arg.eval() + 1
+forall T = Bool
+for IsZero[T] {
+    def .eval -> Bool {
+        self.arg.eval == 0
+    }
+}
 
-def (Pred[Int]).eval() -> Int =
-    self.arg.eval() - 1
-
-def (IsZero[Bool]).eval() -> Bool =
-    (self.arg.eval() == 0)
-
-def (If[T]).eval() -> T =
-    if self.condition.eval() then
-        self.then-branch.eval()
-    else
-        self.else-branch.eval()
-
-
--- (implicitly defined)
-def (Term[T]).eval() -> T =
-    match self
-    case z: Zero[T] then z.eval()
-    case s: Succ[T] then s.eval()
-    case p: Pred[T] then p.eval()
-    case iz: IsZero[T] then iz.eval()
-    else i: If[T] then i.eval()
+for If[T] {
+    def .eval -> T {
+        if self.condition.eval {
+            self.then-branch.eval
+        } else {
+            self.else-branch.eval
+        }
+    }
+}
 
 
 -------------------------------------------------------------------------------
@@ -118,86 +132,85 @@ def (Term[T]).eval() -> T =
 module
 
 
-def #expr =
-    has Self.Output
-    has (Self).eval() -> Self.Output
+def #expr {
+    has ::Output
+    has .eval -> Self::Output
+}
 
 
-def Lift[T] =
-    struct(value: T)
+def Lift[T](var value: T)
 
-def Pair[T, U] =
-    struct(first: T, second: U)
+def Pair[T, U](var first: T, var second: U)
 
-def Lambda[T, U] =
-    struct(function: Func(T) -> U)
+def Lambda[T, U](var function: \ T -> U)
 
-def Apply[T, U] =
-    struct(function: Lambda[T, U], argument: U)
+def Apply[T, U](var function: Lambda[T, U], var argument: U)
 
-def Fix[T] =
-    struct(function: Lambda[T, T])
+def Fix[T](var function: Lambda[T, T])
 
 
-def Lift[T] as #expr
+for Lift[T] as #expr {
+    def ::Output = T
 
-def Lift[T].Output = alias T
-
-def (Lift[T]).eval() -> T =
-    self.first.value
-
-
-forall T #expr, U #expr
-def Pair[T,U] as #expr
-
-def Pair[T, U].Output = alias (T, U)
-
-forall T #expr, U #expr
-def (Pair[T, U]).eval() -> (T, U) =
-    (self.first.eval(), self.second.eval())
+    def .eval -> T {
+        self.first.value
+    }
+}
 
 
-forall T #expr, U #expr
-def Lambda[T, U] as #expr
+forall T: #expr, U: #expr
+for Pair[T,U] as #expr {
+    def ::Output = (T, U)
 
-def Lambda[T, U].Output = alias Func(T) -> U
-
-forall T #expr, U #expr
-def (Lambda[T, U]).eval() -> fun(T) -> U =
-    fun(x) -> self.function(Lift(x)).eval()
-
-
-forall T #expr, U #expr
-def Apply[T, U] as #expr
-
-def Apply[T, U].Output = alias U
-
-forall T #expr, U #expr
-def (Apply[T, U]).eval() -> U =
-    self.function.eval()(self.argument.eval())
+    def .eval -> (T, U) {
+        (self.first.eval, self.second.eval)
+    }
+}
 
 
-forall T #expr
-def Fix[T] as #expr
+forall T: #expr, U: #expr
+for Lambda[T, U] as #expr {
+    def ::Output = fun(T) -> U
 
-def Fix[T].Output = alias T
+    def .eval -> fun(T) -> U {
+        \ x { self.function( Lift(x) ).eval }
+    }
+}
 
-forall T #expr
-def (Fix[T]).eval() -> T =
-    self.function.eval()(Fix(self.function).eval())
+
+forall T: #expr, U: #expr
+for Apply[T, U] as #expr {
+    def ::Output = U
+
+    def .eval -> U {
+        self.function.eval(self.argument.eval)
+    }
+}
 
 
-let example() =
+forall T: #expr
+for Fix[T] as #expr {
+    def ::Output = T
+
+    def .eval -> T {
+        self.function.eval( Fix(self.function).eval )
+    }
+}
+
+
+let example() {
     let factorial =
         Fix(
-            Lambda(fun(f) =>
-                Lambda(fun(y) =>
+            Lambda \ f {
+                Lambda \ y {
                     Lift(
-                        let y' = y.eval()
-                        let f' = f.eval()
+                        let y' = y.eval
+                        let f' = f.eval
                         if y' == 0 then 1 else y' * f'(y' - 1)
                     )
-                )
-            )
+                }
+            }
         )
-    Io.print(Apply(factorial, Lift(10)).eval())
+    
+    Io.print( Apply( factorial, Lift(10) ).eval )
+}
