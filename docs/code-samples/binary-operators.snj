@@ -4,8 +4,10 @@ module std::ops
 def #add {
     has ::Other
     has ::Output
-    has operator self + (other: Self::Other) -> Self::Output
-    has operator (other: Self::Other) + self -> Self::Output
+    has + (other: Self::Other) -> Self::Output
+    extend Self::Other {
+        has + (other: Self) -> Self::Output
+    }
 }
 
 
@@ -20,8 +22,10 @@ def #add-with-zero {
 def #mul {
     has ::Other
     has ::Output
-    has operator self * (other: Self::Other) -> Self::Output
-    has operator (other: Self::Other) * self -> Self::Output
+    has * (other: Self::Other) -> Self::Output
+    extend Self::Other {
+        has * (other: Self) -> Self::Output
+    }
 }
 
 
@@ -50,12 +54,8 @@ for Vec2 as #add {
 
     def ::Output = Vec2
 
-    def operator self + (other: Vec2) -> Vec2 {
+    def + (other: Vec2) -> Vec2 {
         Vec2(self.x + other.x, self.y + other.y)
-    }
-
-    def operator (other: Vec2) + self -> Vec2 {
-        Vec2(other.x + self.x, other.y + self.x)
     }
 }
 
@@ -70,11 +70,13 @@ for Vec2 as #mul {
 
     def ::Output = Vec2
 
-    def operator self * (other: Float) -> Vec2 {
+    def * (other: Float) -> Vec2 {
         Vec2(self.x * other, self.y * other)
     }
 
-    def operator (other: Float) * self -> Vec2 {
-        Vec2(other * self.x, other * self.y)
+    for Float {
+        def * (other: Vec2) -> Vec2 {
+            Vec2(self * other.x, self * other.y)
+        }
     }
 }

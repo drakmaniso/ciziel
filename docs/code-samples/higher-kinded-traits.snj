@@ -1,9 +1,9 @@
 def #foldable[A] {
-    has .fold(B, operation: fun(B, A) -> B, other: fun(A) -> C) -> B
+    has .fold(B, operation: \ (B, A) -> B) -> B
 }
 
 
 forall A: #foldable
-def convert-to-int-array(this: A[Int]) -> Array[Int] {}
+def convert-to-int-array(this: A[Int]) -> Array[Int] {
     self.fold(Array(), Array::push)
 }

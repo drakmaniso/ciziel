@@ -1,4 +1,4 @@
-[[ ## Standard traits for iterators ######################################## ]]
+[[ ## Standard traits extend iterators ######################################## ]]
 
 
 module std::iter
@@ -31,14 +31,14 @@ def Counter(
 )
 
 
-for Counter {
+extend Counter {
     def ::new(limit: Int) -> Counter {
         Counter(count: 0, limit: limit)
     }
 }
 
 
-for Counter as #iterator {
+extend Counter as #iterator {
     def ::Item = Int
 
     def .next -> (Counter, Maybe[Int]) {

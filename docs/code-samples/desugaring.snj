@@ -45,8 +45,8 @@ for Foo {
 
 
 for Foo {
-    let ::bar: fun(Int, Bool) -> String =
-        \ a, b {
+    let ::bar: \(Int, Bool) -> String =
+        \(a, b) {
             "foobar"
         }
 }
@@ -83,16 +83,25 @@ for Foo {
 }
 
 
+[[ ## PROPERTY ACCESS ###################################################### ]]
+
+
+my-foo.prop
+
+
+[[ desugars to: (assuming `Foo` is the type of `my-foo`) ]]
+
+
+Foo::prop(my-foo)
+
+
 [[ ## METHOD CALLS ######################################################### ]]
 
 
-let my-foo = Foo(1, True)
-my-foo.baz
+my-foo.baz(1, True)
 
 
-[[ desugars to: ]]
+[[ desugars to: (assuming `Foo` is the type of `my-foo`) ]]
 
 
-Foo::my-method(my-foo)
-
-
+Foo::baz(my-foo, 1, True)

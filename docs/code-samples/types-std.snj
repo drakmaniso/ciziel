@@ -1,29 +1,32 @@
 def Nil
 
-def Bool = union(False | True)
-def False = struct()
-def True = struct()
+def Bool = False | True
+def False
+def True
 
 
 [[ ## Option ############################################################### ]]
 
 
-def Option[A] = union(None | Some[A])
-def None = struct()
-def Some[A] = struct(var item: A)
+def Option[A] = None | Some[A]
+def None
+def Some[A](var item: A)
 
 
-for Option[A] derive #functor[A] where A
+forall A
+derive Option[A] as #functor[A]
 
 
-for Some[A] as #functor[A] where A {
+forall A
+extend Some[A] as #functor[A] {
     def .map(transform: fun(A) -> B) -> Some[B] where B {
         Some(transform(self.item))
     }
 }
 
 
-for None as #functor[A] where A {
+forall A
+extend None as #functor[A] {
     def .map(transform: fun(A) -> B) -> None
     where B {
         None
@@ -31,7 +34,8 @@ for None as #functor[A] where A {
 }
 
 
-for Option[A] as #monad[A] where A {
+forall A
+extend Option[A] as #monad[A] {
     def ::wrap(value: A) -> Option[A] {
         Some(value)
     }
@@ -65,7 +69,7 @@ def Error[E] where E: #error = struct(
 )
 
 
-for Result[A, E] as #monad[A] {
+extend Result[A, E] as #monad[A] {
     def ::wrap(value: A) -> Result[A, E] {
         Result(Ok(value))
     }
@@ -88,14 +92,16 @@ def Map[I, A] where I: #iterator = struct(
 )
 
 
-for Map[I, A] where I: #iterator {
+forall I: #iterator
+for Map[I, A] {
     def ::new(iterator: I, transform: fun(I'Item) -> A) -> Map[I, A] {
         Map(iterator, transform)
     }
 }
 
 
-for Map[I, A] as #iterator where I: #iterator {
+forall I: #iterator
+extend Map[I, A] as #iterator {
     def ::Item = A
 
     def .next -> (Map[I, A], Option[A]) {

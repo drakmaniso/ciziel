@@ -1,4 +1,10 @@
---- [from wikipedia]: https://en.wikipedia.org/wiki/Generalized_algebraic_data_type
+[[ # GADT ]]
+
+[[ ## First Example ]]
+
+[[ [from wikipedia]: https://en.wikipedia.org/wiki/Generalized_algebraic_data_type ]]
+
+
 module gadt_example_1
 
 
@@ -49,7 +55,7 @@ let ret = expr1.eval
     -- ret: Bool
 
 
-let exprs = Array(Expr.EInt 2, Expr.EBool True, Expr.EEqual(EInt 2, EInt 3))
+let exprs = Array(EInt 2, EBool True, EEqual(EInt 2, EInt 3))
     -- exprs: Array[Expr]
 
 
@@ -59,9 +65,12 @@ let rets = exprs.map(___.eval)
 
 -------------------------------------------------------------------------------
 --- GADT example: phantom types
---- From ["Fun with phantom types"] by R. Hinze
----
---- ["Fun with phantom types"]: https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
+
+[[ From ["Fun with phantom types"] by R. Hinze
+
+["Fun with phantom types"]: https://www.researchgate.net/publication/228707929_Fun_with_phantom_types ]]
+
+
 module
 
 
@@ -82,40 +91,44 @@ def If[T](
 )
 
 
-for Term[T] {
+extend Term[T] {
     has def .eval -> T
 }
 
 
 forall T = Int
-for Zero[T] {
+extend Zero[T] {
     def .eval -> Int {
         0
     }
 }
 
+
 forall T = Int
-for Succ[T] {
+extend Succ[T] {
     def .eval -> Int {
         self.arg.eval + 1
     }
 }
 
+
 forall T = Int
-for Pred[T] {
+extend Pred[T] {
     def .eval -> Int {
         self.arg.eval - 1
     }
 }
 
+
 forall T = Bool
-for IsZero[T] {
+extend IsZero[T] {
     def .eval -> Bool {
         self.arg.eval == 0
     }
 }
 
-for If[T] {
+
+extend If[T] {
     def .eval -> T {
         if self.condition.eval {
             self.then-branch.eval
@@ -129,6 +142,8 @@ for If[T] {
 -------------------------------------------------------------------------------
 --- GADT example: higher-order abstract syntax
 --- From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
+
+
 module
 
 
@@ -149,7 +164,7 @@ def Apply[T, U](var function: Lambda[T, U], var argument: U)
 def Fix[T](var function: Lambda[T, T])
 
 
-for Lift[T] as #expr {
+extend Lift[T] as #expr {
     def ::Output = T
 
     def .eval -> T {
@@ -159,7 +174,7 @@ for Lift[T] as #expr {
 
 
 forall T: #expr, U: #expr
-for Pair[T,U] as #expr {
+extend Pair[T,U] as #expr {
     def ::Output = (T, U)
 
     def .eval -> (T, U) {
@@ -169,7 +184,7 @@ for Pair[T,U] as #expr {
 
 
 forall T: #expr, U: #expr
-for Lambda[T, U] as #expr {
+extend Lambda[T, U] as #expr {
     def ::Output = fun(T) -> U
 
     def .eval -> fun(T) -> U {
@@ -179,7 +194,7 @@ for Lambda[T, U] as #expr {
 
 
 forall T: #expr, U: #expr
-for Apply[T, U] as #expr {
+extend Apply[T, U] as #expr {
     def ::Output = U
 
     def .eval -> U {
@@ -189,7 +204,7 @@ for Apply[T, U] as #expr {
 
 
 forall T: #expr
-for Fix[T] as #expr {
+extend Fix[T] as #expr {
     def ::Output = T
 
     def .eval -> T {

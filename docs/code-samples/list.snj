@@ -12,7 +12,7 @@ def Empty
 def Node[A](var item: A, var tail: List[A])
 
 
-for List[A] {
+extend List[A] {
     def ::new(...items: Array[A]) -> List[A] {
         items.rev-fold(Empty) \ item, acc {
             List.Node(item, acc)
@@ -24,7 +24,7 @@ for List[A] {
 [[ ## Equality ############################################################# ]]
 
 
-for List[A] as #eq forall A: #eq {
+extend List[A] as #eq forall A: #eq {
     def operator self == (other: List[A]) -> Bool {
         match (self, other) {
             case (Empty, Empty) =>
@@ -37,14 +37,14 @@ for List[A] as #eq forall A: #eq {
 }
 
 
-for Empty as #eq {
+extend Empty as #eq {
     def operator self == (other: Empty) -> Bool {
         True
     }
 }
 
 
-for Node[A] as #eq forall A: #eq {
+extend Node[A] as #eq forall A: #eq {
     def operator self == (other: Node[A]) -> Bool {
         self.item == other.item
             and self.tail == other.tail
@@ -55,7 +55,7 @@ for Node[A] as #eq forall A: #eq {
 [[ ## Pushing and Poping ################################################### ]]
 
 
-for List[A] {
+extend List[A] {
     def .push(item: A) -> *Node[A] {
         Node(item, self)
     }
@@ -71,7 +71,7 @@ for List[A] {
 }
 
 
-for Empty {
+extend Empty {
     def .tail -> List[A] {
         Empty
     }
@@ -81,7 +81,7 @@ for Empty {
 [[ ## Functor Implementation ############################################### ]]
 
 
-for List[A] as #functor forall A {
+extend List[A] as #functor forall A {
     def .map(transform: func(A) -> B) -> List[B] forall B {
         match self {
             case Empty =>
@@ -97,7 +97,7 @@ for List[A] as #functor forall A {
 [[ ## Iterator Implementation ############################################## ]]
 
 
-for List[A] as #iterable {
+extend List[A] as #iterable {
     def ::Iterator = List-Iterator[A]
 
     def .iterator -> List-Iterator[A] {
@@ -109,7 +109,7 @@ for List[A] as #iterable {
 def List-Iterator[A](let current: List[A])
 
 
-for List-Iterator[A] as #iterator {
+extend List-Iterator[A] as #iterator {
     def ::Item = A
 
     def .next -> (List-Iterator[A], Option[A]) {

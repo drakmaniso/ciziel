@@ -56,20 +56,20 @@ let fold-factorial(n: Int) -> Int {
 forall N: #num
 let generic-tail-factorial(number: N) -> N {
     let step(num, accum) {
-        if num <= N.one {
+        if num <= N::one {
 			accum
         } else {
-			step(num - N.one, num * accum)
+			step(num - N::one, num * accum)
         }
     }
 
-	step(number, N.one)
+	step(number, N::one)
 }
 
 
 forall N: #num #range
 let generic-fold-factorial(number: N) -> N {
-	(N.one 'upto number).fold(N.one, N.*)
+	(N::one 'upto number).fold(N::one, ___ * ___)
 }
 
 
@@ -111,10 +111,29 @@ let pipeline-example() {
         .iterator
 		.filter( ___.is-even )
 		.map( ___ * 2 )
-		.fold("") \ string, number {
+		.fold("") \ (string, number) {
             "{string}, {number.to-string}"
 		}
 		.map \ rune {
+            if rune.is-letter {
+                rune.to-upper
+            } else {
+                Rune("?")
+            }
+		}
+}
+
+
+let pipeline-example() {
+	let my-array = Array(1, 2, 3, 4, 5, 6, 7)
+	my-array
+        .iterator
+		.filter( ___.is-even )
+		.map( ___ * 2 )
+		.fold("") fun(string, number) {
+            "{string}, {number.to-string}"
+		}
+		.map fun(rune) {
             if rune.is-letter {
                 rune.to-upper
             } else {
@@ -141,24 +160,5 @@ let pipeline-example() {
 				} else {
 					Rune("?")
 				}
-		}
-}
-
-
-let pipeline-example() {
-	let my-array = Array(1, 2, 3, 4, 5, 6, 7)
-	my-array
-        .iterator
-		.filter( ___.is-even )
-		.map( ___ * 2 )
-		.fold("") \(string, number) {
-            "{string}, {number.to-string}"
-		}
-		.map \(rune) {
-            if rune.is-letter {
-                rune.to-upper
-            } else {
-                Rune("?")
-            }
 		}
 }

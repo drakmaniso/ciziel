@@ -3,34 +3,36 @@ let foo(a: Int, b: Float) -> String {
 }
 
 
-let (Int).bar(b: Float) -> String {
-	"{a} and {b}"
+for Int {
+	let .bar(b: Float) -> String {
+		"{a} and {b}"
+	}
 }
 
 
 let example-partial-application() -> Io[] {
 	Io::print(foo(___, 0.5).Type)
-	-- func(Int) -> String
+	-- \ Int -> String
 
 	Io::print(foo(123, ___).Type)
-	-- func(Float) -> String
+	-- \ Float -> String
 
 	Io::print(foo(___, ___).Type)
-	-- func(Int, Float) -> String
+	-- \ (Int, Float) -> String
 
 	Io::print(___.bar(0.5).Type)
-	-- func(Int) -> String
+	-- \ Int -> String
 
 	Io::print(123.bar(___).Type)
-	-- func(Float) -> String
+	-- \ Float -> String
 
 	Io::print(___.bar(___).Type)
-	-- func(Int, Float) -> String
+	-- \ (Int, Float) -> String
 }
 
 
 def main() {
-	let ex1 = 123 |> foo(___, "abc")
-	let ex2 = 123 |> \ x { foo(x, "abc"}
+	let ex1 = 123.apply-to( foo("abc", ___) )
+	let ex2 = 123.apply-to \ x { foo("abc", x) }
 	()
 }

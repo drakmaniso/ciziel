@@ -79,13 +79,13 @@ extend Addition[A] as #pretty {
         let r = self.right.pretty
 
         match (self.left, self.right) {
-        | (Literal(...), Literal(...)) =>
+        case (Literal(...), Literal(...)) =>
             "{l} + {r}"
-        | (Literal(...), _) =>
+        case (Literal(...), _) =>
             "{l} + ({r})"
-        | (_, Literal(...)) =>
+        case (_, Literal(...)) =>
             "({l}) + {r}"
-        | _ =>
+        case _ =>
             "({l}) + ({r})"
         }
     }
@@ -96,9 +96,9 @@ forall A: #pretty
 extend Negation[A] as #pretty {
     def .pretty -> String {
         self.subexpr.match {
-        | e: Literal =>
+        case e: Literal =>
             "-{e.pretty}"
-        | e =>
+        case e =>
             "- ({e.pretty})"
         }
     }
@@ -116,7 +116,8 @@ use advanced { #pretty, Negation }
 
 
 def Expr = Literal | Addition[Expr] | Negation[Expr]
-extend Expr derive #eval #pretty
+derive Expr as #eval
+derive Expr as #pretty
 
 
 def main() -> Io[] {

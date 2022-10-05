@@ -28,10 +28,10 @@ let Stick
 let Squeaky-Ball
 
 
-extend Pet {
-    has .name -> String
+derive Pet {
+    def .name -> String
             
-    has .favorite-toy -> Pet-Toy
+    def .favorite-toy -> Pet-Toy
 }
 
 
@@ -57,6 +57,6 @@ extend Dog {
 }
 
 
-extend Pet {
-    has .greets(human: String) -> String
+derive Pet {
+    def .greets(human: String) -> String
 }
