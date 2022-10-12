@@ -27,6 +27,9 @@ typedef enum TokenTag {
 	// Operators
 	Token_Arrow,
 	Token_Plus,
+	Token_Minus,
+	Token_Times,
+	Token_Slash,
 
 	// Literals and identifiers
 	Token_Number,

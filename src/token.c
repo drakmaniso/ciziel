@@ -27,32 +27,35 @@ void Token_print(Token self) {
 	}
 
 	switch (self.tag) {
-		case Token_Let: printf("LET"); break;
-		case Token_If: printf("IF"); break;
-		case Token_Else: printf("ELSE"); break;
-		case Token_Fun: printf("FUN"); break;
+		case Token_Let: printf("let"); break;
+		case Token_If: printf("if"); break;
+		case Token_Else: printf("else"); break;
+		case Token_Fun: printf("fun"); break;
 
-		case Token_Number: printf("NUM"); print_value(self); break;
-		case Token_Id: printf("ID"); print_value(self); break;
-		case Token_TypeId: printf("TYPEID"); print_value(self); break;
+		case Token_Number: printf("num"); print_value(self); break;
+		case Token_Id: printf("id"); print_value(self); break;
+		case Token_TypeId: printf("typeid"); print_value(self); break;
 
 		// Operators
 
-		case Token_Arrow: printf("ARROW"); break;
-		case Token_Plus: printf("PLUS"); break;
+		case Token_Arrow: printf("arrow"); break;
+		case Token_Plus: printf("plus"); break;
+		case Token_Minus: printf("minus"); break;
+		case Token_Times: printf("times"); break;
+		case Token_Slash: printf("slash"); break;
 
 		// Delimiters
 
-		case Token_LBrace: printf("LBRACE"); break;
-		case Token_RBrace: printf("RBRACE"); break;
-		case Token_LParen: printf("LPAREN"); break;
-		case Token_RParen: printf("RPAREN"); break;
-		case Token_Colon: printf("COLON"); break;
-		case Token_Equal: printf("EQUAL"); break;
-		case Token_Semicolon: printf("SEMICOLON"); break;
-		case Token_Comma: printf("COMMA"); break;
+		case Token_LBrace: printf("lbrace"); break;
+		case Token_RBrace: printf("rbrace"); break;
+		case Token_LParen: printf("lparen"); break;
+		case Token_RParen: printf("rparen"); break;
+		case Token_Colon: printf("colon"); break;
+		case Token_Equal: printf("is"); break;
+		case Token_Semicolon: printf("semicolon"); break;
+		case Token_Comma: printf("comma"); break;
 
-		case Token_Invalid: printf("INVALID"); print_value(self); break;
+		case Token_Invalid: printf("***INVALID***"); print_value(self); break;
 
 		case Token_EOF: printf("EOF"); break;
 

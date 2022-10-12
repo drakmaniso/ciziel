@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -std=c99
 LINK = gcc
 RM = rm
 MKDIR = mkdir
@@ -9,16 +9,12 @@ MKDIR = mkdir
 
 TARGET = compile
 
-#SOURCES = $(SRCDIR)/main.c $(SRCDIR)/global.c $(SRCDIR)/string.c $(SRCDIR)/token.c $(SRCDIR)/scanner.c $(SRCDIR)/parser.c
-
 SRCDIR = src
 OBJDIR = build
 
 SOURCES = $(wildcard  $(SRCDIR)/*.c)
+HEADERS = $(wildcard  $(SRCDIR)/*.h)
 OBJECTS = ${subst $(SRCDIR),$(OBJDIR),$(SOURCES:.c=.o)}
-
-
-#OBJECTS = $(SOURCES:.c=.o)
 
 
 .PHONY: all clean
@@ -31,7 +27,7 @@ $(TARGET): $(OBJDIR) $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
 
 
-$(OBJDIR)/%.o: src/%.c
+$(OBJDIR)/%.o: src/%.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 

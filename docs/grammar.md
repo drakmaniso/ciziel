@@ -64,7 +64,7 @@ core language).
 
     statement <- declaration / expr
 
-    arguments <- "(" (expr ("," expr)*)? ")"
+    arguments <- ~"(" (expr ("," expr)*)? ")"
 
     atom <- IDENTIFIER / LITERAL / paren-expr
 

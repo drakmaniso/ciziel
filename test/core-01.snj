@@ -1,4 +1,11 @@
 let main: fun(Void) -> Int =
     fun(x) {
-        x + 42
+        let y2: Int = 33 * (3 + 5)
+        let cat-01: Bool = x == y2
+
+        if x < 1 {
+            x + 42 - (y2 * 2)
+        } else {
+            (x * y2) - 10 + 25
+        }
     }

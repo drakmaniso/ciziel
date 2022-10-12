@@ -69,7 +69,7 @@ let generic-tail-factorial(number: N) -> N {
 
 forall N: #num #range
 let generic-fold-factorial(number: N) -> N {
-	(N::one 'upto number).fold(N::one, ___ * ___)
+	(N::one `upto` number).fold(N::one, ___ * ___)
 }
 
 
@@ -84,7 +84,7 @@ let gcd(n: Int, m: Int) -> Int
 	if b == 0 {
 		a
 	} else {
-		gcd(b, a' 'mod b')
+		gcd(b, a' `mod` b')
     }
 }
 
