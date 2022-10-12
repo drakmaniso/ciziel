@@ -1,86 +1,74 @@
 # Grammar
 
+This document present the grammar of the language (currently, only part of the
+core language).
+
 ## Keywords
 
     module use
-    public forall
-    unique struct trait alias
-    const func where
+    forall def let var
     require ensure
     match case if then else
-
     and or not
+    fun
+    ___ _
+
+## Delimiters
+
+    ( ) { } [ ]
+    :: .
+    : =
+    , ;
 
 ## Operators
 
-Keyword operators:
+    |
+    ->
+    not
+    and or
+    == != < <= > >=
+    -
+    + - * /
 
-    =
-    \ =>
+## Identifiers
 
-Type operators:
+    [a-z_]([A-Za-z_0-9-]*[A-Za-z_0-9]])?(')*
 
-    | ->
+## PEG Grammar (for the currently implemented part of the language)
 
-Logic and comparison:
+    program <- declaration*
 
-    and or == /= < <= > >=
+    declaration <- "let" IDENTIFIER ":" type "=" expr
 
-Term:
+    type <- "Int" / "Bool" / "\" "(" type ("," type)* ")" "->" type
 
-    + -
+    expr <- unary / binary / function-call
 
-Factor:
+    unary <- "-" term / "not" term
 
-    * /
+    binary <- term binary-tail
 
-Unary:
+    binary-tail <- (("+" / "-") term)* / ("*" term)* / ("/" term)*
+                    / ("and" term)* / ("or" term)*
+                    / "==" term / "<" term / "<=" term / ">". term / ">=" term
 
-    not -
+    function-call <- term arguments*
 
+    term <- if-expr / lambda / function-call
 
-## PEG Grammar (for the core language only)
+    if-expr <- "if" expr block "else" block
 
+    lambda <- "fun" "(" IDENTIFIER ("," IDENTIFIER)* ")" block
 
-    ID = [a-z][A-Za-z0-9-]*
+    block <- "{" (statement ";"?)* "}"
 
-    Module <- TopLevelDef*
-    TopLevelDef <- ConstDef
+    statement <- declaration / expr
 
-    ConstDef <- CONST ID EQUAL LocalDef* Expr
+    arguments <- "(" (expr ("," expr)*)? ")"
 
-    LocalDef <- ID EQUAL Expr
+    atom <- IDENTIFIER / LITERAL / paren-expr
 
-    Expr <- MatchExpr / LambdaExpr / BinaryExpr
-
-    LambdaExpr <- LAMBDA ID (LAMBDA ID)* DARROW LocalDef* Expr
-
-    BinaryExpr <- UnaryExpr (
-            (AND UnaryExpr)*
-            / (OR UnaryExpr)*
-            / (EQ UnaryExpr)*
-            / (DIFF UnaryExpr)*
-            / (LT UnaryExpr)*
-            / (LTE UnaryExpr)*
-            / (GT UnaryExpr)*
-            / (GTE UnaryExpr)*
-            / (MINUS UnaryExpr)*
-            / (PLUS UnaryExpr)*
-            / (SLASH UnaryExpr)*
-            / (ASTERISK UnaryExpr)*
-        )
-
-    UnaryExpr <- (NOT / MINUS) UnaryExpr / Call
-
-    Call <- Primary (LPAREN Arguments? RPAREN / DOT ID)*
-    Arguments <- Expr (COMMA  Expr)*
-
-
-    Primary <- Identifier / Literal / Tuple
-    Identifier <- ID
-    Literal <- NUMBER
-    Tuple <- LPAREN Expr (COMMA Expr)* RPAREN
-
+    paren-expr <- "(" expr ")"
 
 ---
 [Back to index](index.md)

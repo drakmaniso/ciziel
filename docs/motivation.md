@@ -24,7 +24,6 @@ one which has almost zero chance to result in something that is actually used.
 Therefore it's important to ask the question: what is lacking in existing
 languages?
 
-
 ## What about Haskell?
 
 Haskell is a really beautiful language. But it is also a very high-level
@@ -41,7 +40,6 @@ performance, since they are not well suited to current computer architecture
 
 We think both of these problems can be solved in a functional language by using
 an ownership-base type system.
-
 
 ## What about Rust?
 
@@ -65,18 +63,15 @@ None of those are essential to an ownership type system. They make complete
 sense for Rust, because of its goals. But what if you don't share most of these
 goals, but still wanted to use ownership for automatic memory management?
 
-
 ## What about OCaml?
 
 - module type system (elegant, but not easy to reason about);
 - no type-classes/traits;
 
-
 ## What about Scala?
 
 - JVM
 - complexity
-
 
 ## What about Clojure?
 

@@ -149,16 +149,33 @@ let pipeline-example() {
         .iterator
 		.filter( ___.is-even )
 		.map( ___ * 2 )
-		.fold("") {
-			string, number =>
-				"{string}, {number.to-string}"
+		.fold("") \ { string, number =>
+			"{string}, {number.to-string}"
 		}
-		.map {
-			rune =>
-				if rune.is-letter {
-					rune.to-upper
-				} else {
-					Rune("?")
-				}
+		.map \ { rune =>
+			if rune.is-letter {
+				rune.to-upper
+			} else {
+				Rune("?")
+			}
+		}
+}
+
+
+let pipeline-example() {
+	let my-array = Array(1, 2, 3, 4, 5, 6, 7)
+	my-array
+        .iterator
+		.filter( ___.is-even )
+		.map( ___ * 2 )
+		.fold("") \ string, number => {
+			"{string}, {number.to-string}"
+		}
+		.map \ rune => {
+			if rune.is-letter {
+				rune.to-upper
+			} else {
+				Rune("?")
+			}
 		}
 }

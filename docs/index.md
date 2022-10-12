@@ -12,6 +12,5 @@ maintain, and have predictable performance.
 - [Grammar](grammar.md)
 - [About the name](about-the-name.md)
 
-
 ---
 [Back to README](../README.md)

@@ -6,35 +6,48 @@
 
 module pets
 
-public #pet =
+def #pet {
     has #pet-visitor
-    has Self { name: String, ... }
-    has (Self).meets(other: #pet) -> String
-    implement Cat, Dog
+    has Self(name: String, ...)
+    has .meets(other: #pet) -> String
+}
 
 
-public #pet-visitor =
-    has (Self).visit-dog(other: Dog) -> String
-    has (Self).visit-cat(other: Cat) -> String
+def #pet-visitor {
+    has .visit-dog(other: Dog) -> String
+    has .visit-cat(other: Cat) -> String
+}
 
 
-public encounter(a: A, b: B) -> String
-    forall A #pet, B #pet
-=
+forall A #pet, B #pet
+def encounter(a: A, b: B) -> String {
     let verb = a.meets(b)
     "{a.name} meets {b.name} and {verb}"
+}
 
 
-public Cat = struct { name: String }
-public (Cat).meets(other: A #pet) -> String = other.visit-cat(self)
-public (Cat).visit-cat(other: Cat) -> String = "slinks"
-public (Cat).visit-dog(other: Dog) -> String = "hisses"
+def Cat(name: String)
+
+extend Cat as #pet {
+    def .meets(other: A #pet) -> String = { other.visit-cat(self) }
+}
+
+extend Cat as #pet-visitor {
+    def .visit-cat(other: Cat) -> String = { "slinks" }
+    def .visit-dog(other: Dog) -> String = { "hisses" }
+}
 
 
-public Dog = struct { name: String }
-public (Dog).meets(other: B #pet) -> String = other.visit-dog(self)
-public (Dog).visit-cat(other: Cat) -> String = "chases"
-public (Dog).visit-dog(other: Dog) -> String = "sniffs"
+def Dog(name: String)
+
+extend Dog as #pet {
+    def .meets(other: B #pet) -> String = { other.visit-dog(self) }
+}
+
+extend Dog as #pet-visitor {
+    def .visit-cat(other: Cat) -> String = { "chases" }
+    def .visit-dog(other: Dog) -> String = { "sniffs" }
+}
 
 
 -- ## Combined with the extension problem
@@ -43,7 +56,7 @@ public (Dog).visit-dog(other: Dog) -> String = "sniffs"
 module pets
 
 
-public #pet =
+def #pet =
     has Self[V]
 
     has Self { name: String, ... }
@@ -56,7 +69,7 @@ public #pet =
     implement Cat, Dog
 
 
-public #visitor =
+def #visitor =
     has Self[V].visit(a: Self[V], b: Self[V]) -> String
     implement Pet
 
@@ -67,13 +80,13 @@ module cats-and-dogs
 
 use pets (#pet, #visitor)
 
-public Cat[V] = struct { name: String } implement #pet
+def Cat[V] = struct { name: String } implement #pet
 
-public Dog[V] = struct { name: String } implement #pet
+def Dog[V] = struct { name: String } implement #pet
 
-public Pet[V] = enum(Cat[V] | Dog[V]) implement #visitor
+def Pet[V] = enum(Cat[V] | Dog[V]) implement #visitor
 
-public Pet[V].visit(a: Pet[V], b: Pet[V]) -> String =
+def Pet[V].visit(a: Pet[V], b: Pet[V]) -> String =
     match (a, b)
     case (a: Cat, b: Cat) then "slinks"
     case (a: Cat, b: Dog) then "hisses"
@@ -90,11 +103,11 @@ module birds
 use cats-and-dogs (Cat, Dog)
 use pets (#pet, #visitor, Pet)
 
-public Bird[V] = struct() implement #pet
+def Bird[V] = struct() implement #pet
 
-public Ext-Pet[V] = enum(Pet[V] | Bird[V]) implement #visitor
+def Ext-Pet[V] = enum(Pet[V] | Bird[V]) implement #visitor
 
-public Ext-Pet[V].visit(a: Ext-Pet[V], b: Ext-Pet[V]) -> String =
+def Ext-Pet[V].visit(a: Ext-Pet[V], b: Ext-Pet[V]) -> String =
     match (a, b)
     case (a: Pet, b: Pet) then Pet.visit(a, b)
     case (a: Cat, b: Bird) then "hunts"
@@ -112,7 +125,7 @@ use pets (#pet)
 use dogs (Dog)
 use cats (Cat)
 
-public example_encounter() -> Io[] =
+def example_encounter() -> Io[] =
     Io.do {
         let fido = Dog("Fido")
         let rex = Dog("Rex")

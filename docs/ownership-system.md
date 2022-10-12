@@ -15,6 +15,5 @@ change.
 Transforming a shared value into an owned value may result in a copy, if the
 reference count is not 1.
 
-
 ---
 [Back to index](index.md)

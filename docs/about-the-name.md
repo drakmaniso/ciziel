@@ -3,7 +3,6 @@
 Sona-Jo is a coumpound word in [toki pona](https://tokipona.org/).  It can be
 translated to "the understanding of ownership".
 
-
 ## Old names
 
 I initially called the language "Grace", after Grace Hopper, the computer
@@ -23,7 +22,6 @@ Day Before the Revolution"). At the time, the language was to use reference
 counting (with the Perceus algorithm), so everything value was shared. That name
 was *also* taken by another programming language. Plus, I switched back to
 ownership for memory management, so it was not appropriate anymore.
-
 
 ---
 [Back to index](index.md)

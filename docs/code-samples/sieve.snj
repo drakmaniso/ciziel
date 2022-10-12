@@ -7,7 +7,7 @@ def main() -> Io[] {
     let all-numbers = Array(False, False, True, ..., [1001] = True)
     let primes = sieve(2, all-numbers)
 
-    primes.traverse-index \ i, is-prime {
+    primes.traverse-index fun(i, is-prime) {
         if is-prime {
             Io.print("{i} ")
         } else {
