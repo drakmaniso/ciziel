@@ -13,4 +13,4 @@
 void panic(char *msg);
 
 
-#endif GLOBAL
+#endif // GLOBAL

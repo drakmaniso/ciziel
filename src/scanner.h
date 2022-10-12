@@ -7,16 +7,15 @@
 
 
 typedef struct {
-	char *name;
 	String input;
 	size_t start;
 	size_t pos;
 	bool at_line_start;
-} Lexer;
+} Scanner;
 
 
-Lexer Lexer_new(char *filepath, String input);
-Array_Token Lexer_tokenize(Lexer *self);
+Scanner Scanner_new(String input);
+Token Scanner_scan(Scanner *self);
 
 
 #endif // SCANNER_H

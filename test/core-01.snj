@@ -1,3 +1,4 @@
-const main =
-    \_ =>
-        42
+let main: fun(Void) -> Int =
+    fun(x) {
+        x + 42
+    }

@@ -9,14 +9,14 @@
 
 typedef struct {
     char *filename;
-    Array_Token tokens;
+    Token current;
     AST ast;
     size_t start;
     size_t pos;
 } Parser;
 
 
-Parser Parser_new(char *filepath, Array_Token tokens);
+AST Parser_parse(char *filepath);
 
 
 #endif // PARSER_H

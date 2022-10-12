@@ -34,4 +34,4 @@ typedef struct {            \
 #define Array_at(array, index) ((index) >= 0 && (index) < (array).length ? (array).items[index] : (panic("*** Array: index out of bounds ***"), (array).items[0]))
 
 
-#endif ARRAY
+#endif // ARRAY

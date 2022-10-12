@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include "global.h"
-#include "lexer.h"
+#include "scanner.h"
 #include "token.h"
 
 
 // LEXER
 
 
-Lexer Lexer_new(char *filepath, String input) {
-	return (Lexer) {
-		.name = filepath,
+TokenTag detect_token(Scanner *self);
+
+
+Scanner Scanner_new(String input) {
+	return (Scanner) {
 		.input = input,
 		.start = 0,
 		.pos = 0,
@@ -18,25 +20,17 @@ Lexer Lexer_new(char *filepath, String input) {
 }
 
 
-Array_Token Lexer_tokenize(Lexer *self) {
-	Array_Token tokens = Array_new(Token, 8);
-	self->start = 0;
-	self->pos = 0;
-
-	TokenTag tag = scan(self);
-	while(tag != Token_EOF) {
-		String value = String_slice(self->input, self->start, self->pos);
-		Token token = Token_new(self->start, value, tag, self->at_line_start);
-		self->start = self->pos;
-		self->at_line_start = false;
-		Array_push(tokens, token);
-		tag = scan(self);
-	}
-	return tokens;
+Token Scanner_scan(Scanner *self) {
+	TokenTag tag = detect_token(self);
+	String value = String_slice(self->input, self->start, self->pos);
+	Token token = Token_new(self->start, value, tag, self->at_line_start);
+	self->start = self->pos;
+	self->at_line_start = false;
+	return token;
 }
 
 
-char next(Lexer *self) {
+char next(Scanner *self) {
 	if (self->pos >= String_length(self->input)) {
 		self->pos++;
 		return '\0';
@@ -47,17 +41,17 @@ char next(Lexer *self) {
 }
 
 
-void ignore(Lexer *self) {
+void ignore(Scanner *self) {
 	self->start = self->pos;
 }
 
 
-void backtrack(Lexer *self) {
+void backtrack(Scanner *self) {
 	self->pos--;
 }
 
 
-char peek(Lexer *self) {
+char peek(Scanner *self) {
 	char r = next(self);
 	backtrack(self);
 	return r;
@@ -67,13 +61,13 @@ char peek(Lexer *self) {
 // SCANNER
 
 
-TokenTag scan_white_space(Lexer *self);
-TokenTag scan_id(Lexer *self);
-TokenTag scan_type_id(Lexer *self);
-TokenTag scan_delimiter(Lexer *self);
-TokenTag scan_operator(Lexer *self);
-TokenTag scan_number(Lexer *self);
-TokenTag scan_invalid(Lexer *self);
+TokenTag scan_white_space(Scanner *self);
+TokenTag scan_id(Scanner *self);
+TokenTag scan_type_id(Scanner *self);
+TokenTag scan_delimiter(Scanner *self);
+TokenTag scan_operator(Scanner *self);
+TokenTag scan_number(Scanner *self);
+TokenTag scan_invalid(Scanner *self);
 
 bool is_new_line(char r);
 bool is_white_space(char r);
@@ -86,7 +80,7 @@ bool is_delimiter(char r);
 bool is_symbol(char r);
 
 
-TokenTag scan(Lexer *self) {
+TokenTag detect_token(Scanner *self) {
 	while (true) {
 		char r = next(self);
 
@@ -113,7 +107,7 @@ TokenTag scan(Lexer *self) {
 			return scan_type_id(self);
 		}
 
-		if (is_lowercase(r) || r == '_') {
+		if (is_lowercase(r)) {
 			return scan_id(self);
 		}
 
@@ -139,7 +133,7 @@ TokenTag scan(Lexer *self) {
 }
 
 
-TokenTag scan_id(Lexer *self) {
+TokenTag scan_id(Scanner *self) {
 	while (true) {
 		char r = next(self);
 
@@ -150,14 +144,14 @@ TokenTag scan_id(Lexer *self) {
 		backtrack(self);
 
 		String text = String_slice(self->input, self->start, self->pos);
-		if (String_is(text, "const")) {
-			return Token_Const;
+		if (String_is(text, "let")) {
+			return Token_Let;
 		} else if (String_is(text, "if")) {
 			return Token_If;
-		} else if (String_is(text, "then")) {
-			return Token_Then;
 		} else if (String_is(text, "else")) {
 			return Token_Else;
+		} else if (String_is(text, "fun")) {
+			return Token_Fun;
 		}
 
 		return Token_Id;
@@ -165,7 +159,7 @@ TokenTag scan_id(Lexer *self) {
 }
 
 
-TokenTag scan_type_id(Lexer *self) {
+TokenTag scan_type_id(Scanner *self) {
 	while (true) {
 		char r = next(self);
 
@@ -179,30 +173,29 @@ TokenTag scan_type_id(Lexer *self) {
 }
 
 
-TokenTag scan_operator(Lexer *self) {
+TokenTag scan_operator(Scanner *self) {
 	while (is_symbol(peek(self))) {
 		next(self);
 	}
 
 	String slice = String_slice(self->input, self->start, self->pos);
-	if (String_is(slice, "=")) {
-		return Token_Equal;
-	} else if (String_is(slice, "\\")) {
-		return Token_Lambda;
-	} else if (String_is(slice, "->")) {
-		return Token_SArrow;
-	} else if (String_is(slice, "=>")) {
-		return Token_DArrow;
+	if (String_is(slice, "->")) {
+		return Token_Arrow;
+	} else if (String_is(slice, "+")) {
+		return Token_Plus;
 	}
 
 	return Token_Invalid;
 }
 
 
-TokenTag scan_delimiter(Lexer *self) {
+TokenTag scan_delimiter(Scanner *self) {
 	switch(String_at(self->input, self->start)) {
-		case '\'':
-			return Token_Quote;
+		case '{':
+			return Token_LBrace;
+			break;
+		case '}':
+			return Token_RBrace;
 			break;
 		case '(':
 			return Token_LParen;
@@ -210,11 +203,14 @@ TokenTag scan_delimiter(Lexer *self) {
 		case ')':
 			return Token_RParen;
 			break;
-		case ',':
-			return Token_Comma;
-			break;
 		case ':':
 			return Token_Colon;
+			break;
+		case '=':
+			return Token_Colon;
+			break;
+		case ',':
+			return Token_Comma;
 			break;
 		case ';':
 			return Token_Semicolon;
@@ -225,7 +221,7 @@ TokenTag scan_delimiter(Lexer *self) {
 }
 
 
-TokenTag scan_number(Lexer *self) {
+TokenTag scan_number(Scanner *self) {
 	while (true) {
 		char r = next(self);
 
@@ -239,7 +235,7 @@ TokenTag scan_number(Lexer *self) {
 }
 
 
-TokenTag scan_invalid(Lexer *self) {
+TokenTag scan_invalid(Scanner *self) {
 	while (true) {
 		char r = next(self);
 
@@ -285,21 +281,23 @@ bool is_digit(char r) {
 
 bool is_valid_for_names(char r) {
 	return is_letter(r) || is_digit(r)
-		|| r == '_' || r == '!' || r == '-';
+		|| r == '_' || r == '\'' || r == '-';
 }
 
 
 bool is_delimiter(char r) {
-	return r == '\''
-		|| r == ':'
+	return r == ':'
+		|| r == '='
 		|| r == ';'
 		|| r == ','
+		|| r == '.'
 		|| r == '('
 		|| r == ')'
 		|| r == '['
 		|| r == ']'
 		|| r == '{'
-		|| r == '}';
+		|| r == '}'
+		|| r == '\\';
 }
 
 
@@ -312,16 +310,12 @@ bool is_symbol(char r) {
 		|| r == '*'
 		|| r == '+'
 		|| r == '-'
-		|| r == '.'
+		|| r == '|'
 		|| r == '/'
-		|| r == ':'
 		|| r == '<'
-		|| r == '='
 		|| r == '>'
 		|| r == '?'
 		|| r == '@'
-		|| r == '\\'
 		|| r == '^'
-		|| r == '|'
 		|| r == '~';
 }

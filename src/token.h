@@ -9,24 +9,24 @@ typedef enum TokenTag {
 	Token_None,
 
 	// Keywords
-	Token_Const,
+	Token_Let,
 	Token_If,
-	Token_Then,
 	Token_Else,
+	Token_Fun,
 	
 	// Delimiters
-	Token_Colon,
-	Token_Semicolon,
+	Token_LBrace,
+	Token_RBrace,
 	Token_LParen,
 	Token_RParen,
+	Token_Colon,
+	Token_Equal,
+	Token_Semicolon,
 	Token_Comma,
-	Token_Quote,
 
 	// Operators
-	Token_Equal,
-	Token_Lambda,
-	Token_SArrow,
-	Token_DArrow,
+	Token_Arrow,
+	Token_Plus,
 
 	// Literals and identifiers
 	Token_Number,

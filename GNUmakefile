@@ -1,28 +1,42 @@
 CC = gcc
 CFLAGS = -Wall -g
 LINK = gcc
+RM = rm
+MKDIR = mkdir
 
 
 # Source Files
 
-PROGRAM = compile
+TARGET = compile
 
-SOURCES = $(SRC)/main.c $(SRC)/global.c $(SRC)/string.c $(SRC)/token.c $(SRC)/lexer.c $(SRC)/parser.c
+#SOURCES = $(SRCDIR)/main.c $(SRCDIR)/global.c $(SRCDIR)/string.c $(SRCDIR)/token.c $(SRCDIR)/scanner.c $(SRCDIR)/parser.c
 
-SRC = src
-BUILD = build
+SRCDIR = src
+OBJDIR = build
+
+SOURCES = $(wildcard  $(SRCDIR)/*.c)
+OBJECTS = ${subst $(SRCDIR),$(OBJDIR),$(SOURCES:.c=.o)}
 
 
-OBJECTS = $(SOURCES:.c=.o)
+#OBJECTS = $(SOURCES:.c=.o)
 
 
-all: $(PROGRAM)
+.PHONY: all clean
 
-$(PROGRAM): $(OBJECTS)
-	$(CC) $(CFLAGS) -o $(PROGRAM) $(OBJECTS)
 
-build/%.o: src/%.c
+all: $(TARGET)
+
+
+$(TARGET): $(OBJDIR) $(OBJECTS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
+
+
+$(OBJDIR)/%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+
+$(OBJDIR):
+	$(MKDIR) -p $(OBJDIR)
 
 clean:
 	$(RM) $(OBJECTS)
