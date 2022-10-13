@@ -47,19 +47,20 @@ core language).
 
     type <- "Int" / "Bool" / "\" "(" type ("," type)* ")" "->" type
 
-    expr <- unary / binary / function-call
+    expr <- comparison
 
-    unary <- "-" term / "not" term
+    comparison <- binary (("==" / "!=" / "<" / "<=" / ">" / ">=") binary)?
 
-    binary <- term binary-tail
+    binary <- unary binary-tail
 
-    binary-tail <- (("+" / "-") term)* / ("*" term)* / ("/" term)*
-                    / ("and" term)* / ("or" term)*
-                    / "==" term / "<" term / "<=" term / ">". term / ">=" term
+    binary-tail <- (("+" / "-") unary)* / ("*" unary)* / ("/" unary)*
+                    / ("and" unary)* / ("or" unary)*
 
-    function-call <- term arguments*
+    unary <- "-" call / "not" call / call
 
-    term <- if-expr / lambda / function-call
+    call <- primary arguments*
+
+    primary <- if-expr / lambda / atom
 
     if-expr <- "if" expr block "else" block
 
