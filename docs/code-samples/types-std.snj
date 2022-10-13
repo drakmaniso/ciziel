@@ -19,7 +19,7 @@ derive Option[A] as #functor[A]
 
 forall A
 extend Some[A] as #functor[A] {
-    def .map(transform: fun(A) -> B) -> Some[B] where B {
+    def .map(transform: \(A) -> B) -> Some[B] where B {
         Some(transform(self.item))
     }
 }
@@ -27,7 +27,7 @@ extend Some[A] as #functor[A] {
 
 forall A
 extend None as #functor[A] {
-    def .map(transform: fun(A) -> B) -> None
+    def .map(transform: \(A) -> B) -> None
     where B {
         None
     }
@@ -40,11 +40,11 @@ extend Option[A] as #monad[A] {
         Some(value)
     }
 
-    def .chain(operation: fun(A) -> Option[B]) -> Option[B]
+    def .chain(operation: \(A) -> Option[B]) -> Option[B]
     where B {
         match self {
-        case Some(item) => operation(item)
-        case None => None
+        case Some(item): operation(item)
+        case None: None
         }
     }
 }
@@ -53,18 +53,18 @@ extend Option[A] as #monad[A] {
 [[ ## Result ############################################################### ]]
 
 
-def Result[A, E] = union(
+def Result[A, E] =
     | Ok[A] 
     | Error[E]
-)
 
 
-def Ok[A] = struct(
+def Ok[A](
     var value: A,
 )
 
 
-def Error[E] where E: #error = struct(
+forall E: #error
+def Error[E](
     var error: E,
 )
 
@@ -74,10 +74,10 @@ extend Result[A, E] as #monad[A] {
         Result(Ok(value))
     }
 
-    def .chain(operation: fun(A) -> Result[A, E]) -> Result[A, E] {
+    def .chain(operation: \(A) -> Result[A, E]) -> Result[A, E] {
         match self {
-        case Ok(value) => operation(value)
-        case e: Error[E] => Result(e)
+        case Ok(value): operation(value)
+        case e as Error[E]: Result(e)
         }
     }
 }
@@ -86,15 +86,16 @@ extend Result[A, E] as #monad[A] {
 [[ ## Map Iterator ######################################################### ]]
 
 
-def Map[I, A] where I: #iterator = struct(
+forall I: #iterator
+def Map[I, A](
     let iterator: I,
-    let transform: fun(I::Item) -> A,
+    let transform: \(I::Item) -> A,
 )
 
 
 forall I: #iterator
 for Map[I, A] {
-    def ::new(iterator: I, transform: fun(I'Item) -> A) -> Map[I, A] {
+    def ::new(iterator: I, transform: \(I::Item) -> A) -> Map[I, A] {
         Map(iterator, transform)
     }
 }
@@ -104,13 +105,13 @@ forall I: #iterator
 extend Map[I, A] as #iterator {
     def ::Item = A
 
-    def .next -> (Map[I, A], Option[A]) {
-        match self.iterator.next {
-        case (_, None) =>
+    def .next() -> (Map[I, A], Option[A]) {
+        match self.iterator.next() {
+        case (_, None):
             (Self, None)
 
-        case (iter, Some(item)) =>
-            let new-self = self.with(iterator: iter)
+        case (iter, Some(item)):
+            let new-self = self.with(iterator = iter)
             let transformed = transform(item)
             (new-self, Some(transformed))
         }

@@ -1,5 +1,5 @@
 def #foldable[A] {
-    has .fold(B, operation: fun(B, A) -> B) -> B
+    has .fold(B, operation: \(B, A) -> B) -> B
 }
 
 

@@ -10,7 +10,7 @@ module gadt_example_1
 
 def #expr {
     has ::Output: #eq
-    has .eval -> Output
+    has .eval() -> Output
 }
 
 
@@ -22,19 +22,19 @@ def EEqual(var left: *EInt, var right: *EInt)
 
 extend EBool as #expr {
     def ::Output = Bool
-    def .eval -> Bool { self.value }
+    def .eval() -> Bool { self.value }
 }
 
 
 extend EInt as #expr {
     def ::Output = Int
-    def .eval -> Int { self.value }
+    def .eval() -> Int { self.value }
 }
 
 
 extend EEqual as #expr {
     def ::Output = Bool
-    def .eval -> Bool { self.left.eval == self.right.eval }
+    def .eval() -> Bool { self.left.eval() == self.right.eval() }
 }
 
 
@@ -43,7 +43,7 @@ extend EEqual as #expr {
 
 derive Expr as #expr {
     def ::Output = Int | Bool
-    def .eval -> Int | Bool
+    def .eval() -> Int | Bool
 }
 
 
@@ -51,15 +51,15 @@ let expr1 = EEqual(EInt 2, EInt 3)
     -- expr1: EEqual
 
 
-let ret = expr1.eval
+let ret = expr1.eval()
     -- ret: Bool
 
 
-let exprs = Array(EInt 2, EBool True, EEqual(EInt 2, EInt 3))
+let exprs: Array[Expr] = Array( EInt 2, EBool True, EEqual(EInt 2, EInt 3) )
     -- exprs: Array[Expr]
 
 
-let rets = exprs.map(___.eval)
+let rets = exprs.map(___.eval())
     -- rets: Array[enum(Int | Bool)]
 
 
@@ -91,14 +91,14 @@ def If[T](
 )
 
 
-extend Term[T] {
-    has def .eval -> T
+derive Term[T] {
+    def .eval() -> T
 }
 
 
 forall T = Int
 extend Zero[T] {
-    def .eval -> Int {
+    def .eval() -> Int {
         0
     }
 }
@@ -106,34 +106,34 @@ extend Zero[T] {
 
 forall T = Int
 extend Succ[T] {
-    def .eval -> Int {
-        self.arg.eval + 1
+    def .eval() -> Int {
+        self.arg.eval() + 1
     }
 }
 
 
 forall T = Int
 extend Pred[T] {
-    def .eval -> Int {
-        self.arg.eval - 1
+    def .eval() -> Int {
+        self.arg.eval() - 1
     }
 }
 
 
 forall T = Bool
 extend IsZero[T] {
-    def .eval -> Bool {
-        self.arg.eval == 0
+    def .eval() -> Bool {
+        self.arg.eval() == 0
     }
 }
 
 
 extend If[T] {
-    def .eval -> T {
-        if self.condition.eval {
-            self.then-branch.eval
+    def .eval() -> T {
+        if self.condition.eval() {
+            self.then-branch.eval()
         } else {
-            self.else-branch.eval
+            self.else-branch.eval()
         }
     }
 }
@@ -149,7 +149,7 @@ module
 
 def #expr {
     has ::Output
-    has .eval -> Self::Output
+    has .eval() -> Self::Output
 }
 
 
@@ -167,7 +167,7 @@ def Fix[T](var function: Lambda[T, T])
 extend Lift[T] as #expr {
     def ::Output = T
 
-    def .eval -> T {
+    def .eval() -> T {
         self.first.value
     }
 }
@@ -177,7 +177,7 @@ forall T: #expr, U: #expr
 extend Pair[T,U] as #expr {
     def ::Output = (T, U)
 
-    def .eval -> (T, U) {
+    def .eval() -> (T, U) {
         (self.first.eval, self.second.eval)
     }
 }
@@ -187,8 +187,8 @@ forall T: #expr, U: #expr
 extend Lambda[T, U] as #expr {
     def ::Output = fun(T) -> U
 
-    def .eval -> fun(T) -> U {
-        \ x { self.function( Lift(x) ).eval }
+    def .eval() -> fun(T) -> U {
+        \ x { self.function( Lift(x) ).eval() }
     }
 }
 
@@ -197,7 +197,7 @@ forall T: #expr, U: #expr
 extend Apply[T, U] as #expr {
     def ::Output = U
 
-    def .eval -> U {
+    def .eval() -> U {
         self.function.eval(self.argument.eval)
     }
 }
@@ -207,8 +207,8 @@ forall T: #expr
 extend Fix[T] as #expr {
     def ::Output = T
 
-    def .eval -> T {
-        self.function.eval( Fix(self.function).eval )
+    def .eval() -> T {
+        self.function.eval( Fix(self.function).eval() )
     }
 }
 
@@ -219,13 +219,13 @@ let example() {
             Lambda \ f {
                 Lambda \ y {
                     Lift(
-                        let y' = y.eval
-                        let f' = f.eval
+                        let y' = y.eval()
+                        let f' = f.eval()
                         if y' == 0 then 1 else y' * f'(y' - 1)
                     )
                 }
             }
         )
     
-    Io.print( Apply( factorial, Lift(10) ).eval )
+    Io::print( Apply( factorial, Lift(10) ).eval() )
 }

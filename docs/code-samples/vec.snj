@@ -92,10 +92,10 @@ derive Vec2 as #vector
 [[ Or, without using the automatic derivation: ]]
 
 
-def IVec2 = struct(
-    var x: Int32,
-    var y: Int32,
-)
+def IVec2 {
+    var .x: Int32
+    var .y: Int32
+}
 
 
 extend IVec2 as #vec2 {
@@ -129,7 +129,7 @@ extend IVec2 as #vector {
         Vec2(x = self.x * scalar, y = self.y * scalar)
     }
 
-    def * (scalar: Int32, self: Vec2) -> Vec2 {
-        Vec2(x = self.x * scalar, y = self.y * scalar)
+    def ::* (scalar: Int32, self: Vec2) -> Vec2 {
+        Vec2(x = scalar * self.x, y = scalar * self.y)
     }
 }

@@ -33,6 +33,5 @@ let example-partial-application() -> Io[] {
 
 def main() {
 	let ex1 = 123.apply-to( foo("abc", ___) )
-	let ex2 = 123.apply-to fun(x) { foo("abc", x) }
-	()
+	let ex2 = 123.apply-to() \x { foo("abc", x) }
 }

@@ -6,13 +6,13 @@ module std::iter
 
 def #iterable {
     has ::Iterator: #iterator
-    has .iterator -> Self::Iterator
+    has .iterator() -> Self::Iterator
 }
 
 
 def #iterator {
     has ::Item
-    has .next -> (Self, Maybe[Self::Item])
+    has .next() -> (Self, Maybe[Self::Item])
 }
 
 
@@ -41,7 +41,7 @@ extend Counter {
 extend Counter as #iterator {
     def ::Item = Int
 
-    def .next -> (Counter, Maybe[Int]) {
+    def .next() -> (Counter, Maybe[Int]) {
         if self.count >= self.limit {
             ( self, None )
         } else {
@@ -90,18 +90,18 @@ forall
     I::Item == J::Item,
     I::Item: #eq
 let compare(i: I, j: J) -> Bool {
-    match (i.next, j.next) {
-        case ( (_, None), (_, None) ) =>
+    match (i.next(), j.next()) {
+        case ( (_, None), (_, None) ):
             True
 
-        case ( (i-next, Some(a)), (j-next, Some(b)) ) =>
+        case ( (i-next, Some(a)), (j-next, Some(b)) ):
             if a == b {
                 compare(i-next, j-next)
             } else {
                 False
             }
 
-        case _ =>
+        case _:
             False
     }
 }

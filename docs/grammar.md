@@ -19,6 +19,7 @@ core language).
     :: .
     : =
     , ;
+    \
 
 ## Operators
 
@@ -32,13 +33,17 @@ core language).
 
 ## Identifiers
 
-    [a-z_]([A-Za-z_0-9-]*[A-Za-z_0-9]])?(')*
+    ID <- [a-z_][_A-Za-z0-9-]*[']*
+
+    TYPE-ID <- [A-Z][_A-Za-z0-9-]*[']*
+
+    OPERATOR-ID <- [<][a-z][_A-Za-z0-9-]*['][>]
 
 ## PEG Grammar (for the currently implemented part of the language)
 
     program <- declaration*
 
-    declaration <- "let" IDENTIFIER ":" type "=" expr
+    declaration <- "let" ID ":" type "=" expr
 
     type <- "Int" / "Bool" / "\" "(" type ("," type)* ")" "->" type
 
@@ -58,7 +63,7 @@ core language).
 
     if-expr <- "if" expr block "else" block
 
-    lambda <- "fun" "(" IDENTIFIER ("," IDENTIFIER)* ")" block
+    lambda <- "\" "(" IDENTIFIER ("," IDENTIFIER)* ")" block
 
     block <- "{" (statement ";"?)* "}"
 

@@ -43,8 +43,8 @@ def Polygon(
 
 
 def #shape {
-    has .perimeter -> Float64
-    has .area -> Float64
+    has .perimeter() -> Float64
+    has .area() -> Float64
 }
 
 
@@ -58,20 +58,20 @@ def #scalable {
 }
 
 
-[[ ## Circle ################################################################ ]]
+-- Circle ---------------------------------------------------------------------
 
 
 extend Circle {
     def ::bounding-of(points: Array[Point]) -> Circle {
         let welzl(points, boundary) {
             match points {
-            case _ and boundary.length == 3 =>
+            case _ and boundary.length() == 3:
                 trivial(boundary)
 
-            case Array() =>
+            case Array():
                 trivial(boundary)
 
-            case Array(p, rest) => 
+            case Array(p, rest):
                 let d = welzl(points.remove(p), boundary)
                 if d.encloses(p) {
                     d
@@ -84,18 +84,18 @@ extend Circle {
         welzl(points, [])
     }
 
-    def .diameter -> Float64 {
+    def .diameter() -> Float64 {
         self.radius * 2
     }
 }
 
 
 extend Circle as #shape {
-    def .perimeter -> Float64 {
-        math::pi * self.diameter
+    def .perimeter() -> Float64 {
+        math::pi * self.diameter()
     }
 
-    def .area -> Float64 {
+    def .area() -> Float64 {
         math::pi * (self.radius ** 2)
     }
 }
@@ -115,43 +115,43 @@ extend Circle as #scalable {
 }
 
 
-[[ ## BBox ################################################################## ]]
+-- BBox -----------------------------------------------------------------------
 
 
 extend BBox {
     def ::new(a: Point, b: Point) -> BBox {
-        let (x-min, x-max) = (a.x, b.x).sorted
-        let (y-min, y-max) = (a.y, b.y).sorted
+        let xs = (a.x, b.x)
+        let ys = (a.y, b.y)
 
         BBox(
-            min = Point(x-min, y-min),
-            max = Point(x-max, y-max),
+            min = Point(min(...xs), min(...ys)),
+            max = Point(max(...xs), max(...ys)),
         )
     }
 
 
-    def .width -> Float64 {
+    def .width() -> Float64 {
         self.max.x - self.min.x
     }
     
     
-    def .height -> Float64 {
+    def .height() -> Float64 {
         self.max.y - self.min.y
     }
     
 
-    def .size -> Vec2 {
-        Vec2(self.width, self.height)
+    def .size() -> Vec2 {
+        Vec2(self.width(), self.height())
     }
 
 
-    def .perimeter -> Float64 {
-        (2 * self.width) + (2 * self.height)
+    def .perimeter() -> Float64 {
+        (2 * self.width()) + (2 * self.height())
     }
 
 
-    def .area -> Float64 {
-        self.width * self.height
+    def .area() -> Float64 {
+        self.width() * self.height()
     }
 }
 
@@ -160,7 +160,7 @@ extend BBox as #movable {
     def .move-to(destination: Point) -> BBox {
         self.with(
             min = destination
-            max = destination + self.size
+            max = destination + self.size()
         )
     }
 }
@@ -168,7 +168,7 @@ extend BBox as #movable {
 
 extend BBox as #scalable {    
     def .scale-by(factor: Float64) -> BBox {
-        let delta = (factor * self.size) - self.size
+        let delta = (factor * self.size()) - self.size()
         self.with(
             min = self.min - (delta / 2)
             max = self.max + (delta / 2)
@@ -182,7 +182,7 @@ extend Polygon {
         Polygon(points)
     }
 
-    def operator self[index: Int] -> Point {
+    def [index: Int] -> Point {
         self.points[index]
     }
 }

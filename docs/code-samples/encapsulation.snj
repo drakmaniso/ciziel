@@ -85,7 +85,7 @@ public types. ]]
 [[ ### Private Traits ]]
 
 let #private {
-    has .foo -> Int
+    has .foo() -> Int
     has .bar(arg: Bool) -> String
 }
 
@@ -93,7 +93,7 @@ let #private {
 [[### Public Traits ]]
 
 def #transparent {
-    has .foo -> Int
+    has .foo() -> Int
     has .bar(arg: Bool) -> String
 }
 
@@ -105,7 +105,7 @@ def #opaque {
 }
 
 let #private {
-    has .foo -> Int
+    has .foo() -> Int
     has .bar(arg: Bool) -> String
 }    
 
@@ -116,32 +116,27 @@ let #private {
 def #proxy {
     has ::Interface
     has ::construct(value: Self::Interface) -> Self
-    has .deconstruct -> Self::Interface
+    has .deconstruct() -> Self::Interface
 }
 
 
 [[ ### Proxy Structs ]]
 
 
-def Pseudo-Struct(let storage: Underlying-Type)
+def Pseudo-Struct(let storage: Underlying)
 
-for Pseudo-Struct as #proxy {
-    def ::Interface {
-        var .foo: Int
-        var .bar: Bool
-    }
+extend Pseudo-Struct as #proxy {
+    def ::Interface(
+        var foo: Int,
+        var bar: Bool,
+    )
 
     def ::construct(value: Pseudo-Struct::Interface) -> Pseudo-Struct {
-        Pseudo-Struct(
-            storage = Pseudo-Struct::Interface(
-                foo = foo-from(value)
-                bar = bar-from(value)
-            )
-        )
+        Pseudo-Struct( storage = Underlying::from(value) )
     }
 
-    def .deconstruct -> Pseudo-Struct::Interface {
-        self.storage.extract-interface
+    def .deconstruct() -> Pseudo-Struct::Interface {
+        self.storage.extract-interface()
     }
 }
 
@@ -149,18 +144,16 @@ for Pseudo-Struct as #proxy {
 [[ ### Proxy Unions? (probably not a good idea: break the contract that unions are not disctinct types) ]]
 
 
-def Pseudo-Enum(let storage: Underlying-Type)
+def Pseudo-Enum(let storage: Underlying)
 
-for Pseudo-Enum as #proxy {
+extend Pseudo-Enum as #proxy {
     def ::Interface = Foo | Bar
 
     def ::construct(value: Pseudo-Enum::Interface) -> Pseudo-Enum {
-        Pseudo-Enum(
-            storage = foo-or-bar-from(value)
-        )
+        Pseudo-Enum( storage = Underlying::from(value) )
     }
 
-    def .deconstruct -> Pseudo-Enum::Interface {
-        self.storage.extract-interface
+    def .deconstruct() -> Pseudo-Enum::Interface {
+        self.storage.extract-interface()
     }
 }

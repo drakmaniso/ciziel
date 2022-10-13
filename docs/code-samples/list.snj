@@ -9,13 +9,16 @@ use std::iter { #iterator, #iterable }
 
 def List[A] = Empty | *Node[A]
 def Empty
-def Node[A](var item: A, var tail: List[A])
+def Node[A](
+    var item: A,
+    var tail: List[A],
+)
 
 
 extend List[A] {
     def ::new(...items: Array[A]) -> List[A] {
-        items.rev-fold(Empty) \ item, acc {
-            List.Node(item, acc)
+        items.rev-fold(Empty) \(item, acc) {
+            Node(item, acc)
         }
     }
 }
@@ -24,30 +27,31 @@ extend List[A] {
 [[ ## Equality ############################################################# ]]
 
 
-extend List[A] as #eq forall A: #eq {
-    def operator self == (other: List[A]) -> Bool {
-        match (self, other) {
-            case (Empty, Empty) =>
-                True
-            case (a: Node, b: Node) =>
-                a == b
-            case (_, _) =>
-                False
-    }
-}
+forall A: #eq
+derive List[A] as #eq
 
 
+forall A: #eq
 extend Empty as #eq {
-    def operator self == (other: Empty) -> Bool {
+    def == (right: Empty) -> True {
         True
     }
+
+    def == (right: Node[A]) -> False {
+        False
+    }
 }
 
 
-extend Node[A] as #eq forall A: #eq {
-    def operator self == (other: Node[A]) -> Bool {
+forall A: #eq
+extend Node[A] as #eq {
+    def == (right: Empty) -> False {
+        False
+    }
+    
+    def == (right: Node[A]) -> Bool {
         self.item == other.item
-            and self.tail == other.tail
+            and self.rest == other.rest
     }
 }
 
@@ -59,21 +63,33 @@ extend List[A] {
     def .push(item: A) -> *Node[A] {
         Node(item, self)
     }
+}
 
-    def .head -> Option[A] {
-        match self {
-            case Empty => None
-            case Node(item, ...) => Some(item)
-        }
-    }
 
-    derive .tail -> List[A]
+derive List[A] {
+    def .head() -> Option[A]
+    def .tail() -> List[A]
 }
 
 
 extend Empty {
-    def .tail -> List[A] {
+    def .head() -> None {
+        None
+    }
+
+    def .tail() -> Empty {
         Empty
+    }
+}
+
+
+extend Node[A] {
+    def .head() -> Some[A] {
+        self.item
+    }
+
+    def .tail() -> List[A] {
+        self.rest
     }
 }
 
@@ -81,15 +97,27 @@ extend Empty {
 [[ ## Functor Implementation ############################################### ]]
 
 
-extend List[A] as #functor forall A {
-    def .map(transform: func(A) -> B) -> List[B] forall B {
-        match self {
-            case Empty =>
-                Emtpy
-            
-            case Node(item, tail) =>
-                Node(transform(item), tail)
-        }
+forall A
+derive List[A] as #functor {
+    forall B
+    def .map(transform: \(A) -> B) -> List[B]
+}
+
+
+forall A
+extend Empty as #functor {
+    forall B
+    def .map(transform: \(A) -> B) -> Empty {
+        Empty
+    }
+}
+
+
+forall A
+extend *Node[A] as #functor {
+    forall B
+    def .map(transform \(A) -> B) -> *Node[B] {
+        Node(transform(self.item), self.rest.map(transform))
     }
 }
 
@@ -100,26 +128,28 @@ extend List[A] as #functor forall A {
 extend List[A] as #iterable {
     def ::Iterator = List-Iterator[A]
 
-    def .iterator -> List-Iterator[A] {
+    def .iterator() -> List-Iterator[A] {
         List-Iterator(self)
     }
 }
 
 
-def List-Iterator[A](let current: List[A])
+def List-Iterator[A] {
+    let .current: List[A]
+}
 
 
 extend List-Iterator[A] as #iterator {
     def ::Item = A
 
-    def .next -> (List-Iterator[A], Option[A]) {
+    def .next() -> (List-Iterator[A], Option[A]) {
         match self.current {
-            case Empty =>
-                (self, None)
+        case Empty:
+            (self, None)
 
-            case Node(item, tail) =>
-                let new-self = self.with(current = tail)
-                (new-self, Some(item))
+        case Node(item, rest):
+            let new-self = self.with(current = rest)
+            (new-self, Some(item))
         }
     }
 }
@@ -139,17 +169,16 @@ let double(list: List[Int]) -> List[Int] {
 }
 
 
-let main() -> Io[] =
+let main() -> Io[] {
     let a = Node(1, Node(2, Node(3, Empty)))
-    let b = List.new(1, 2, 3)
+    let b = List::new(1, 2, 3)
 
-        Io.print(type-of(a))
-        --> Node[Int]
+    Io::print(a.Type)
+    --> Node[Int]
 
-        Io.print(type-of(b))
-        --> List[Int]
+    Io::print(b.Type)
+    --> List[Int]
 
-        Io.print(type-of(a.map))
-        --> fun(Node[Int], fun(Int) -> A) -> Node[A]
-    }
+    Io::print(a.map.Type))
+    --> fun(Node[Int], fun(Int) -> A) -> Node[A]
 }

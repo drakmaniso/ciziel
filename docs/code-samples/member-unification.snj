@@ -29,9 +29,9 @@ let Squeaky-Ball
 
 
 derive Pet {
-    def .name -> String
+    def .name() -> String
             
-    def .favorite-toy -> Pet-Toy
+    def .favorite-toy() -> Pet-Toy
 }
 
 

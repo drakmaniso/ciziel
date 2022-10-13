@@ -8,7 +8,7 @@ module basic
 
 
 def #eval {
-	has .eval -> Int
+	has .eval() -> Int
 }
 
 
@@ -24,7 +24,7 @@ def Addition[A](
 
 
 extend Literal as #eval {
-    def .eval -> Int {
+    def .eval() -> Int {
         self.value
     }
 }
@@ -32,8 +32,8 @@ extend Literal as #eval {
 
 forall A: #eval
 extend Addition[A] as #eval {
-    def .eval -> Int {
-        self.left.eval + self.right.eval
+    def .eval() -> Int {
+        self.left.eval() + self.right.eval()
     }
 }
 
@@ -48,7 +48,7 @@ use basic { #eval, Literal, Addition }
 
 
 def #pretty {
-	has .pretty -> String
+	has .pretty() -> String
 }
 
 
@@ -59,33 +59,33 @@ def Negation[A](
 
 forall A: #eval
 extend Negation[A] as #eval {
-    def .eval -> Int {
-        - self.subexpr.eval
+    def .eval() -> Int {
+        - self.subexpr.eval()
     }
 }
 
 
 extend Literal as #pretty {
-    def .pretty -> String {
-        self.eval.to-string
+    def .pretty() -> String {
+        self.eval.to-string()
     }
 }
 
 
 forall A: #pretty
 extend Addition[A] as #pretty {
-    def .pretty -> String {
-        let l = self.left.pretty
-        let r = self.right.pretty
+    def .pretty() -> String {
+        let l = self.left.pretty()
+        let r = self.right.pretty()
 
-        match (self.left, self.right) {
-        case (Literal(...), Literal(...)) =>
+        match ( self.left, self.right ) {
+        case ( Literal(...), Literal(...) ):
             "{l} + {r}"
-        case (Literal(...), _) =>
+        case ( Literal(...), _ ):
             "{l} + ({r})"
-        case (_, Literal(...)) =>
+        case ( _, Literal(...) ):
             "({l}) + {r}"
-        case _ =>
+        case ( _, _ ):
             "({l}) + ({r})"
         }
     }
@@ -94,11 +94,11 @@ extend Addition[A] as #pretty {
 
 forall A: #pretty
 extend Negation[A] as #pretty {
-    def .pretty -> String {
+    def .pretty() -> String {
         self.subexpr.match {
-        case e: Literal =>
+        case e as Literal:
             "-{e.pretty}"
-        case e =>
+        case e:
             "- ({e.pretty})"
         }
     }

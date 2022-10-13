@@ -7,11 +7,11 @@ def Cat(name: String)
 
 
 extend Cat {
-    def -meets- (other: Cat) -> String {
+    def <meets> (other: Cat) -> String {
         "slinks"
     }
 
-    def -meets- (other: Dog) -> String {
+    def <meets> (other: Dog) -> String {
         "hisses"
     }
 }
@@ -21,18 +21,18 @@ def Dog(name: String)
 
 
 extend Dog {
-    def -meets- (other: Dog) -> String {
+    def <meets> (other: Dog) -> String {
         "sniffs"
     }
 
-    def -meets- (other: Cat) -> String {
+    def <meets> (other: Cat) -> String {
         "chases"
     }
 }
 
 
 def encounter(a: Pet, b: Pet) -> String {
-    let verb = a -meets- b
+    let verb = a <meets> b
     "{a.name} meets {b.name} and {verb}"
 }
 
@@ -41,16 +41,16 @@ def encounter(a: Pet, b: Pet) -> String {
 
 
 def #pet {
-    has .name -> String
+    has .name() -> String
 
     forall A #pet
-    has -meets- (other: A) -> String
+    has <meets> (other: A) -> String
 }
 
 
 forall A #pet, B #pet
 def generic-encounter(a: A, b: B) -> String {
-    let verb = a -meets- b
+    let verb = a <meets> b
     return "{a.name} meets {b.name} and {verb}"
 }
 
@@ -60,7 +60,7 @@ def generic-encounter(a: A, b: B) -> String {
 module pets
 
 def #pet {
-    has .name -> String
+    has .name() -> String
 }
 
 
@@ -71,7 +71,7 @@ module cats
 
 use pets { #pet }
 
-def Cat(name: String)
+def Cat(var name: String)
 
 extend Cat as #pet
 
@@ -82,7 +82,7 @@ module dogs
 
 use pets { #pet }
 
-def Dog(name: String)
+def Dog(var name: String)
 
 extend Dog as #pet
 
@@ -97,28 +97,28 @@ use dogs { Dog }
 
 def #common-pet {
     has #pet
-    has -meets- (other: Cat) -> String
-    has -meets- (other: Dog) -> String
+    has <meets> (other: Cat) -> String
+    has <meets> (other: Dog) -> String
 }
 
 
 extend Cat as #common-pet {
-    def -meets- (other: Cat) -> String {
+    def <meets> (other: Cat) -> String {
         "slinks"
     }
 
-    def -meets- (other: Dog) -> String {
+    def <meets> (other: Dog) -> String {
         "hisses"
     }
 }
 
 
 extend Dog as #common-pet {
-    def (Dog) -meets- (other: Cat) -> String {
+    def <meets> (other: Cat) -> String {
         "chases"
     }
 
-    def (Dog) -meets- (other: Dog) -> String {
+    def <meets> (other: Dog) -> String {
         "sniffs"
     }
 }
@@ -129,7 +129,7 @@ def Common-Pet = Cat | Dog
 
 forall A #common-pet
 def encounter(a: A, b: Common-Pet) -> String {
-    let verb = a -meets- b
+    let verb = a <meets> b
     return "{a.name} meets {b.name} and {verb}"
 }
 
@@ -160,14 +160,14 @@ def example_encounter() -> Io[] {
 
     let pets = Array(fido, whiskers)
     
-    Io::traverse(pets) fun(pet) {
+    Io::traverse(pets) \pet {
         Io::print("{pet.name}: {pet.type}")
     }
     --> Fido: enum(Cat | Dog)
     --> Whiskers: enum(Cat | Dog)
 
-    Io::traverse(pets) fun(a) {
-        Io::traverse(pets) fun(b) {
+    Io::traverse(pets) \a {
+        Io::traverse(pets) \b {
             Io::print(encounter(a, b))
         }
     }

@@ -7,7 +7,7 @@ let Foo(let a: Int, let b: Bool)
 [[ implicitly declares the field getters: ]]
 
 
-for Foo {
+extend Foo {
     let .a -> Int
     let .b -> Bool
 }
@@ -16,7 +16,7 @@ for Foo {
 [[ and the functional update functions: ]]
 
 
-for Foo {
+extend Foo {
     let .with(a: Int) -> Foo {
         Foo(a = a, b = self.b)
     }
@@ -34,7 +34,7 @@ for Foo {
 [[ ## ASSOCIATED FUNCTIONS ################################################# ]]
 
 
-for Foo {
+extend Foo {
     let ::bar(a: Int, b: Bool) -> String {
         "foobar"
     }
@@ -44,7 +44,7 @@ for Foo {
 [[ desugars to an associated constant: ]]
 
 
-for Foo {
+extend Foo {
     let ::bar: \(Int, Bool) -> String =
         \(a, b) {
             "foobar"
@@ -55,7 +55,7 @@ for Foo {
 [[ ## METHODS ############################################################## ]]
 
 
-for Foo {
+extend Foo {
     let .baz(a: Int, b: Bool) -> String {
         "foobaz"
     }
@@ -65,7 +65,7 @@ for Foo {
 [[ desugars to an associated function: ]]
 
 
-for Foo {
+extend Foo {
     let ::baz(self: Foo, a: Int, b: Bool) -> String {
         "foobaz"
     }
@@ -75,9 +75,9 @@ for Foo {
 [[ which desugars to an associated constant: ]]
 
 
-for Foo {
-    let ::baz: fun(Foo, Int, Bool) -> String =
-        \ a, b {
+extend Foo {
+    let ::baz: \(Foo, Int, Bool) -> String =
+        \(a, b) {
             "foobaz"
         }
 }
@@ -86,7 +86,7 @@ for Foo {
 [[ ## PROPERTY ACCESS ###################################################### ]]
 
 
-my-foo.prop
+my-foo.prop()
 
 
 [[ desugars to: (assuming `Foo` is the type of `my-foo`) ]]
