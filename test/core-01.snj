@@ -1,5 +1,7 @@
-let main: fun(Void) -> Int =
-    fun(x) {
+let foo=42
+
+let main: \(Void) -> Int =
+    \(x) {
         let y2: Int = 33 * (3 + 5)
         let cat-01: Bool = x == y2
 

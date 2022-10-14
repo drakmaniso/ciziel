@@ -18,7 +18,7 @@ AST Parser_parse(char *filepath) {
     };
 
 	while (true) {
-		Token token = Scanner_scan(&scanner);
+		Token token = Scanner_next_token(&scanner);
 		Token_print(token);
 		if (token.tag == Token_EOF) {
 			break;

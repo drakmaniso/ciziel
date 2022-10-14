@@ -12,31 +12,28 @@ typedef enum TokenTag {
 	Token_Let,
 	Token_If,
 	Token_Else,
-	Token_Fun,
 	
 	// Delimiters
-	Token_LBrace,
-	Token_RBrace,
 	Token_LParen,
 	Token_RParen,
-	Token_Colon,
-	Token_Equal,
-	Token_Semicolon,
 	Token_Comma,
-
-	// Operators
-	Token_Arrow,
-	Token_Plus,
-	Token_Minus,
-	Token_Times,
-	Token_Slash,
+	Token_Dot,
+	Token_Colon,
+	Token_Semicolon,
+	Token_LBracket,
+	Token_RBracket,
+	Token_LBrace,
+	Token_RBrace,
+	Token_Lambda,
 
 	// Literals and identifiers
 	Token_Number,
 	Token_Id,
 	Token_TypeId,
+	Token_Operator,
 
 	Token_EOF,
+	Token_TODO,
 	Token_Invalid
 } TokenTag;
 

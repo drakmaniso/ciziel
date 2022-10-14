@@ -15,7 +15,7 @@ typedef struct {
 
 
 Scanner Scanner_new(String input);
-Token Scanner_scan(Scanner *self);
+Token Scanner_next_token(Scanner *self);
 
 
 #endif // SCANNER_H

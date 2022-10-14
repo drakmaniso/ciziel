@@ -45,6 +45,18 @@ bool is_valid_for_names(char r) {
 }
 
 
+bool is_valid_for_operators(char r) {
+	return r == '!'
+		|| r == '$' || r == '%' || r == '&'
+		|| r == '*' || r == '+'
+		|| r == '-'
+		|| r == '/'
+		|| r == '<' || r == '=' || r == '>'
+		|| r == '^'
+		|| r == '|'
+		|| r == '~';
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -109,7 +121,7 @@ void skip_whitespace(Scanner *self) {
 ///////////////////////////////////////////////////////////////////////////////
 
 
-TokenTag scan_keyword_or_id(Scanner *self) {
+TokenTag consume_keyword_or_id(Scanner *self) {
 	while (is_valid_for_names(peek(self))) {
 		advance(self);
 	}
@@ -127,16 +139,12 @@ TokenTag scan_keyword_or_id(Scanner *self) {
 	if (String_is(text, "else")) {
 		return Token_Else;
 	}
-	
-	if (String_is(text, "fun")) {
-		return Token_Fun;
-	}
-
+ 
 	return Token_Id;
 }
 
 
-TokenTag scan_type_id(Scanner *self) {
+TokenTag consume_type_id(Scanner *self) {
 	while (is_valid_for_names(peek(self))) {
 		advance(self);
 	}
@@ -145,7 +153,16 @@ TokenTag scan_type_id(Scanner *self) {
 }
 
 
-TokenTag scan_number(Scanner *self) {
+TokenTag consume_operator(Scanner *self) {
+	while (is_valid_for_operators(peek(self))) {
+		advance(self);
+	}
+
+	return Token_Operator;
+}
+
+
+TokenTag consume_number(Scanner *self) {
 	while (true) {
 		char c = peek(self);
 
@@ -162,24 +179,54 @@ TokenTag scan_number(Scanner *self) {
 ///////////////////////////////////////////////////////////////////////////////
 
 
-TokenTag scan_token(Scanner *self) {
+TokenTag detect_token(Scanner *self) {
 	skip_whitespace(self);
 	self->start = self->pos;
 	
 	char c = peek(self);
+		
+	if (is_lowercase(c)) {
+		advance(self);
+		return consume_keyword_or_id(self);
+	}
 	
+	if (is_uppercase(c)) {
+		advance(self);
+		return consume_type_id(self);
+	}
+	
+	if (is_digit(c)) {
+		advance(self);
+		return consume_number(self);
+	}
+	
+	if (is_valid_for_operators(c)) {
+		advance(self);
+		return consume_operator(self);
+	}
+
 	switch(c) {
 		case '\0':
 			advance(self);
 			return Token_EOF;
-
-		case '{':
+		
+		case '"':
 			advance(self);
-			return Token_LBrace;
+			return Token_TODO;
 
-		case '}':
+		case '#':
 			advance(self);
-			return Token_RBrace;
+			return Token_TODO;
+
+		// '$': operator
+
+		// '%': operator
+
+		// '&': operator
+
+		case '\'':
+			advance(self);
+			return Token_TODO;
 
 		case '(':
 			advance(self);
@@ -188,53 +235,81 @@ TokenTag scan_token(Scanner *self) {
 		case ')':
 			advance(self);
 			return Token_RParen;
+		
+		// '*': operator
+		
+		// '+': operator
+
+		case ',':
+			advance(self);
+			return Token_Comma;
+		
+		// '-': operator
+		
+		case '.':
+			advance(self);
+			return Token_Dot;
+		
+		// '/': operator
 
 		case ':':
 			advance(self);
 			return Token_Colon;
 
-		case '=':
-			advance(self);
-			return Token_Equal;
-
-		case ',':
-			advance(self);
-			return Token_Comma;
-
 		case ';':
 			advance(self);
 			return Token_Semicolon;
-			
-		case '-':
-			advance(self);
-			if (peek(self) == '>') {
-				advance(self);
-				return Token_Arrow;
-			}
-			return Token_Minus;
 		
-		case '+':
-			advance(self);
-			return Token_Plus;
+		// '<': operator
 		
-		case '*':
+		// '=': operator
+		
+		// '>': operator
+		
+		case '?':
 			advance(self);
-			return Token_Plus;
-	}
-	
-	if (is_lowercase(c)) {
-		return scan_keyword_or_id(self);
-	}
-	
-	if (is_uppercase(c)) {
-		return scan_type_id(self);
-	}
-	
-	if (is_digit(c)) {
-		return scan_number(self);
+			return Token_TODO;
+		
+		case '@':
+			advance(self);
+			return Token_TODO;
+
+		case '[':
+			advance(self);
+			return Token_LBracket;
+
+		case '\\':
+			advance(self);
+			return Token_Lambda;
+
+		case ']':
+			advance(self);
+			return Token_RBracket;
+		
+		// '^': operator
+		
+		case '_':
+			advance(self);
+			return consume_keyword_or_id(self);
+		
+		case '`':
+			advance(self);
+			return Token_TODO;
+
+		case '{':
+			advance(self);
+			return Token_LBrace;
+
+		// '|': operator
+
+		case '}':
+			advance(self);
+			return Token_RBrace;
+
+		// '~': operator
 	}
 
-	// Invalid rune in input
+	// Invalid character in input
 	advance(self);
 	return Token_Invalid;
 }
@@ -243,8 +318,8 @@ TokenTag scan_token(Scanner *self) {
 ///////////////////////////////////////////////////////////////////////////////
 
 
-Token Scanner_scan(Scanner *self) {
-	TokenTag tag = scan_token(self);
+Token Scanner_next_token(Scanner *self) {
+	TokenTag tag = detect_token(self);
 
 	String value = String_slice(self->input, self->start, self->pos);
 	Token token = Token_new(self->start, value, tag, self->at_line_start);
