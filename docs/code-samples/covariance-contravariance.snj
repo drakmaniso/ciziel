@@ -1,53 +1,81 @@
 -- [from the blog article]: https://quuxplusone.github.io/blog/2019/01/20/covariance-and-contravariance/
 
-local #animal =
+let #animal {
     has (Self).make-noise() -> String
-    impl Cat, Horse
+}
 
-local Cat = struct()
-local (Cat).make-noise() -> String = "meow!"
 
-local Horse = struct()
-local (Horse).make-noise() -> String = "neigh!"
-local (Horse).ride() -> String = "Ok, sure."
+let Cat
+
+extend Cat as #animal {
+    let .make-noise() -> String { "meow!" }
+}
+
+
+let Horse
+
+extend Horse as #animal {
+    let .make-noise() -> String { "neigh!" }
+}
+
+extend Horse {
+    let .ride() -> String { "Ok, sure." }
+}
 
 
 -- Breeders
 
 
-local #animal-breeder =
-    has Self.Animal
-    has (Self).produce() -> Self.Animal
+let #animal-breeder {
+    has ::Animal
+    has .produce() -> Self::Animal
+}
 
-local Cat-Breeder = struct()
-local Cat-Breeder.Animal = alias Cat
-local (Cat-Breeder).produce() -> Cat = Cat
 
-local Horse-Breeder = struct()
-local Horse-Breeder.Animal = Horse
-local (Horse-Breeder).produce() -> Horse = Horse
+let Cat-Breeder
+
+extend Cat-Breeder as #animal-breeder {
+    let ::Animal = Cat
+    let .produce() -> Cat { Cat }
+}
+
+
+let Horse-Breeder
+
+extend Horse-Breeder as #animal-breeder {
+    let ::Animal = Horse
+    let .produce() -> Horse { Horse }
+}
 
 
 -- Doctors
 
 
-local #animal-doctor =
-    has (Self).treat(patient: #animal) -> ()
-    implement Dr-Dolittle, Dr-Keat, Dr-Hackenbush
+let #animal-doctor {
+    has ::Animal
+    has .treat(patient: Self::Animal) -> ()
+}
 
-local #cat-doctor =
-    has (Self).treat(patient: Cat) -> ()
-    implement Dr-Dolittle, Dr-Keat
 
-local #horse-doctor =
-    has (Self).treat(patient: Horse) -> ()
-    implement Dr-Dolittle, Dr-Hackenbush
+let Dr-Dolittle
 
-local Dr-Dolittle = struct()
-local (Dr-Dolittle).treat(patient: #animal) -> () = ()
+extend Dr-Dolittle as #animal-doctor {
+    let ::Animal = Cat | Horse
+    let .treat(patient: Cat | Horse) -> () { () }
+}
 
-local Dr-Keat = struct()
-local (Dr-Keat).treat(patient: Cat) -> () = ()
 
-local Dr-Hackenbush = struct()
-local (Dr-Hackenbush).treat(patient: Horse) -> () = ()
+let Dr-Keat
+
+extend Dr-Keat as #animal-doctor {
+    let ::Animal = Cat
+    let .treat(patient: Cat) -> () { () }
+}
+
+
+let Dr-Hackenbush
+
+extend Dr-Hackenbush {
+    let ::Animal = Horse
+    let .treat(patient: Horse) -> () { () }
+}

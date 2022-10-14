@@ -20,7 +20,7 @@ let sieve(flags: Array[Bool], start: Int) -> Array[Bool] {
         if n * i >= flags.size() {
             flags
         } else {
-            let flags' = flags.with([n * i] = False)
+            let flags' = flags.with([n * i]: False)
             cross-multiples(flags', n, i + 1)
         }
     }

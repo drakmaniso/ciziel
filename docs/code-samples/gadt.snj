@@ -1,8 +1,10 @@
-[[ # GADT ]]
+/*
+# GADT
 
-[[ ## First Example ]]
+## First GADT Example #########################################################
 
-[[ [from wikipedia]: https://en.wikipedia.org/wiki/Generalized_algebraic_data_type ]]
+[from wikipedia]: https://en.wikipedia.org/wiki/Generalized_algebraic_data_type
+*/
 
 
 module gadt_example_1
@@ -38,7 +40,9 @@ extend EEqual as #expr {
 }
 
 
-[[ implicitly defines: ]]
+/*
+implicitly defines:
+*/
 
 
 derive Expr as #expr {
@@ -59,16 +63,18 @@ let exprs: Array[Expr] = Array( EInt 2, EBool True, EEqual(EInt 2, EInt 3) )
     -- exprs: Array[Expr]
 
 
-let rets = exprs.map(___.eval())
+let rets = exprs.map( ___.eval() )
     -- rets: Array[enum(Int | Bool)]
 
 
--------------------------------------------------------------------------------
---- GADT example: phantom types
+/*
+## Second GADT Example: Phantom Types #########################################
 
-[[ From ["Fun with phantom types"] by R. Hinze
+From ["Fun with phantom types"] by R. Hinze
 
-["Fun with phantom types"]: https://www.researchgate.net/publication/228707929_Fun_with_phantom_types ]]
+["Fun with phantom types"]:
+https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
+*/
 
 
 module
@@ -139,10 +145,12 @@ extend If[T] {
 }
 
 
--------------------------------------------------------------------------------
---- GADT example: higher-order abstract syntax
---- From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
+/*
+## Third GADT Example: Higher-Order Abstract Syntax ###########################
 
+From
+[wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
+*/
 
 module
 
@@ -178,7 +186,7 @@ extend Pair[T,U] as #expr {
     def ::Output = (T, U)
 
     def .eval() -> (T, U) {
-        (self.first.eval, self.second.eval)
+        ( self.first.eval(), self.second.eval() )
     }
 }
 
@@ -188,7 +196,9 @@ extend Lambda[T, U] as #expr {
     def ::Output = fun(T) -> U
 
     def .eval() -> fun(T) -> U {
-        \ x { self.function( Lift(x) ).eval() }
+        \x {
+            self.function( Lift(x) ).eval()
+        }
     }
 }
 
@@ -198,7 +208,7 @@ extend Apply[T, U] as #expr {
     def ::Output = U
 
     def .eval() -> U {
-        self.function.eval(self.argument.eval)
+        self.function.eval( self.argument.eval() )
     }
 }
 

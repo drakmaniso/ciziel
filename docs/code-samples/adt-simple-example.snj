@@ -103,14 +103,14 @@ extend Circle as #shape {
 
 extend Circle as #movable {
     def .move(destination: Point) -> Circle {
-        self.with(center = destination)
+        self.with(center: destination)
     }
 }
 
 
 extend Circle as #scalable {
     def .scale-by(factor: Float64) -> Circle {
-        self.with(radius = self.radius * factor)
+        self.with(radius: self.radius * factor)
     }
 }
 
@@ -159,8 +159,8 @@ extend BBox {
 extend BBox as #movable {    
     def .move-to(destination: Point) -> BBox {
         self.with(
-            min = destination
-            max = destination + self.size()
+            min: destination,
+            max: destination + self.size(),
         )
     }
 }
@@ -170,8 +170,8 @@ extend BBox as #scalable {
     def .scale-by(factor: Float64) -> BBox {
         let delta = (factor * self.size()) - self.size()
         self.with(
-            min = self.min - (delta / 2)
-            max = self.max + (delta / 2)
+            min: self.min - (delta / 2),
+            max: self.max + (delta / 2),
         )
     }
 }

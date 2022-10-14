@@ -1,4 +1,6 @@
-[[ ## Standard traits extend iterators ######################################## ]]
+/*
+## Standard traits for iterators ##############################################
+*/
 
 
 module std::iter
@@ -16,7 +18,9 @@ def #iterator {
 }
 
 
-[[ ## Simple iterator example ############################################## ]]
+/*
+## Simple iterator example ####################################################
+*/
 
 
 module counter
@@ -46,7 +50,7 @@ extend Counter as #iterator {
             ( self, None )
         } else {
             let count = self.count
-            let new-counter = self.with(count = count + 1)
+            let new-counter = self.with(count: count + 1)
             ( new-counter, Some(count) )
         }
     }

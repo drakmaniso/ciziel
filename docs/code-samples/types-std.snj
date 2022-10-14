@@ -5,7 +5,9 @@ def False
 def True
 
 
-[[ ## Option ############################################################### ]]
+/*
+## Option #####################################################################
+*/
 
 
 def Option[A] = None | Some[A]
@@ -50,7 +52,9 @@ extend Option[A] as #monad[A] {
 }
 
 
-[[ ## Result ############################################################### ]]
+/*
+## Result #####################################################################
+*/
 
 
 def Result[A, E] =
@@ -83,7 +87,9 @@ extend Result[A, E] as #monad[A] {
 }
 
 
-[[ ## Map Iterator ######################################################### ]]
+/*
+## Map Iterator ###############################################################
+*/
 
 
 forall I: #iterator
@@ -111,7 +117,7 @@ extend Map[I, A] as #iterator {
             (Self, None)
 
         case (iter, Some(item)):
-            let new-self = self.with(iterator = iter)
+            let new-self = self.with(iterator: iter)
             let transformed = transform(item)
             (new-self, Some(transformed))
         }

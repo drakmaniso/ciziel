@@ -1,10 +1,14 @@
-[[ ## CONSTRUCTORS ######################################################### ]]
+/*
+## Constructors ###############################################################
+*/
 
 
 let Foo(let a: Int, let b: Bool)
 
 
-[[ implicitly declares the field getters: ]]
+/*
+implicitly declares the field getters:
+*/
 
 
 extend Foo {
@@ -13,25 +17,29 @@ extend Foo {
 }
 
 
-[[ and the functional update functions: ]]
+/*
+and the functional update functions:
+*/
 
 
 extend Foo {
     let .with(a: Int) -> Foo {
-        Foo(a = a, b = self.b)
+        Foo(a: a, b: self.b)
     }
 
     let .with(b: Bool) -> Foo {
-        Foo(a = self.a, b = b)
+        Foo(a: self.a, b: b)
     }
 
     let .with(a: Int, b: Bool) -> Foo {
-        Foo(a = a, b = b)
+        Foo(a: a, b: b)
     }
 }
 
 
-[[ ## ASSOCIATED FUNCTIONS ################################################# ]]
+/*
+## Associated Functions #######################################################
+*/
 
 
 extend Foo {
@@ -41,7 +49,9 @@ extend Foo {
 }
 
 
-[[ desugars to an associated constant: ]]
+/*
+desugars to an associated constant:
+*/
 
 
 extend Foo {
@@ -52,7 +62,9 @@ extend Foo {
 }
 
 
-[[ ## METHODS ############################################################## ]]
+/*
+## Methods ####################################################################
+*/
 
 
 extend Foo {
@@ -62,7 +74,9 @@ extend Foo {
 }
 
 
-[[ desugars to an associated function: ]]
+/*
+desugars to an associated function:
+*/
 
 
 extend Foo {
@@ -72,7 +86,9 @@ extend Foo {
 }
 
 
-[[ which desugars to an associated constant: ]]
+/*
+which desugars to an associated constant:
+*/
 
 
 extend Foo {
@@ -83,25 +99,33 @@ extend Foo {
 }
 
 
-[[ ## PROPERTY ACCESS ###################################################### ]]
+/*
+## Property Access ############################################################
+*/
 
 
 my-foo.prop()
 
 
-[[ desugars to: (assuming `Foo` is the type of `my-foo`) ]]
+/*
+desugars to: (assuming `Foo` is the type of `my-foo`)
+*/
 
 
 Foo::prop(my-foo)
 
 
-[[ ## METHOD CALLS ######################################################### ]]
+/*
+## Method Calls ###############################################################
+*/
 
 
 my-foo.baz(1, True)
 
 
-[[ desugars to: (assuming `Foo` is the type of `my-foo`) ]]
+/*
+desugars to: (assuming `Foo` is the type of `my-foo`)
+*/
 
 
 Foo::baz(my-foo, 1, True)

@@ -10,14 +10,13 @@ core language).
     require ensure
     match case if then else
     and or not
-    fun
     ___ _
 
 ## Delimiters
 
     ( ) { } [ ]
-    :: .
-    : =
+    . ...
+    : ::
     , ;
     \
 
@@ -25,19 +24,18 @@ core language).
 
     |
     ->
-    not
-    and or
+    =
     == != < <= > >=
-    -
     + - * /
+    not and or
 
 ## Identifiers
 
-    ID <- [a-z_][_A-Za-z0-9-]*[']*
+    ID <- [a-z_][A-Za-z0-9_-]*[']*
 
-    TYPE-ID <- [A-Z][_A-Za-z0-9-]*[']*
+    TYPE-ID <- [A-Z][A-Za-z0-9_-]*[']*
 
-    OPERATOR-ID <- [<][a-z][_A-Za-z0-9-]*['][>]
+    OPERATOR-ID <- [<][a-z][A-Za-z0-9_-]*[']*[>]
 
 ## PEG Grammar (for the currently implemented part of the language)
 
