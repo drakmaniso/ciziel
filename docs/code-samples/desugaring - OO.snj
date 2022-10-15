@@ -1,0 +1,140 @@
+/*
+## Constructors ###############################################################
+*/
+
+
+let Foo {
+    let a: Int
+    let b: Bool
+}
+
+
+/*
+implicitly declares the default constructor and the field getters:
+*/
+
+
+let Foo {
+    let a: Int
+    let b: Bool
+
+    let Foo(a: Int, b: Bool) {
+        Foo(a, b)
+    }
+
+    let a -> Int {
+        self.a
+    }
+
+    let b -> Bool {
+        self.b
+    }
+}
+
+
+/*
+## Functional Update ##########################################################
+*/
+
+
+my-foo.with(a: 33)
+
+
+/*
+desugars to:
+*/
+
+
+Foo(a: 33, ...my-foo)
+
+
+/*
+## Associated Functions #######################################################
+*/
+
+
+def Foo {
+    let Foo.bar(a: Int, b: Bool) -> String {
+        "foobar"
+    }
+}
+
+
+/*
+desugars to an associated constant:
+*/
+
+
+def Foo {
+    let Foo.bar: fun(Int, Bool) -> String =
+        fun(a, b) {
+            "foobar"
+        }
+}
+
+
+/*
+## Methods ####################################################################
+*/
+
+
+def Foo {
+    let baz(a: Int, b: Bool) -> String {
+        "foobaz"
+    }
+}
+
+
+/* desugars to an associated function: */
+
+
+def Foo {
+    let Foo.baz(self: Foo, a: Int, b: Bool) -> String {
+        "foobaz"
+    }
+}
+
+
+/*
+which desugars to an associated constant:
+*/
+
+
+def Foo {
+    let Foo.baz: fun(Foo, Int, Bool) -> String =
+        fun(a, b) {
+            "foobaz"
+        }
+}
+
+
+/*
+## Property Access ############################################################
+*/
+
+
+my-foo.prop()
+
+
+/*
+desugars to: (assuming `Foo` is the type of `my-foo`)
+*/
+
+
+Foo.prop(my-foo)
+
+
+/*
+## Method Calls ###############################################################
+*/
+
+
+my-foo.baz(1, True)
+
+
+/*
+desugars to: (assuming `Foo` is the type of `my-foo`)
+*/
+
+
+Foo.baz(my-foo, 1, True)

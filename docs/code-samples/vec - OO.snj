@@ -1,0 +1,142 @@
+module vec
+
+
+/*
+## Traits ###############################################################
+*/
+
+
+def #vector {
+    has Self.Scalar: #num
+    has Self.zero: Self
+    has length -> Self.Scalar
+    has normalize -> Self
+    has + (other: Self) -> Self
+    has - (other: Self) -> Self
+    has * (scalar: Self.Scalar) -> Self
+    has Self.* (scalar: Self.Scalar, self: Self) -> Self
+}
+
+
+def #vec2 {
+    has #vector
+    has Self.Scalar: #num
+    has Self(x: Self.Scalar, y: Self.Scalar)
+    has x -> Self.Scalar
+    has y -> Self.Scalar
+}
+
+
+def #vec3 {
+    has #vector
+    has Self.Scalar: #num
+    has Self(
+        x: Self.Scalar,
+        y: Self.Scalar,
+        z: Self.Scalar,
+    )
+    has x -> Self.Scalar
+    has y -> Self.Scalar
+    has z -> Self.Scalar
+}
+
+
+/*
+## Automatic Extensions #################################################
+*/
+
+
+forall V #vec2
+extend V {
+    has #vector
+
+    def V.Scalar = V#vec2.Scalar
+
+    def V.zero = V(x: V.Scalar.zero, y: V.Scalar.zero)
+        
+    def length -> V.Scalar {
+        <sqrt> ((self.x ^ 2) + (self.y ^ 2))
+    }
+
+    def normalize -> V {
+        l = self.length
+        V(x: self.x / l, y: self.y / l)
+    }
+
+    def + (other: V) -> V {
+        V(x: self.x + other.x, y: self.y + other.y)
+    }
+
+    def - (other: V) -> V {
+        V(x: self.x - other.x, y: self.y - other.y)
+    }
+
+    def * (scalar: V.Scalar) -> V {
+        V(x: self.x * scalar, y: self.y * scalar)
+    }
+
+    def V.* (scalar: V.Scalar, self: V) -> V {
+        V(x: self.x * scalar, y: self.y * scalar)
+    }
+}
+
+
+/*
+## Concrete Types #######################################################
+*/
+
+
+def Vec2 {
+    var x: Float32
+    var y: Float32
+
+    has #vec2
+
+    def Vec2.Scalar = Float32
+
+    derive #vector
+}
+
+
+/* Or, without using the automatic derivation: */
+
+
+def IVec2 {
+    var x: Int32
+    var y: Int32
+
+    has #vec2
+
+    def IVec2#vec2.Scalar = Int32
+
+    has #vector
+
+    def IVec2#vector.Scalar = Int32
+
+    def IVec2.zero = Vec2(0, 0)
+
+    def length -> Int32 {
+        math::sqrt((self.x ^ 2) + (self.y ^ 2))
+    }
+
+    def normalize -> Vec2 {
+        l = self.length
+        IVec2(x: self.x / l, y: self.y / l)
+    }
+
+    def + (other: IVec2) -> IVec2 {
+        IVec2(x: self.x + other.x, y: self.y + other.y)
+    }
+
+    def - (other: IVec2) -> IVec2 {
+        IVec2(x: self.x - other.x, y: self.y - other.y)
+    }
+
+    def * (scalar: Int32) -> IVec2 {
+        IVec2(x: self.x * scalar, y: self.y * scalar)
+    }
+
+    def .* (scalar: Int32, self: IVec2) -> IVec2 {
+        IVec2(x: scalar * self.x, y: scalar * self.y)
+    }
+}

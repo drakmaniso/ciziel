@@ -1,0 +1,43 @@
+module eratosthenes
+
+use std::io (Io)
+
+
+let main() -> Io[] {
+    all-numbers = Array(False, False, True, ..., [1001]: True)
+    primes = sieve(all-numbers, 2)
+
+    primes.traverse-index \(i, is-prime) {
+        if is-prime {
+            Io.print("{i} ")
+        }
+    }
+}
+
+
+let sieve(flags: Array[Bool], start: Int) -> Array[Bool] {
+    let cross-multiples(flags, n, i) {
+        if n * i >= flags.size {
+            flags
+        } else {
+            flags' = flags.with([n * i]: False)
+            cross-multiples(flags', n, i + 1)
+        }
+    }
+
+    let first-not-crossed(flags, n) {
+        if flags[n] {
+            n
+        } else {
+            first-not-crossed(flags, n + 1)
+        }
+    }
+
+    if start >= flags.size {
+        flags
+    } else {
+        flags' = cross-multiples(flags, start, 1)
+        start' = first-not-crossed(flags', start + 1)
+        sieve(flags', start')
+    }
+}
