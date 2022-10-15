@@ -141,8 +141,7 @@ extend Dog {
 def Common-Pet = Cat | Dog
 
 
-forall A #common-pet
-def encounter(a: A, b: Common-Pet) -> String {
+def encounter(a: Common-Pet, b: Common-Pet) -> String {
     let verb = a <meets> b
     return "{a.name} meets {b.name} and {verb}"
 }
@@ -177,7 +176,7 @@ def example_encounter() -> Io[] {
     // "Whiskers meets Spot and slinks"
 
     let pets = Array(fido, whiskers)
-    
+
     Io.traverse(pets) fun(pet) {
         Io.print("{pet.name}: {pet.Type}")
     }

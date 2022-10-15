@@ -1,56 +1,90 @@
----
+/*
 # Encapsulation
-
-## Structs
-
-There is four levels of visibility for structures:
-- fully private,
-- opaque (can be used but not constructed or deconstructed),
-- read-only (can be used and deconstructed, but not constructed),
-- and fully public.
-
-### Private Structs
-
-A record declared with `let` is completely private: it cannot appear in the
-public interface of the module, and cannot be used outside the module. All its
-fields must be declared with `let`.
----
-
-let Private(
-    let foo: Int,
-    let bar: Bool,
-)
+*/
 
 
----
-### Opaque and Translucent Structs
-
-An opaque field is only accessible inside the module. A read-only field is
-visible outside the module, but can only be updated or constructed locally. A
-transparent field has no restriction.
----
-
-def Public(
-    let opaque: Int,
-    def read-only: Bool,
-    var transparent: String,
-)
+/*
+## Structs ####################################################################
+*/
 
 
----
-### Transparent Structs
-
-A transparent record is completely transparent: all its fields are accessible
-outside the module, as well as the default constructor and the functional update
-syntax.
----
-
-def Public(var foo: Int, var bar: Bool)
+/*
+Private Struct
+*/
+let Private {
+    let foo: Int
+    let bar: Bool
+}
 
 
----
-## Unions
----
+/*
+Opaque Struct
+*/
+def Opaque {
+    let foo: Int
+    let bar: Bool
+}
+
+
+/*
+Read-Only Struct
+*/
+def Read-Only {
+    def foo: Int
+    def bar: Int
+}
+
+
+/*
+Transparent Struct
+*/
+def Transparent {
+    var foo: Int
+    var bar: Bool
+}
+
+
+/*
+Translucent Struct
+*/
+def Translucent {
+    let opaque: Int
+    def read-only: Bool
+    var transparent: String
+}
+
+
+/*
+Proxy Struct?
+*/
+def Proxy {
+    let underlying: Int | Float
+
+    def Proxy(foo: String) {
+        n = (foo <to> Option[Int])
+            .or-else(___ <to> Option[Float])
+            .with-default(0 as Int)
+        Proxy(underlying: n)
+    }
+
+    def foo -> String {
+        underlying <to> String
+    }
+
+    def bar -> Bool {
+        match self.underlying {
+        case n as Int:
+            n.is-even()
+        case _:
+            False
+        }
+    }
+}
+
+
+/*
+## Unions #####################################################################
+*/
 
 
 let Private-Foo
@@ -59,127 +93,68 @@ def Public-Foo
 def Public-Bar
 
 
----
-### Private Unions
-
-A union defined with `let` is completely private: it cannot appear in the
-public interface of the module, and cannot be used outside the module.
----
-
+/*
+Private Union
+*/
 let Private = Private-Foo | Private-Bar
 
 
----
-### Public Unions: Hidden and Visible Cases
----
-
+/*
+Opaque Union
+*/
 def Opaque = Private-Foo | Private-Bar
 
+
+/*
+Translucent Union
+*/
 def Translucent = Public-Foo | Private-Bar
 
 
----
-### Transparent Unions
-
-A public enum is completely transparent: it can be used, constructed and
-matched outside the module.
----
-
+/*
+Transparent Union
+*/
 def Transparent = Public-Foo | Public-Bar
 
 
----
-Because unions are structural, it isn't possible to create opaque unions of
+/*
+NOTE: Because unions are structural, it's impossible to create an opaque union of
 public types.
+*/
 
-## Traits
 
-### Private Traits
----
+/*
+## Traits #####################################################################
+*/
 
+
+/*
+Private Traits
+*/
 let #private {
-    has .foo() -> Int
-    has .bar(arg: Bool) -> String
+    has foo() -> Int
+    has bar(arg: Bool) -> String
 }
 
 
----
-### Public Traits
----
-
+/*
+Public Traits
+*/
 def #transparent {
-    has .foo() -> Int
-    has .bar(arg: Bool) -> String
+    has foo() -> Int
+    has bar(arg: Bool) -> String
 }
 
 
----
-### Opaque Traits
----
-
+/*
+Opaque Traits
+*/
 def #opaque {
     has #private
 }
 
+
 let #private {
-    has .foo() -> Int
-    has .bar(arg: Bool) -> String
-}    
-
-
----
-## Proxy Types?
----
-
-
-def #proxy {
-    has ::Interface
-    has ::construct(value: Self::Interface) -> Self
-    has .deconstruct() -> Self::Interface
-}
-
-
----
-### Proxy Structs
----
-
-
-def Pseudo-Struct(let storage: Underlying)
-
-extend Pseudo-Struct as #proxy {
-    def ::Interface(
-        var foo: Int,
-        var bar: Bool,
-    )
-
-    def ::construct(value: Pseudo-Struct::Interface) -> Pseudo-Struct {
-        Pseudo-Struct( storage: Underlying::from(value) )
-    }
-
-    def .deconstruct() -> Pseudo-Struct::Interface {
-        self.storage.extract-interface()
-    }
-}
-
-
----
-### Proxy Unions?
-
-(probably not a good idea: break the contract that unions are not disctinct
-types)
----
-
-
-def Pseudo-Enum(let storage: Underlying)
-
-extend Pseudo-Enum as #proxy {
-    def ::Interface = Foo | Bar
-
-    def ::construct(value: Pseudo-Enum::Interface) -> Pseudo-Enum {
-        Pseudo-Enum( storage: Underlying::from(value) )
-    }
-
-    def .deconstruct() -> Pseudo-Enum::Interface {
-        self.storage.extract-interface()
-    }
+    has foo() -> Int
+    has bar(arg: Bool) -> String
 }

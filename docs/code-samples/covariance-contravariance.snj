@@ -1,81 +1,81 @@
--- [from the blog article]: https://quuxplusone.github.io/blog/2019/01/20/covariance-and-contravariance/
+// [from the blog article]: https://quuxplusone.github.io/blog/2019/01/20/covariance-and-contravariance/
 
 let #animal {
-    has (Self).make-noise() -> String
+    has make-noise() -> String
 }
 
 
 let Cat
 
 extend Cat as #animal {
-    let .make-noise() -> String { "meow!" }
+    let make-noise() -> String { "meow!" }
 }
 
 
 let Horse
 
 extend Horse as #animal {
-    let .make-noise() -> String { "neigh!" }
+    let make-noise() -> String { "neigh!" }
 }
 
 extend Horse {
-    let .ride() -> String { "Ok, sure." }
+    let ride() -> String { "Ok, sure." }
 }
 
 
--- Breeders
+// Breeders
 
 
 let #animal-breeder {
-    has ::Animal
-    has .produce() -> Self::Animal
+    has Self.Animal
+    has produce() -> Self::Animal
 }
 
 
 let Cat-Breeder
 
 extend Cat-Breeder as #animal-breeder {
-    let ::Animal = Cat
-    let .produce() -> Cat { Cat }
+    let Cat-Breeder.Animal = Cat
+    let produce() -> Cat { Cat }
 }
 
 
 let Horse-Breeder
 
 extend Horse-Breeder as #animal-breeder {
-    let ::Animal = Horse
-    let .produce() -> Horse { Horse }
+    let Horse-Breeder.Animal = Horse
+    let produce() -> Horse { Horse }
 }
 
 
--- Doctors
+// Doctors
 
 
 let #animal-doctor {
-    has ::Animal
-    has .treat(patient: Self::Animal) -> ()
+    has Self.Animal
+    has treat(patient: Self.Animal) -> ()
 }
 
 
 let Dr-Dolittle
 
 extend Dr-Dolittle as #animal-doctor {
-    let ::Animal = Cat | Horse
-    let .treat(patient: Cat | Horse) -> () { () }
+    let Dr-Dolittle.Animal = Cat | Horse
+    let treat(patient: Cat | Horse) -> () { () }
 }
 
 
 let Dr-Keat
 
 extend Dr-Keat as #animal-doctor {
-    let ::Animal = Cat
-    let .treat(patient: Cat) -> () { () }
+    let Dr-Keat.Animal = Cat
+    let treat(patient: Cat) -> () { () }
 }
 
 
 let Dr-Hackenbush
 
 extend Dr-Hackenbush {
-    let ::Animal = Horse
-    let .treat(patient: Horse) -> () { () }
+    let Dr-Hackenbush.Animal = Horse
+    let treat(patient: Horse) -> () { () }
 }

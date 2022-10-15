@@ -1,5 +1,6 @@
 module geom
-use std::vec { Point }
+
+use std::vec (Point)
 
 
 def Shape =
@@ -10,59 +11,85 @@ def Shape =
     | Polygon
 
 
-def Circle(
-    var center: Point,
-    var radius: Float64,
-)
+def Circle {
+    var center: Point
+    var radius: Float64
+}
 
 
-def Triangle(
-    var a: Point,
-    var b: Point,
-    var c: Point,
-)
+def Triangle {
+    var a: Point
+    var b: Point
+    var c: Point
+}
 
 
-def Rectangle(
-    var origin: Point,
-    var width: Float64,
-    var height: Float64,
-    def angle: Float64,
-)
+def Rectangle {
+    var origin: Point
+    def width: Float64
+    def height: Float64
+    def angle: Float64
+
+    def Rectangle(
+        origin: Point,
+        width: Float64,
+        height: Float64,
+        angle: Float64,
+    ) {
+        width' = min(0, width)
+        height' = min(0, height)
+        angle' = angle <mod> (2 * math::pi)
+        Rectangle(origin, width', height', angle')
+    }
+}
 
 
-def BBox(
-    def min: Point,
-    def max: Point,
-)
+def BBox {
+    def min: Point
+    def max: Point
+
+    def BBox(a: Point, b: Point) -> BBox {
+        let xs = (a.x, b.x)
+        let ys = (a.y, b.y)
+
+        BBox(
+            min = Point(min(...xs), min(...ys)),
+            max = Point(max(...xs), max(...ys)),
+        )
+    }
+}
 
 
-def Polygon(
-    def ...points: Array[Point],
-)
+def Polygon {
+    def points: Array[Point]
+
+    def Polygon(...points: Array[Point]) {
+        Polygon(points)
+    }
+}
 
 
 def #shape {
-    has .perimeter() -> Float64
-    has .area() -> Float64
+    has perimeter() -> Float64
+    has area() -> Float64
 }
 
 
 def #movable {
-    has .move-to(destination: Point) -> Self
+    has move-to(destination: Point) -> Self
 }
 
 
 def #scalable {
-    has .scale-by(factor: Float64) -> Self
+    has scale-by(factor: Float64) -> Self
 }
 
 
--- Circle ---------------------------------------------------------------------
+// Circle /////////////////////////////////////////////////////////////////////
 
 
 extend Circle {
-    def ::bounding-of(points: Array[Point]) -> Circle {
+    def Circle.around(points: Array[Point]) -> Circle {
         let welzl(points, boundary) {
             match points {
             case _ and boundary.length() == 3:
@@ -84,80 +111,72 @@ extend Circle {
         welzl(points, [])
     }
 
-    def .diameter() -> Float64 {
+    def diameter() -> Float64 {
         self.radius * 2
     }
 }
 
 
 extend Circle as #shape {
-    def .perimeter() -> Float64 {
+    def perimeter() -> Float64 {
         math::pi * self.diameter()
     }
 
-    def .area() -> Float64 {
+    def area() -> Float64 {
         math::pi * (self.radius ** 2)
     }
 }
 
 
 extend Circle as #movable {
-    def .move(destination: Point) -> Circle {
+    def move(destination: Point) -> Circle {
         self.with(center: destination)
     }
 }
 
 
 extend Circle as #scalable {
-    def .scale-by(factor: Float64) -> Circle {
+    def scale-by(factor: Float64) -> Circle {
         self.with(radius: self.radius * factor)
     }
 }
 
 
--- BBox -----------------------------------------------------------------------
+// BBox ///////////////////////////////////////////////////////////////////////
 
 
 extend BBox {
-    def ::new(a: Point, b: Point) -> BBox {
-        let xs = (a.x, b.x)
-        let ys = (a.y, b.y)
-
-        BBox(
-            min = Point(min(...xs), min(...ys)),
-            max = Point(max(...xs), max(...ys)),
-        )
-    }
-
-
-    def .width() -> Float64 {
+    def width() -> Float64 {
         self.max.x - self.min.x
     }
-    
-    
-    def .height() -> Float64 {
+
+
+    def height() -> Float64 {
         self.max.y - self.min.y
     }
-    
 
-    def .size() -> Vec2 {
+
+    def size() -> Vec2 {
         Vec2(self.width(), self.height())
     }
+}
 
 
-    def .perimeter() -> Float64 {
+
+extend BBox as #shape {
+    def perimeter() -> Float64 {
         (2 * self.width()) + (2 * self.height())
     }
 
 
-    def .area() -> Float64 {
+    def area() -> Float64 {
         self.width() * self.height()
     }
 }
 
 
-extend BBox as #movable {    
-    def .move-to(destination: Point) -> BBox {
+extend BBox as #movable {
+    def move-to(destination: Point) -> BBox {
         self.with(
             min: destination,
             max: destination + self.size(),
@@ -166,8 +185,8 @@ extend BBox as #movable {
 }
 
 
-extend BBox as #scalable {    
-    def .scale-by(factor: Float64) -> BBox {
+extend BBox as #scalable {
+    def scale-by(factor: Float64) -> BBox {
         let delta = (factor * self.size()) - self.size()
         self.with(
             min: self.min - (delta / 2),
@@ -177,11 +196,49 @@ extend BBox as #scalable {
 }
 
 
-extend Polygon {
-    def ::new(...points: Array[Point]) -> Polygon {
-        Polygon(points)
+// Rectangle //////////////////////////////////////////////////////////////////
+
+
+extend Rectangle {
+    def size() -> Vec2 {
+        Vec2(self.width, self.height)
+    }
+}
+
+
+extend Rectangle as #shape {
+    def perimeter() -> Float64 {
+        2 * (self.width + self.height)
     }
 
+
+    def area() -> Float64 {
+        self.width * self.height
+    }
+}
+
+
+extend Rectangle as #movable {
+    def move-to(destination: Point) -> Rectangle {
+        self.with(origin: destination)
+    }
+}
+
+
+extend Rectangle as #scalable {
+    def scale-by(factor: Float64) -> Rectangle {
+        self.with(
+            width: self.width * factor,
+            height: self.height * factor,
+        )
+    }
+}
+
+
+// Polygon ////////////////////////////////////////////////////////////////////
+
+
+extend Polygon {
     def [index: Int] -> Point {
         self.points[index]
     }

@@ -1,39 +1,35 @@
-module std::ops
+module std.ops
 
 
 def #add {
-    has ::Other
-    has ::Output
-    has + (right: Self::Other) -> Self::Output
-    has ::+ (left: Self::Other, right: Self) -> Self::Output
+    has Self.zero: Self
+    has + (right: Self) -> Self
 }
 
 
-def #add-with-zero {
-    has #add
-    has #add::Other == Self
-    has #add::Output == Self
-    has ::zero: Self
+def #add-other {
+    has Self.Other
+    has Self.Output
+    has + (right: Self.Other) -> Self.Output
+    has Self.+ (left: Self.Other, right: Self) -> Self.Output
 }
 
 
 def #mul {
-    has ::Other
-    has ::Output
-    has * (right: Self::Other) -> Self::Output
-    has ::* (left: Self::OTher, right: Self) -> Self::Output
+    has Self.one: Self
+    has * (right: Self) -> Self
 }
 
 
-def #mul-with-one {
-    has #mul
-    has #mul::Other == Self
-    has #mul::Output == Self
-    has Self::one: Self
+def #mul-other {
+    has Self.Other
+    has Self.Output
+    has * (right: Self.Other) -> Self.Output
+    has Self.* (left: Self.Other, right: Self) -> Self.Output
 }
 
 
--------------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
 
 
 module vec
@@ -42,13 +38,14 @@ module vec
 use std::ops (#add, #mul)
 
 
-def Vec2(var x: Float, var y: Float)
+def Vec2 {
+    var x: Float
+    var y: Float
+}
 
 
 extend Vec2 as #add {
-    def ::Other = Vec2
-
-    def ::Output = Vec2
+    def Vec2.zero = Vec2(0, 0)
 
     def + (right: Vec2) -> Vec2 {
         Vec2(self.x + other.x, self.y + other.y)
@@ -56,21 +53,16 @@ extend Vec2 as #add {
 }
 
 
-extend Vec2 as #zero {
-    def ::zero = Vec2(0, 0)
-}
+extend Vec2 as #mul-other {
+    def Vec2.Other = Float
 
-
-extend Vec2 as #mul {
-    def ::Other = Float
-
-    def ::Output = Vec2
+    def Vec2.Output = Vec2
 
     def * (right: Float) -> Vec2 {
         Vec2(self.x * other, self.y * other)
     }
 
-    def ::* (left: Float, right: Vec2) -> Vec2 {
+    def .* (left: Float, right: Vec2) -> Vec2 {
         Vec2(left * right.x, left * right.y)
     }
 }

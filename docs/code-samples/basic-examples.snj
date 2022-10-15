@@ -1,12 +1,12 @@
 module main
 
-use std::io { Io }
+use std::io (Io)
 
 
 def main() -> Io[] {
 	let get-number() {
-		Io::put-string("Please enter a number: ")
-		let? answer = Io::input()
+		Io.put-string("Please enter a number: ")
+		let? answer = Io.input()
 		match answer.to-int() {
 		case Some(n):
 			Io(n)
@@ -20,9 +20,9 @@ def main() -> Io[] {
 	let tail = tail-factorial(number)
 	let folded = folded-factorial(number)
 
-	Io::print("naive factorial: {naive}")
-	Io::print("tail recursice factorial: {tail}")
-	Io::print("fold-based factorial: {folded}")
+	Io.print("naive factorial: {naive}")
+	Io.print("tail recursice factorial: {tail}")
+	Io.print("fold-based factorial: {folded}")
 }
 
 
@@ -56,20 +56,20 @@ let fold-factorial(n: Int) -> Int {
 forall N: #num
 let generic-tail-factorial(number: N) -> N {
     let step(num, accum) {
-        if num <= N::one {
+        if num <= N.one {
 			accum
         } else {
-			step(num - N::one, num * accum)
+			step(num - N.one, num * accum)
         }
     }
 
-	step(number, N::one)
+	step(number, N.one)
 }
 
 
 forall N: #num #range
 let generic-fold-factorial(number: N) -> N {
-	(N::one <upto> number).fold(N::one, ___ * ___)
+	(N.one <upto> number).fold(N.one, ___ * ___)
 }
 
 
@@ -109,25 +109,6 @@ let pipeline-example() {
 	let my-array = Array(1, 2, 3, 4, 5, 6, 7)
 	my-array
         .iterator()
-		.filter( ___.is-even() )
-		.map( ___ * 2 )
-		.fold("") \(string, number) {
-            "{string}, {number.to-string()}"
-		}
-		.map() \rune {
-            if rune.is-letter() {
-                rune.to-upper()
-            } else {
-                Rune("?")
-            }
-		}
-}
-
-
-let pipeline-example() {
-	let my-array = Array(1, 2, 3, 4, 5, 6, 7)
-	my-array
-        .iterator()
 		.filter(___.is-even())
 		.map(___ * 2)
 		.fold("") fun(string, number) {
@@ -136,25 +117,6 @@ let pipeline-example() {
  		.map() fun(rune) {
             if rune.is-letter() {
                 rune.to-uppercase()
-            } else {
-                Rune("?")
-            }
-		}
-}
-
-
-let pipeline-example() {
-	let my-array = Array(1, 2, 3, 4, 5, 6, 7)
-	my-array
-        .iterator
-		.filter(___.is-even)
-		.map(___ * 2)
-		.fold("") fun(string, number) {
-            "{string}, {number <to> String}"
-		}
- 		.map() fun(rune) {
-            if rune.is-letter {
-                rune.to-uppercase
             } else {
                 Rune("?")
             }

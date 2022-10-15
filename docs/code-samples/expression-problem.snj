@@ -1,31 +1,32 @@
 /*
 # The Expression Problem
-
-## Base Module ################################################################
 */
 
 
+/*
+## Base Module ################################################################
+*/
 module basic
 
 
 def #eval {
-	has .eval() -> Int
+	has eval() -> Int
 }
 
 
-def Literal(
-    var value: Int,
-)
+def Literal {
+    var value: Int
+}
 
 
-def Addition[A](
-    var left: A,
-    var right: A,
-)
+def Addition[A] {
+    var left: A
+    var right: A
+}
 
 
 extend Literal as #eval {
-    def .eval() -> Int {
+    def eval() -> Int {
         self.value
     }
 }
@@ -33,7 +34,7 @@ extend Literal as #eval {
 
 forall A: #eval
 extend Addition[A] as #eval {
-    def .eval() -> Int {
+    def eval() -> Int {
         self.left.eval() + self.right.eval()
     }
 }
@@ -42,34 +43,32 @@ extend Addition[A] as #eval {
 /*
 ## Extension Module ###########################################################
 */
-
-
 module advanced
 
 
-use basic { #eval, Literal, Addition }
+use basic (#eval, Literal, Addition)
 
 
 def #pretty {
-	has .pretty() -> String
+	has pretty() -> String
 }
 
 
-def Negation[A](
-    var subexpr: A,
-)
+def Negation[A] {
+    var subexpr: A
+}
 
 
 forall A: #eval
 extend Negation[A] as #eval {
-    def .eval() -> Int {
+    def eval() -> Int {
         - self.subexpr.eval()
     }
 }
 
 
 extend Literal as #pretty {
-    def .pretty() -> String {
+    def pretty() -> String {
         self.eval.to-string()
     }
 }
@@ -77,7 +76,7 @@ extend Literal as #pretty {
 
 forall A: #pretty
 extend Addition[A] as #pretty {
-    def .pretty() -> String {
+    def pretty() -> String {
         let l = self.left.pretty()
         let r = self.right.pretty()
 
@@ -97,7 +96,7 @@ extend Addition[A] as #pretty {
 
 forall A: #pretty
 extend Negation[A] as #pretty {
-    def .pretty() -> String {
+    def pretty() -> String {
         self.subexpr.match {
         case e as Literal:
             "-{e.pretty}"
@@ -111,13 +110,11 @@ extend Negation[A] as #pretty {
 /*
 ## Usage ######################################################################
 */
-
-
 module main
 
 
-use basic { #eval, Literal, Addition }
-use advanced { #pretty, Negation }
+use basic (#eval, Literal, Addition)
+use advanced (#pretty, Negation)
 
 
 def Expr = Literal | Addition[Expr] | Negation[Expr]

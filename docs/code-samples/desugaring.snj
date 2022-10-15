@@ -3,38 +3,49 @@
 */
 
 
-let Foo(let a: Int, let b: Bool)
-
-
-/*
-implicitly declares the field getters:
-*/
-
-
-extend Foo {
-    let .a -> Int
-    let .b -> Bool
+let Foo {
+    let a: Int
+    let b: Bool
 }
 
 
 /*
-and the functional update functions:
+implicitly declares the default constructor and the field getters:
 */
 
 
-extend Foo {
-    let .with(a: Int) -> Foo {
-        Foo(a: a, b: self.b)
+let Foo {
+    let a: Int
+    let b: Bool
+
+    let Foo(a: Int, b: Bool) {
+        Foo(a, b)
     }
 
-    let .with(b: Bool) -> Foo {
-        Foo(a: self.a, b: b)
+    let a -> Int {
+        self.a
     }
 
-    let .with(a: Int, b: Bool) -> Foo {
-        Foo(a: a, b: b)
+    let b -> Bool {
+        self.b
     }
 }
+
+
+/*
+## Functional Update ##########################################################
+*/
+
+
+my-foo.with(a: 33)
+
+
+/*
+desugars to:
+*/
+
+
+Foo(a: 33, ...my-foo)
 
 
 /*
@@ -43,7 +54,7 @@ extend Foo {
 
 
 extend Foo {
-    let ::bar(a: Int, b: Bool) -> String {
+    let Foo.bar(a: Int, b: Bool) -> String {
         "foobar"
     }
 }
@@ -55,8 +66,8 @@ desugars to an associated constant:
 
 
 extend Foo {
-    let ::bar: \(Int, Bool) -> String =
-        \(a, b) {
+    let Foo.bar: fun(Int, Bool) -> String =
+        fun(a, b) {
             "foobar"
         }
 }
@@ -68,19 +79,17 @@ extend Foo {
 
 
 extend Foo {
-    let .baz(a: Int, b: Bool) -> String {
+    let baz(a: Int, b: Bool) -> String {
         "foobaz"
     }
 }
 
 
-/*
-desugars to an associated function:
-*/
+/* desugars to an associated function: */
 
 
 extend Foo {
-    let ::baz(self: Foo, a: Int, b: Bool) -> String {
+    let Foo.baz(self: Foo, a: Int, b: Bool) -> String {
         "foobaz"
     }
 }
@@ -92,8 +101,8 @@ which desugars to an associated constant:
 
 
 extend Foo {
-    let ::baz: \(Foo, Int, Bool) -> String =
-        \(a, b) {
+    let Foo.baz: fun(Foo, Int, Bool) -> String =
+        fun(a, b) {
             "foobaz"
         }
 }
@@ -112,7 +121,7 @@ desugars to: (assuming `Foo` is the type of `my-foo`)
 */
 
 
-Foo::prop(my-foo)
+Foo.prop(my-foo)
 
 
 /*
@@ -128,4 +137,4 @@ desugars to: (assuming `Foo` is the type of `my-foo`)
 */
 
 
-Foo::baz(my-foo, 1, True)
+Foo.baz(my-foo, 1, True)
