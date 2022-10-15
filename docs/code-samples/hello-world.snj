@@ -1,6 +1,6 @@
 module main
 
-use std::io { Io }
+use std::io (Io)
 
 let main() -> Io[] {
 	Io::print("Hello, World!")

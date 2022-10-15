@@ -1,57 +1,50 @@
 /*
 ## Standard traits for iterators ##############################################
 */
-
-
 module std::iter
 
 
 def #iterable {
-    has ::Iterator: #iterator
-    has .iterator() -> Self::Iterator
+    has Self.Iterator: #iterator
+    has iterator() -> Self::Iterator
 }
 
 
 def #iterator {
-    has ::Item
-    has .next() -> (Self, Maybe[Self::Item])
+    has Self.Item
+    has next() -> (Self, Maybe[Self::Item])
 }
 
 
 /*
 ## Simple iterator example ####################################################
 */
-
-
 module counter
 
 
-use std::iter { #iterator }
+use std::iter (#iterator)
 
 
-def Counter(
-    let count: Int,
-    def limit: Int,
-)
+def Counter {
+    let count: Int
+    def limit: Int
 
-
-extend Counter {
-    def ::new(limit: Int) -> Counter {
+    def Counter(limit: Int) -> Counter {
         Counter(count: 0, limit: limit)
     }
 }
 
 
 extend Counter as #iterator {
-    def ::Item = Int
+    def Counter.Item = Int
 
-    def .next() -> (Counter, Maybe[Int]) {
+    def next() -> (Counter, Maybe[Int]) {
         if self.count >= self.limit {
-            ( self, None )
+            (self, None)
         } else {
             let count = self.count
             let new-counter = self.with(count: count + 1)
-            ( new-counter, Some(count) )
+            (new-counter, Some(count))
         }
     }
 }
@@ -59,27 +52,27 @@ extend Counter as #iterator {
 
 let example() -> Io[] {
     let step(c) {
-        match c.next {
-            case (_, None) =>
-                Io::print("Done!")
-            case (rest, Some(number)) =>
-                Io::print("{number}, ")
+        match c.next() {
+            case (_, None):
+                Io.print("Done!")
+            case (rest, Some(number)):
+                Io.print("{number}, ")
                 step(rest)
         }
     }
-    
-    let counter = Counter::new(7)
+
+    counter = Counter:(7)
     step(counter)
 }
 
 
+/*
 -------------------------------------------------------------------------------
-
-
+*/
 module main
 
 
-use std::iter { #iterator }
+use std::iter (#iterator)
 
 
 forall I: #iterator
@@ -95,10 +88,10 @@ forall
     I::Item: #eq
 let compare(i: I, j: J) -> Bool {
     match (i.next(), j.next()) {
-        case ( (_, None), (_, None) ):
+        case ((_, None), (_, None)):
             True
 
-        case ( (i-next, Some(a)), (j-next, Some(b)) ):
+        case ((i-next, Some(a)), (j-next, Some(b))):
             if a == b {
                 compare(i-next, j-next)
             } else {

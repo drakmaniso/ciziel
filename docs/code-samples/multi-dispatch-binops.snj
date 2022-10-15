@@ -3,7 +3,7 @@
 def Pet = Cat | Dog
 
 
-def Cat(name: String)
+def Cat { name: String }
 
 
 extend Cat {
@@ -17,7 +17,7 @@ extend Cat {
 }
 
 
-def Dog(name: String)
+def Dog { name: String }
 
 
 extend Dog {
@@ -37,11 +37,11 @@ def encounter(a: Pet, b: Pet) -> String {
 }
 
 
--- Note: would a generic version of encounter be possible?
+// Note: would a generic version of encounter be possible?
 
 
 def #pet {
-    has .name() -> String
+    has name() -> String
 
     forall A #pet
     has <meets> (other: A) -> String
@@ -55,54 +55,64 @@ def generic-encounter(a: A, b: B) -> String {
 }
 
 
--- Combined with the expression problem: --------------------------------------
+/*
+## In Separate Modules ########################################################
+*/
+
 
 module pets
 
 def #pet {
-    has .name() -> String
+    has name: String
 }
 
 
---
+/*
+-------------------------------------------------------------------------------
+*/
 
 
 module cats
 
-use pets { #pet }
+use pets (#pet)
 
-def Cat(var name: String)
+def Cat { var name: String }
 
 extend Cat as #pet
 
 
---
+/*
+-------------------------------------------------------------------------------
+*/
+
 
 module dogs
 
-use pets { #pet }
+use pets (#pet)
 
-def Dog(var name: String)
+def Dog { var name: String }
 
 extend Dog as #pet
 
---
+/*
+-------------------------------------------------------------------------------
+*/
 
 module common-pets
 
-use pets { #pet }
-use cats { Cat }
-use dogs { Dog }
+use pets (#pet)
+use cats (Cat)
+use dogs (Dog)
 
 
-def #common-pet {
+def #common-meeter {
     has #pet
     has <meets> (other: Cat) -> String
     has <meets> (other: Dog) -> String
 }
 
 
-extend Cat as #common-pet {
+extend Cat as #common-meeter {
     def <meets> (other: Cat) -> String {
         "slinks"
     }
@@ -113,7 +123,7 @@ extend Cat as #common-pet {
 }
 
 
-extend Dog as #common-pet {
+extend Dog as #common-meeter {
     def <meets> (other: Cat) -> String {
         "chases"
     }
@@ -127,14 +137,16 @@ extend Dog as #common-pet {
 def Common-Pet = Cat | Dog
 
 
-forall A #common-pet
-def encounter(a: A, b: Common-Pet) -> String {
+def encounter(a: Common-Pet, b: Common-Pet) -> String {
     let verb = a <meets> b
     return "{a.name} meets {b.name} and {verb}"
 }
 
 
---
+/*
+-------------------------------------------------------------------------------
+*/
+
 
 module test
 
@@ -159,7 +171,7 @@ def example_encounter() -> Io[] {
     --> Whiskers meets Spot and slinks
 
     let pets = Array(fido, whiskers)
-    
+
     Io::traverse(pets) fun(pet) {
         Io::print("{pet.name}: {pet.type}")
     }
