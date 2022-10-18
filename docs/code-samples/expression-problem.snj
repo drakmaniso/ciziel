@@ -10,7 +10,7 @@ module basic
 
 
 def #eval {
-	has eval() -> Int
+	has eval(self) -> Int
 }
 
 
@@ -26,7 +26,7 @@ def Addition[A] {
 
 
 extend Literal as #eval {
-    def eval() -> Int {
+    def eval(self) -> Int {
         self.value
     }
 }
@@ -34,7 +34,7 @@ extend Literal as #eval {
 
 forall A: #eval
 extend Addition[A] as #eval {
-    def eval() -> Int {
+    def eval(self) -> Int {
         self.left.eval() + self.right.eval()
     }
 }
@@ -50,7 +50,7 @@ use basic (#eval, Literal, Addition)
 
 
 def #pretty {
-	has pretty() -> String
+	has pretty(self) -> String
 }
 
 
@@ -61,33 +61,33 @@ def Negation[A] {
 
 forall A: #eval
 extend Negation[A] as #eval {
-    def eval() -> Int {
+    def eval(self) -> Int {
         - self.subexpr.eval()
     }
 }
 
 
 extend Literal as #pretty {
-    def pretty() -> String {
-        self.eval.to-string()
+    def pretty(self) -> String {
+        self.eval().to-string()
     }
 }
 
 
 forall A: #pretty
 extend Addition[A] as #pretty {
-    def pretty() -> String {
-        let l = self.left.pretty()
-        let r = self.right.pretty()
+    def pretty(self) -> String {
+        l = self.left.pretty()
+        r = self.right.pretty()
 
-        match ( self.left, self.right ) {
-        case ( Literal(...), Literal(...) ):
+        match (self.left, self.right) {
+        case (_ as Literal, _ as Literal):
             "{l} + {r}"
-        case ( Literal(...), _ ):
+        case (_ as Literal, _):
             "{l} + ({r})"
-        case ( _, Literal(...) ):
+        case (_, _ as Literal):
             "({l}) + {r}"
-        case ( _, _ ):
+        case (_, _):
             "({l}) + ({r})"
         }
     }
@@ -96,12 +96,12 @@ extend Addition[A] as #pretty {
 
 forall A: #pretty
 extend Negation[A] as #pretty {
-    def pretty() -> String {
-        self.subexpr.match {
+    def pretty(self) -> String {
+        match self.subexpr {
         case e as Literal:
-            "-{e.pretty}"
+            "-{e.pretty()}"
         case e:
-            "- ({e.pretty})"
+            "- ({e.pretty()})"
         }
     }
 }
@@ -118,11 +118,11 @@ use advanced (#pretty, Negation)
 
 
 def Expr = Literal | Addition[Expr] | Negation[Expr]
-derive Expr as #eval
-derive Expr as #pretty
+extend Expr as #eval
+extend Expr as #pretty
 
 
 def main() -> Io[] {
-	let e1: Expr = Addition( Literal(77), Negation( Literal(12) ) )
-	Io::print("{e1.pretty()} = {e1.eval()}")
+	let e1: Expr = Addition(Literal(77), Negation(Literal(12)))
+	Io.print("{e1.pretty()} = {e1.eval()}")
 }

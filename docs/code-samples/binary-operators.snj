@@ -2,30 +2,40 @@ module std.ops
 
 
 def #add {
-    has Self.zero: Self
-    has + (right: Self) -> Self
+    has zero: Self
+    has +(left: Self, right: Self) -> Self
 }
 
 
-def #add-other {
-    has Self.Other
-    has Self.Output
-    has + (right: Self.Other) -> Self.Output
-    has Self.+ (left: Self.Other, right: Self) -> Self.Output
+def #add-with[A] {
+    has Output
+    has zero: Self
+    has +(left: Self, right: A) -> Self.Output
+    has +(left: A, right: Self) -> Self.Output
 }
 
 
 def #mul {
-    has Self.one: Self
-    has * (right: Self) -> Self
+    has one: Self
+    has *(left: Self, right: Self) -> Self
 }
 
 
-def #mul-other {
-    has Self.Other
-    has Self.Output
-    has * (right: Self.Other) -> Self.Output
-    has Self.* (left: Self.Other, right: Self) -> Self.Output
+def #mul-with[Other] {
+    has Output
+    has *(left: Self, right: Other) -> Self.Output
+    has *(left: Other, right: Self) -> Self.Output
+}
+
+
+forall A: #add-with[A]
+extend A as #add {
+    def Output = A#add-with[A].Output
+    def zero = A#add-with[A].zero
+    def +(left: A, right: A) -> A.Output {
+        left' = left#add-with[A]
+        left' + right
+    }
 }
 
 
@@ -45,24 +55,22 @@ def Vec2 {
 
 
 extend Vec2 as #add {
-    def Vec2.zero = Vec2(0, 0)
+    def zero = Vec2(0, 0)
 
-    def + (right: Vec2) -> Vec2 {
-        Vec2(self.x + other.x, self.y + other.y)
+    def +(left: Vec2, right: Vec2) -> Vec2 {
+        Vec2(left.x + right.x, right.y + right.y)
     }
 }
 
 
-extend Vec2 as #mul-other {
-    def Vec2.Other = Float
+extend Vec2 as #mul-with[Float] {
+    def Output = Vec2
 
-    def Vec2.Output = Vec2
-
-    def * (right: Float) -> Vec2 {
-        Vec2(self.x * other, self.y * other)
+    def *(left: Vec2, right: Float) -> Vec2 {
+        Vec2(self.x * right, self.y * right)
     }
 
-    def .* (left: Float, right: Vec2) -> Vec2 {
+    def *(left: Float, right: Vec2) -> Vec2 {
         Vec2(left * right.x, left * right.y)
     }
 }

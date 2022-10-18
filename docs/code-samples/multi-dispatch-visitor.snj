@@ -1,7 +1,11 @@
--- # Multiple dispatch emulated with the Visitor pattern
+/*
+# Multiple dispatch emulated with the Visitor pattern
+*/
 
 
--- ## Simple single module version
+/*
+## Simple single module version
+*/
 
 
 module pets
@@ -9,13 +13,13 @@ module pets
 def #pet {
     has #pet-visitor
     has Self(name: String, ...)
-    has .meets(other: #pet) -> String
+    has meets(other: #pet) -> String
 }
 
 
 def #pet-visitor {
-    has .visit-dog(other: Dog) -> String
-    has .visit-cat(other: Cat) -> String
+    has visit-dog(other: Dog) -> String
+    has visit-cat(other: Cat) -> String
 }
 
 
@@ -26,52 +30,57 @@ def encounter(a: A, b: B) -> String {
 }
 
 
-def Cat(name: String)
+def Cat {
+    var name: String
+}
 
 extend Cat as #pet {
-    def .meets(other: A #pet) -> String = { other.visit-cat(self) }
+    def meets(other: A #pet) -> String = { other.visit-cat(self) }
 }
 
 extend Cat as #pet-visitor {
-    def .visit-cat(other: Cat) -> String = { "slinks" }
-    def .visit-dog(other: Dog) -> String = { "hisses" }
+    def visit-cat(other: Cat) -> String = { "slinks" }
+    def visit-dog(other: Dog) -> String = { "hisses" }
 }
 
 
-def Dog(name: String)
+def Dog {
+    var name: String
+}
 
 extend Dog as #pet {
-    def .meets(other: B #pet) -> String = { other.visit-dog(self) }
+    def meets(other: B #pet) -> String = { other.visit-dog(self) }
 }
 
 extend Dog as #pet-visitor {
-    def .visit-cat(other: Cat) -> String = { "chases" }
-    def .visit-dog(other: Dog) -> String = { "sniffs" }
+    def visit-cat(other: Cat) -> String = { "chases" }
+    def visit-dog(other: Dog) -> String = { "sniffs" }
 }
 
 
--- ## Combined with the extension problem
+/*
+## Combined with the extension problem
+*/
 
 
 module pets
 
 
-def #pet =
-    has Self[V]
+forall V: #visitor
+def #pet[V] {
+    has name() -> String
 
-    has Self { name: String, ... }
-
-    has (Self[V]).meets(other: V[V]) -> String
-        forall V #visitor
-    =
+    has meets(other: V[Self]) -> String {
         V.visit(self, other)
-    
-    implement Cat, Dog
+    }
+}
 
 
-def #visitor =
-    has Self[V].visit(a: Self[V], b: Self[V]) -> String
+forall P: #pet
+def #visitor[P] {
+    has visit(a: P[V], b: Self[V]) -> String
     implement Pet
+}
 
 
 --

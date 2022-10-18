@@ -4,84 +4,58 @@ use std::vec (Point)
 
 
 def Shape =
-    | Circle
-    | BBox
-    | Square
-    | Rectangle
-    | Polygon
+	| Circle
+	| BBox
+	| Square
+	| Rectangle
+	| Polygon
 
 
 def Circle {
-    var center: Point
-    var radius: Float64
+	var center: Point
+	var radius: Float64
 }
 
 
 def Triangle {
-    var a: Point
-    var b: Point
-    var c: Point
+	var a: Point
+	var b: Point
+	var c: Point
 }
 
 
 def Rectangle {
-    var origin: Point
-    def width: Float64
-    def height: Float64
-    def angle: Float64
-
-    def Rectangle(
-        origin: Point,
-        width: Float64,
-        height: Float64,
-        angle: Float64,
-    ) {
-        width' = min(0, width)
-        height' = min(0, height)
-        angle' = angle <mod> (2 * math::pi)
-        Rectangle(origin, width', height', angle')
-    }
+	var origin: Point
+	def width: Float64
+	def height: Float64
+	def angle: Float64
 }
 
 
 def BBox {
-    def min: Point
-    def max: Point
-
-    def BBox(a: Point, b: Point) -> BBox {
-        let xs = (a.x, b.x)
-        let ys = (a.y, b.y)
-
-        BBox(
-            min = Point(min(...xs), min(...ys)),
-            max = Point(max(...xs), max(...ys)),
-        )
-    }
+	def min: Point
+	def max: Point
 }
 
 
 def Polygon {
-    def points: Array[Point]
-
-    def Polygon(...points: Array[Point]) {
-        Polygon(points)
-    }
+	def points: Array[Point]
 }
 
 
 def #shape {
-    has perimeter() -> Float64
-    has area() -> Float64
+	has perimeter(self) -> Float64
+	has area(self) -> Float64
 }
 
 
 def #movable {
-    has move-to(destination: Point) -> Self
+	has move-to(self, destination: Point) -> Self
 }
 
 
 def #scalable {
-    has scale-by(factor: Float64) -> Self
+	has scale-by(self, factor: Float64) -> Self
 }
 
 
@@ -89,56 +63,56 @@ def #scalable {
 
 
 extend Circle {
-    def Circle.around(points: Array[Point]) -> Circle {
-        let welzl(points, boundary) {
-            match points {
-            case _ and boundary.length() == 3:
-                trivial(boundary)
+	def around(points: Array[Point]) -> Circle {
+		let welzl(points, boundary) {
+			match points {
+			case _ and boundary.length() == 3:
+				trivial(boundary)
 
-            case Array():
-                trivial(boundary)
+			case []:
+				trivial(boundary)
 
-            case Array(p, rest):
-                let d = welzl(points.remove(p), boundary)
-                if d.encloses(p) {
-                    d
-                } else {
-                    welzl(points.remove(p), boundary.push(p))
-                }
-            }
-        }
+			case [p, ...rest]:
+				d = welzl(points.remove(p), boundary)
+				if d.encloses(p) {
+					d
+				} else {
+					welzl(points.remove(p), boundary.push(p))
+				}
+			}
+		}
 
-        welzl(points, [])
-    }
+		welzl(points, [])
+	}
 
-    def diameter() -> Float64 {
-        self.radius * 2
-    }
+	def diameter(self) -> Float64 {
+		self.radius * 2
+	}
 }
 
 
 extend Circle as #shape {
-    def perimeter() -> Float64 {
-        math::pi * self.diameter()
-    }
+	def perimeter(self) -> Float64 {
+		math::pi * self.diameter()
+	}
 
-    def area() -> Float64 {
-        math::pi * (self.radius ** 2)
-    }
+	def area(self) -> Float64 {
+		math::pi * (self.radius ** 2)
+	}
 }
 
 
 extend Circle as #movable {
-    def move(destination: Point) -> Circle {
-        self.with(center: destination)
-    }
+	def move(self, destination: Point) -> Circle {
+		self.with(center: destination)
+	}
 }
 
 
 extend Circle as #scalable {
-    def scale-by(factor: Float64) -> Circle {
-        self.with(radius: self.radius * factor)
-    }
+	def scale-by(self, factor: Float64) -> Circle {
+		self.with(radius: self.radius * factor)
+	}
 }
 
 
@@ -146,92 +120,116 @@ extend Circle as #scalable {
 
 
 extend BBox {
-    def width() -> Float64 {
-        self.max.x - self.min.x
-    }
+	def new(a: Point, b: Point) -> BBox {
+		xs = (a.x, b.x)
+		ys = (a.y, b.y)
+
+		BBox(
+			min = Point(min(...xs), min(...ys)),
+			max = Point(max(...xs), max(...ys)),
+		)
+	}
 
 
-    def height() -> Float64 {
-        self.max.y - self.min.y
-    }
+	def width(self) -> Float64 {
+		self.max.x - self.min.x
+	}
 
 
-    def size() -> Vec2 {
-        Vec2(self.width(), self.height())
-    }
+	def height(self) -> Float64 {
+		self.max.y - self.min.y
+	}
+
+
+	def size(self) -> Vec2 {
+		Vec2(self.width(), self.height())
+	}
 }
 
 
 
 extend BBox as #shape {
-    def perimeter() -> Float64 {
-        (2 * self.width()) + (2 * self.height())
-    }
+	def perimeter(self) -> Float64 {
+		(2 * self.width()) + (2 * self.height())
+	}
 
 
-    def area() -> Float64 {
-        self.width() * self.height()
-    }
+	def area(self) -> Float64 {
+		self.width() * self.height()
+	}
 }
 
 
 extend BBox as #movable {
-    def move-to(destination: Point) -> BBox {
-        self.with(
-            min: destination,
-            max: destination + self.size(),
-        )
-    }
+	def move-to(destination: Point) -> BBox {
+		self.with(min: destination, max: destination + self.size())
+	}
 }
 
 
 extend BBox as #scalable {
-    def scale-by(factor: Float64) -> BBox {
-        let delta = (factor * self.size()) - self.size()
-        self.with(
-            min: self.min - (delta / 2),
-            max: self.max + (delta / 2),
-        )
-    }
+	def scale-by(self, factor: Float64) -> BBox {
+		delta = (factor * self.size) - self.size
+		self.with(
+			min: self.min - (delta / 2),
+			max: self.max + (delta / 2),
+		)
+	}
 }
 
 
 // Rectangle //////////////////////////////////////////////////////////////////
 
 
+
 extend Rectangle {
-    def size() -> Vec2 {
-        Vec2(self.width, self.height)
-    }
+	def new(
+		origin: Point,
+		width: Float64,
+		height: Float64,
+		angle: Float64,
+	) {
+		Rectangle(
+			origin,
+			width: min(0, width),
+			height: min(0, height),
+			angle: angle <mod> (2 * math::pi),
+		)
+	}
+
+
+	def size(self) -> Vec2 {
+		Vec2(self.width, self.height)
+	}
 }
 
 
 extend Rectangle as #shape {
-    def perimeter() -> Float64 {
-        2 * (self.width + self.height)
-    }
+	def perimeter(self) -> Float64 {
+		2 * (self.width + self.height)
+	}
 
 
-    def area() -> Float64 {
-        self.width * self.height
-    }
+	def area(self) -> Float64 {
+		self.width * self.height
+	}
 }
 
 
 extend Rectangle as #movable {
-    def move-to(destination: Point) -> Rectangle {
-        self.with(origin: destination)
-    }
+	def move-to(self, destination: Point) -> Rectangle {
+		self.with(origin: destination)
+	}
 }
 
 
 extend Rectangle as #scalable {
-    def scale-by(factor: Float64) -> Rectangle {
-        self.with(
-            width: self.width * factor,
-            height: self.height * factor,
-        )
-    }
+	def scale-by(self, factor: Float64) -> Rectangle {
+		self.with(
+			width: self.width * factor,
+			height: self.height * factor,
+		)
+	}
 }
 
 
@@ -239,7 +237,12 @@ extend Rectangle as #scalable {
 
 
 extend Polygon {
-    def [index: Int] -> Point {
-        self.points[index]
-    }
+	def new(...points: Array[Point]) {
+		Polygon(points)
+	}
+
+
+	def [](self, index: Int) -> Point {
+		self.points[index]
+	}
 }

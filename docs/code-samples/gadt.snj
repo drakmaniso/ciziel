@@ -11,50 +11,50 @@
 module gadt1
 
 
-def #expr {
+let #expr {
     has Self.Output: #eq
-    has eval() -> Output
+    has eval(self) -> Output
 }
 
 
-def Expr = EBool | EInt | EEqual
+let Expr = EBool | EInt | EEqual
 
-def EBool {
+let EBool {
     var value: Bool
 }
 
-def EInt {
+let EInt {
     var value: Int
 }
 
-def EEqual {
+let EEqual {
     var left: *EInt
     var right: *EInt
 }
 
 
-derive Expr as #expr {
-    def Expr.Output = Int | Bool
-    def eval() -> Int | Bool
+extend Expr as #expr {
+    has Expr.Output = Int | Bool
+    has eval(self) -> Int | Bool
 }
 
 extend EBool as #expr {
-    def EBool.Output = Bool
-    def eval() -> Bool {
+    let EBool.Output = Bool
+    let eval(self) -> Bool {
         self.value
     }
 }
 
 extend EInt as #expr {
-    def EInt.Output = Int
-    def eval() -> Int {
+    let EInt.Output = Int
+    let eval(self) -> Int {
         self.value
     }
 }
 
 extend EEqual as #expr {
-    def EEqual.Output = Bool
-    def eval() -> Bool {
+    let EEqual.Output = Bool
+    let eval(self) -> Bool {
         self.left.eval() == self.right.eval()
     }
 }
@@ -90,23 +90,23 @@ https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
 module gadt2
 
 
-def Term[T] = Zero[T] | Succ[T] | Pred[T] | IsZero[T] | If[T]
+let Term[T] = Zero[T] | Succ[T] | Pred[T] | IsZero[T] | If[T]
 
-def Zero[T]
+let Zero[T]
 
-def Succ[T] {
+let Succ[T] {
     var arg: Term[T]
 }
 
-def Pred[T] {
+let Pred[T] {
     var arg: Term[T]
 }
 
-def IsZero[T] {
+let IsZero[T] {
     var arg: Term[Int]
 }
 
-def If[T] {
+let If[T] {
     var condition: Term[Bool]
     var then-branch: Term[T]
     var else-branch: Term[T]
@@ -114,39 +114,39 @@ def If[T] {
 
 
 derive Term[T] {
-    def eval() -> T
+    let eval(self) -> T
 }
 
 forall T = Int
 extend Zero[T] {
-    def eval() -> Int {
+    let eval(self) -> Int {
         0
     }
 }
 
 forall T = Int
 extend Succ[T] {
-    def eval() -> Int {
+    let eval(self) -> Int {
         self.arg.eval() + 1
     }
 }
 
 forall T = Int
 extend Pred[T] {
-    def eval() -> Int {
+    let eval(self) -> Int {
         self.arg.eval() - 1
     }
 }
 
 forall T = Bool
 extend IsZero[T] {
-    def eval() -> Bool {
+    let eval(self) -> Bool {
         self.arg.eval() == 0
     }
 }
 
 extend If[T] {
-    def eval() -> T {
+    let eval(self) -> T {
         if self.condition.eval() {
             self.then-branch.eval()
         } else {
@@ -165,48 +165,48 @@ From
 module gadt3
 
 
-def #expr {
-    has Self.Output
-    has eval() -> Self.Output
+let #expr {
+    has Output
+    has eval(self) -> Self.Output
 }
 
 
-def Lift[T] {
+let Lift[T] {
     var value: T
 }
 
-def Pair[T, U] {
+let Pair[T, U] {
     var first: T
     var second: U
 }
 
-def Lambda[T, U] {
+let Lambda[T, U] {
     var value: fun(T) -> U
 }
 
-def Apply[T, U] {
+let Apply[T, U] {
     var function: Lambda[T, U]
     var argument: U
 }
 
-def Fix[T] {
+let Fix[T] {
     var function: Lambda[T, T]
 }
 
 
 extend Lift[T] as #expr {
-    def Lift.Output = T
+    let Output = T
 
-    def eval() -> T {
+    let eval() -> T {
         self.first.value
     }
 }
 
 forall T: #expr, U: #expr
 extend Pair[T,U] as #expr {
-    def Pair.Output = (T, U)
+    let Output = (T, U)
 
-    def eval() -> (T, U) {
+    let eval() -> (T, U) {
         (self.first.eval(), self.second.eval())
     }
 }
@@ -214,9 +214,9 @@ extend Pair[T,U] as #expr {
 
 forall T: #expr, U: #expr
 extend Lambda[T, U] as #expr {
-    def Lambda.Output = fun(T) -> U
+    let Output = fun(T) -> U
 
-    def eval() -> fun(T) -> U {
+    let eval() -> fun(T) -> U {
         fun(x) {
             self.function(Lift(x)).eval()
         }
@@ -226,9 +226,9 @@ extend Lambda[T, U] as #expr {
 
 forall T: #expr, U: #expr
 extend Apply[T, U] as #expr {
-    def Apply.Output = U
+    let Output = U
 
-    def eval() -> U {
+    let eval() -> U {
         self.function.eval(self.argument.eval())
     }
 }
@@ -236,9 +236,9 @@ extend Apply[T, U] as #expr {
 
 forall T: #expr
 extend Fix[T] as #expr {
-    def Fix.Output = T
+    let Output = T
 
-    def eval() -> T {
+    let eval() -> T {
         self.function.eval(Fix(self.function).eval())
     }
 }

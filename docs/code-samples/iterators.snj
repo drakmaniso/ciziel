@@ -5,14 +5,14 @@ module std::iter
 
 
 def #iterable {
-    has Self.Iterator: #iterator
-    has iterator() -> Self::Iterator
+    has Iterator: #iterator
+    has iterator(self) -> Self::Iterator
 }
 
 
 def #iterator {
-    has Self.Item
-    has next() -> (Self, Maybe[Self::Item])
+    has Item
+    has next(self) -> (Self, Maybe[Self::Item])
 }
 
 
@@ -28,17 +28,19 @@ use std::iter (#iterator)
 def Counter {
     let count: Int
     def limit: Int
+}
 
-    def Counter(limit: Int) -> Counter {
+extend Counter {
+    def new(limit: Int) -> Counter {
         Counter(count: 0, limit: limit)
     }
 }
 
 
 extend Counter as #iterator {
-    def Counter.Item = Int
+    def Item = Int
 
-    def next() -> (Counter, Maybe[Int]) {
+    def next(self) -> (Counter, Maybe[Int]) {
         if self.count >= self.limit {
             (self, None)
         } else {
@@ -61,7 +63,7 @@ let example() -> Io[] {
         }
     }
 
-    counter = Counter:(7)
+    counter = Counter.new(7)
     step(counter)
 }
 
@@ -77,7 +79,7 @@ use std::iter (#iterator)
 
 forall I: #iterator
 let foo(iterator: I, f: fun(I::Item) -> Int) -> Array[Int] {
-    iterator.fold(Array(), Array::push)
+    iterator.fold([], Array::push)
 }
 
 

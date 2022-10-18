@@ -1,0 +1,43 @@
+module std
+
+
+def #from[A] {
+    has <from>(value: A) -> Self
+}
+
+
+
+/**/
+module float
+
+
+extend Float64 as #from[Int32] {
+    def <from>(value: Int32) -> Float64 {
+        ...
+    }
+}
+
+
+extend String as #from[Float64] {
+    def <from>(value: Float64) -> String {
+        ...
+    }
+}
+
+
+extend Int32 as #try-from[Float64] {
+    def <try-from>(value: Float64) -> Option[Int32] {
+        ...
+    }
+}
+
+
+/**/
+
+forall A, B: #add #from[A]
+def sum(values: Array[A]) -> B {
+    values.fold(B.zero) fun(accum, value) {
+        b = B <from> val
+        accum + b
+    }
+}

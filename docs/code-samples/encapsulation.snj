@@ -81,6 +81,16 @@ def Proxy {
     }
 }
 
+/* would be used like:*/
+
+def Proxy {
+    var foo: String
+    def bar: Bool
+
+    def Proxy(foo: String) {
+        ...
+    }
+}
 
 /*
 ## Unions #####################################################################

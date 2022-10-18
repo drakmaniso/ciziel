@@ -1,62 +1,121 @@
--- Multiple dispatch using custom binary operators ----------------------------
+/*
+# Multiple dispatch using custom binary operators
+*/
 
-def Pet = Cat | Dog
+
+let Pet = Cat | Dog
 
 
-def Cat { name: String }
+let Cat {
+    name: String
+}
 
 
 extend Cat {
-    def <meets> (other: Cat) -> String {
+    let <meets> (other: Cat) -> String {
         "slinks"
     }
 
-    def <meets> (other: Dog) -> String {
+    let <meets> (other: Dog) -> String {
         "hisses"
     }
 }
 
 
-def Dog { name: String }
+let Dog {
+    name: String
+}
 
 
 extend Dog {
-    def <meets> (other: Dog) -> String {
+    let <meets> (other: Dog) -> String {
         "sniffs"
     }
 
-    def <meets> (other: Cat) -> String {
+    let <meets> (other: Cat) -> String {
         "chases"
     }
 }
 
-
-def encounter(a: Pet, b: Pet) -> String {
+let encounter(a: Pet, b: Pet) -> String {
     let verb = a <meets> b
     "{a.name} meets {b.name} and {verb}"
 }
 
 
-// Note: would a generic version of encounter be possible?
+let example-encounter() -> Io[] {
+    let fido = Dog("Fido")
+    let rex = Dog("Rex")
+    let whiskers = Cat("Whiskers")
+    let spot = Cat("Spot")
 
+    Io.print(encounter(fido, rex))
+    // Fido meets Rex and sniffs
+    Io.print(encounter(fido, whiskers))
+    // Fido meets Whiskers and chases
+    Io.print(encounter(whiskers, rex))
+    // Whiskers meets Rex and hisses
+    Io.print(encounter(whiskers, spot))
+    // Whiskers meets Spot and slinks
 
-def #pet {
-    has name() -> String
+    let pets = Array(fido, whiskers)
 
-    forall A #pet
-    has <meets> (other: A) -> String
-}
+    Io.traverse(pets) fun(pet) {
+        Io.print("{pet.name}: {pet.type}")
+    }
+    // Fido: enum(Cat | Dog)
+    // Whiskers: enum(Cat | Dog)
 
-
-forall A #pet, B #pet
-def generic-encounter(a: A, b: B) -> String {
-    let verb = a <meets> b
-    return "{a.name} meets {b.name} and {verb}"
+    Io.traverse(pets) fun(a) {
+        Io.traverse(pets) fun(b) {
+            Io.print(encounter(a, b))
+        }
+    }
+    // Fido meets Fido and sniffs
+    // Fido meets Whiskers and chases
+    // Whiskers meets Fido and hisses
+    // Whiskers meets Whiskers and slinks
 }
 
 
 /*
-## In Separate Modules ########################################################
+-------------------------------------------------------------------------------
+*/
+
+
+module additional-pet
+
+
+def Bird {
+    var name: String
+}
+
+
+extend Bird {
+    def <meets> (other: Bird) -> String {
+        "chirps"
+    }
+
+    def <meets> (other: Cat) -> String {
+        "chirps"
+    }
+
+    def <meets> (other: Dog) -> String {
+        "chirps"
+    }
+
+    def Bird.<meets> (left: Cat, right: Bird) -> String {
+        "hunts"
+    }
+
+    def Bird.<meets> (left: Dog, right: Bird) -> String {
+        "barks"
+    }
+}
+
+
+/*
+## Operators in Traits ########################################################
 */
 
 
@@ -72,47 +131,32 @@ def #pet {
 */
 
 
-module cats
+module usual-pets
 
 use pets (#pet)
 
-def Cat { var name: String }
+
+def Cat {
+    var name: String
+}
 
 extend Cat as #pet
 
 
-/*
--------------------------------------------------------------------------------
-*/
-
-
-module dogs
-
-use pets (#pet)
-
-def Dog { var name: String }
+def Dog {
+    var name: String
+}
 
 extend Dog as #pet
 
-/*
--------------------------------------------------------------------------------
-*/
 
-module common-pets
-
-use pets (#pet)
-use cats (Cat)
-use dogs (Dog)
-
-
-def #common-meeter {
+def #usual-meeter {
     has #pet
     has <meets> (other: Cat) -> String
     has <meets> (other: Dog) -> String
 }
 
-
-extend Cat as #common-meeter {
+extend Cat as #usual-meeter {
     def <meets> (other: Cat) -> String {
         "slinks"
     }
@@ -122,8 +166,7 @@ extend Cat as #common-meeter {
     }
 }
 
-
-extend Dog as #common-meeter {
+extend Dog as #usual-meeter {
     def <meets> (other: Cat) -> String {
         "chases"
     }
@@ -134,12 +177,13 @@ extend Dog as #common-meeter {
 }
 
 
-def Common-Pet = Cat | Dog
+def Usual-Pet = Cat | Dog
 
 
-def encounter(a: Common-Pet, b: Common-Pet) -> String {
-    let verb = a <meets> b
-    return "{a.name} meets {b.name} and {verb}"
+// NOTE: It's impossible to define encounter using traits instead of unions.
+def encounter(a: Usual-Pet, b: Usual-Pet) -> String {
+    verb = a <meets> b
+    "{a.name} meets {b.name} and {verb}"
 }
 
 
@@ -148,43 +192,58 @@ def encounter(a: Common-Pet, b: Common-Pet) -> String {
 */
 
 
-module test
+module bird-pets
 
 use pets (#pet)
-use dogs (Dog)
-use cats (Cat)
-use common-pets { #common-pet }
+use usual-pets (Cat, Dog, #usual-meeter)
 
-def example_encounter() -> Io[] {
-    let fido = Dog("Fido")
-    let rex = Dog("Rex")
-    let whiskers = Cat("Whiskers")
-    let spot = Cat("Spot")
 
-    Io::print(encounter(fido, rex))
-    --> Fido meets Rex and sniffs
-    Io::print(encounter(fido, whiskers))
-    --> Fido meets Whiskers and chases
-    Io::print(encounter(whiskers, rex))
-    --> Whiskers meets Rex and hisses
-    Io::print(encounter(whiskers, spot))
-    --> Whiskers meets Spot and slinks
+def Bird {
+    var name: String
+}
 
-    let pets = Array(fido, whiskers)
 
-    Io::traverse(pets) fun(pet) {
-        Io::print("{pet.name}: {pet.type}")
+extend Bird as #usual-meeter {
+    def <meets> (other: Cat) -> String {
+        "chirps"
     }
-    --> Fido: enum(Cat | Dog)
-    --> Whiskers: enum(Cat | Dog)
 
-    Io::traverse(pets) fun(a) {
-        Io::traverse(pets) fun(b) {
-            Io::print(encounter(a, b))
-        }
+    def <meets> (other: Dog) -> String {
+        "chirps"
     }
-    --> Fido meets Fido and sniffs
-    --> Fido meets Whiskers and chases
-    --> Whiskers meets Fido and hisses
-    --> Whiskers meets Whiskers and slinks
+}
+
+
+def #bird-meeter {
+    has <meets> (other: Bird) -> String
+}
+
+
+extend Bird as #bird-meeter {
+    def <meets> (other: Bird) -> String {
+        "chirps"
+    }
+}
+
+
+extend Cat as #bird-meeter {
+    def <meets> (other: Bird) -> String {
+        "hunts"
+    }
+}
+
+
+extend Dog as #bird-meeter {
+    def <meets> (other: Bird) -> String {
+        "barks"
+    }
+}
+
+
+def Pet = Cat | Dog | Bird
+
+
+def encounter(a: Pet, b: Pet) -> String {
+    verb = a <meets> b
+    "{a.name} meets {b.name} and {verb}"
 }

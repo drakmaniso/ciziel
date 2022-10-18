@@ -6,7 +6,7 @@
 module std::list
 
 
-use std::iter { #iterator, #iterable }
+use std::iter (#iterator, #iterable)
 
 
 def List[A] = Empty | *Node[A]
@@ -18,7 +18,7 @@ def Node[A] {
 
 
 extend List[A] {
-    def List.new(...items: Array[A]) -> List[A] {
+    def new(...items: Array[A]) -> List[A] {
         items.rev-fold(Empty) fun(item, acc) {
             Node(item, acc)
         }
@@ -32,30 +32,34 @@ extend List[A] {
 
 
 forall A: #eq
-derive List[A] as #eq
+extend List[A] as #eq {
+    dispatch ==(left: List[A], right: List[A]) -> Bool
+}
 
 
-forall A: #eq
 extend Empty as #eq {
-    def == (right: Empty) -> True {
+    def == (left: Empty, right: Empty) -> True {
         True
     }
 
-    def == (right: Node[A]) -> False {
-        False
+
+forall A: #eq
+extend Node[A] as #eq {
+    def == (left: Node[A], right: Node[A]) -> Bool {
+        left.item == right.item
+            and left.rest == right.rest
     }
 }
 
 
 forall A: #eq
-extend Node[A] as #eq {
-    def == (right: Empty) -> False {
+extend Node[A] {
+    def == (left: Node[A], right: Empty) -> False {
         False
     }
 
-    def == (right: Node[A]) -> Bool {
-        self.item == other.item
-            and self.rest == other.rest
+    def == (left: Empty, right: Node[A]) -> False {
+        False
     }
 }
 
@@ -66,35 +70,32 @@ extend Node[A] as #eq {
 
 
 extend List[A] {
-    def push(item: A) -> *Node[A] {
+    def push(self, item: A) -> *Node[A] {
         Node(item, self)
     }
-}
 
-
-derive List[A] {
-    def head() -> Option[A]
-    def tail() -> List[A]
+    dispatch head(self) -> Option[A]
+    dispatch tail(self) -> List[A]
 }
 
 
 extend Empty {
-    def head() -> None {
+    def head(self) -> None {
         None
     }
 
-    def tail() -> Empty {
+    def tail(self) -> Empty {
         Empty
     }
 }
 
 
 extend Node[A] {
-    def head() -> Some[A] {
+    def head(self) -> Some[A] {
         self.item
     }
 
-    def tail() -> List[A] {
+    def tail(self) -> List[A] {
         self.rest
     }
 }
@@ -106,16 +107,16 @@ extend Node[A] {
 
 
 forall A
-derive List[A] as #functor {
+extend List[A] as #functor {
     forall B
-    def map(transform: fun(A) -> B) -> List[B]
+    dispatch map(self, transform: fun(A) -> B) -> List[B]
 }
 
 
 forall A
 extend Empty as #functor {
     forall B
-    def map(transform: fun(A) -> B) -> Empty {
+    def map(self, transform: fun(A) -> B) -> Empty {
         Empty
     }
 }
@@ -124,7 +125,7 @@ extend Empty as #functor {
 forall A
 extend *Node[A] as #functor {
     forall B
-    def map(transform: fun(A) -> B) -> *Node[B] {
+    def map(self, transform: fun(A) -> B) -> *Node[B] {
         Node(transform(self.item), self.rest.map(transform))
     }
 }
@@ -136,10 +137,10 @@ extend *Node[A] as #functor {
 
 
 extend List[A] as #iterable {
-    def List.Iterator = List-Iterator[A]
+    def Iterator = List-Iterator[A]
 
-    def iterator() -> List-Iterator[A] {
-        List-Iterator(self)
+    def iterator(self) -> List-Iterator[A] {
+        List-Iterator(current: self)
     }
 }
 
@@ -150,9 +151,9 @@ def List-Iterator[A] {
 
 
 extend List-Iterator[A] as #iterator {
-    def List-Iterator.Item = A
+    def Item = A
 
-    def next() -> (List-Iterator[A], Option[A]) {
+    def next(self) -> (List-Iterator[A], Option[A]) {
         match self.current {
         case Empty:
             (self, None)
@@ -183,14 +184,14 @@ let double(list: List[Int]) -> List[Int] {
 
 let main() -> Io[] {
     let a = Node(1, Node(2, Node(3, Empty)))
-    let b = List::new(1, 2, 3)
+    let b = List.new(1, 2, 3)
 
-    Io::print(a.Type)
+    Io.print(a.Type)
     // Node[Int]
 
-    Io::print(b.Type)
+    Io.print(b.Type)
     // List[Int]
 
-    Io::print(a.map.Type))
+    Io.print(a.map.Type))
     // fun(Node[Int], fun(Int) -> A) -> Node[A]
 }

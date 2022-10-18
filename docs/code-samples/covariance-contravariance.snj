@@ -1,81 +1,200 @@
-// [from the blog article]: https://quuxplusone.github.io/blog/2019/01/20/covariance-and-contravariance/
+/*
+# Covariance and Contravariance
 
-let #animal {
-    has make-noise() -> String
-}
+Adapted from a [blog article]
+(https://quuxplusone.github.io/blog/2019/01/20/covariance-and-contravariance/).
+*/
 
 
+/*
+## Unions #####################################################################
+
+With unions, only covariance works.
+*/
+
+
+let Animal = Cat | Horse
 let Cat
-
-extend Cat as #animal {
-    let make-noise() -> String { "meow!" }
-}
-
-
 let Horse
 
-extend Horse as #animal {
-    let make-noise() -> String { "neigh!" }
+extend Cat {
+    let make-noise(self) -> Io[] {
+        Io.print("meow!")
+    }
 }
 
 extend Horse {
-    let ride() -> String { "Ok, sure." }
+    let make-noise(self) -> Io[] {
+        Io.print("neigh!")
+    }
+
+    let ride(self) -> Io[] {
+        Io.print("Ok, sure.")
+    }
+}
+
+dispatch Animal {
+    let make-noise(self) -> Io[]
 }
 
 
-// Breeders
+/* Breeders: covariance */
 
 
-let #animal-breeder {
-    has Self.Animal
-    has produce() -> Self::Animal
+let Animal-Breeder = Cat-Breeder | Horse-Breeder
+let Cat-Breeder
+let Horse-Breeder
+
+extend Cat-Breeder {
+    let produce(self) -> Cat {
+        Cat
+    }
 }
+
+extend Horse-Breeder {
+    let produce(self) -> Horse {
+        Horse
+    }
+}
+
+dispatch Animal-Breeder {
+    let produce(self) -> Animal
+}
+
+
+/* Doctors: contravariance */
+
+
+let Animal-Doctor = Cat-Doctor | Horse-Doctor
+let Cat-Doctor
+let Horse-Doctor
+
+extend Cat-Doctor {
+    let treat(self, patient: Cat) -> Io[] {
+        Io.print("All done.")
+    }
+}
+
+extend Horse-Doctor {
+    let treat(self, patient: Horse) -> Io[] {
+        Io.print("All done.")
+    }
+}
+
+/*
+`Animal-Doctor` has no `treat` method, because it cannot be unified!
+*/
+dispatch Animal-Doctor {
+    // treat(self, patient: ???) -> Io[]
+}
+
+
+let produce-and-treat(breeder: Animal-Breeder, doctor: Animal-Doctor) -> Io[] {
+    animal = breeder.produce()
+    animal.make-noise()
+    match (animal, doctor) {
+    case (c as Cat, d as Cat-Doctor):
+        d.treat(c)
+    case (h as Horse, d as Horse-Doctor):
+        d.treat(h)
+    case (Cat, Horse-Doctor):
+        std::panic("This doctor cannot treat a cat!")
+    case (Horse, Cat-Doctor):
+        std::panic("This doctor cannot treat a horse!")
+    }
+}
+
+
+/*
+## Traits #####################################################################
+
+With traits, both covariance and contravariance works.
+*/
+
+
+let Cat
+let Horse
+
+let #animal {
+    has make-noise(self) -> String
+}
+
+extend Cat as #animal {
+    let make-noise(self) -> Io[] {
+        Io.print("meow!")
+    }
+}
+
+extend Horse as #animal {
+    let make-noise(self) -> Io[] {
+        Io.print("neigh!")
+    }
+}
+
+extend Horse {
+    let ride(self) -> Io[] {
+        Io.print("Ok, sure.")
+    }
+}
+
+
+// Breeders: covariance
 
 
 let Cat-Breeder
+let Horse-Breeder
 
+let #animal-breeder {
+    has Self.Animal
+    has produce(self) -> Self.Animal
+}
 extend Cat-Breeder as #animal-breeder {
     let Cat-Breeder.Animal = Cat
-    let produce() -> Cat { Cat }
+    let produce(self) -> Cat {
+        Cat
+    }
 }
-
-
-let Horse-Breeder
 
 extend Horse-Breeder as #animal-breeder {
     let Horse-Breeder.Animal = Horse
-    let produce() -> Horse { Horse }
+    let produce(self) -> Horse {
+        Horse
+    }
 }
 
 
-// Doctors
+// Doctors: contravariance
 
+
+let Cat-Doctor
+let Horse-Doctor
 
 let #animal-doctor {
     has Self.Animal
-    has treat(patient: Self.Animal) -> ()
+    has treat(self, patient: Self.Animal) -> Io[]
+}
+
+extend Cat-Doctor as #animal-doctor {
+    let Cat-Doctor.Animal = Cat
+    let treat(self, patient: Cat) -> Io[] {
+        Io.print("All done.")
+    }
+}
+
+extend Horse-Doctor as #animal-doctor {
+    let Horse-Doctor.Animal = Horse
+    let treat(self, patient: Horse) -> Io[] {
+        Io.print("All done.")
+    }
 }
 
 
-let Dr-Dolittle
-
-extend Dr-Dolittle as #animal-doctor {
-    let Dr-Dolittle.Animal = Cat | Horse
-    let treat(patient: Cat | Horse) -> () { () }
-}
-
-
-let Dr-Keat
-
-extend Dr-Keat as #animal-doctor {
-    let Dr-Keat.Animal = Cat
-    let treat(patient: Cat) -> () { () }
-}
-
-
-let Dr-Hackenbush
-
-extend Dr-Hackenbush {
-    let Dr-Hackenbush.Animal = Horse
-    let treat(patient: Horse) -> () { () }
+forall
+    B: #animal-breeder,
+    D: #animal-doctor,
+    B.Animal == D.Animal
+let produce-and-treat(breeder: B, doctor: D) -> Io[] {
+    animal = B.produce()
+    animal.make-noise()
+    D.treat(animal)
 }

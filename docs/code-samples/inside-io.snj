@@ -1,0 +1,103 @@
+/*
+# Inside IO
+
+From the [haskel wiki](https://wiki.haskell.org/IO_inside)
+*/
+
+
+/**/
+module first-attempt
+
+def get-char() -> Char {
+    ...
+}
+
+def get-2-chars() -> String {
+    "{get-char()} {get-char()}"
+}
+
+def get-2-chars' -> String {
+    c = get-char()
+    "{c} {c}"
+}
+
+def get-confirmation() -> Bool {
+    get-char() == Char "y"
+}
+
+
+/**/
+module second-attempt
+
+def get-char(fake-param: Int) -> Char {
+    ...
+}
+
+def get-2-chars() -> String {
+    "{get-char(0)} {get-char(1)}"
+}
+
+def get-confirmation() -> Bool {
+    get-char(0) == Char "y"
+}
+
+
+/**/
+module third-attempt
+
+
+
+
+/**/
+module with-monadic-bind
+
+def get-char() -> Io[Char] {
+    ...
+}
+
+def get-2-chars() -> Io[String] {
+    get-char().and-then() fun(a) {
+        get-char().and-then() fun(b) {
+            Io("{a} {b}")
+        }
+    }
+}
+
+def get-4-chars() -> Io[String] {
+    get-2-chars().and-then() fun(a) {
+        get-2-chars().and-then() fun(b) {
+            Io("{a} {b}")
+        }
+    }
+}
+
+def get-confirmation() -> Io[Bool] {
+    get-char().and-then() fun(a) {
+        Io(a == "y")
+    }
+}
+
+
+/**/
+module with-do-notation
+
+def get-char() -> Io[Char] {
+    ...
+}
+
+def get-2-chars() -> Io[String] {
+    let? a = get-char()
+    let? b = get-char()
+    Io("{a} {b}")
+}
+
+def get-4-chars() -> Io[String] {
+    let? a = get-2-chars()
+    let? b = get-2-chars()
+    Io("{a} {b}")
+}
+
+def get-confirmation() -> Io[Bool] {
+    let? a = get-char()
+    Io(a == Char "y")
+}

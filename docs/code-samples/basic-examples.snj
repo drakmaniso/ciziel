@@ -112,9 +112,9 @@ let pipeline-example() {
 		.filter(___.is-even())
 		.map(___ * 2)
 		.fold("") fun(string, number) {
-            "{string}, {number <to> String}"
+            "{string}, {String <from> number}"
 		}
- 		.map() fun(rune) {
+ 		.map fun(rune) {
             if rune.is-letter() {
                 rune.to-uppercase()
             } else {
