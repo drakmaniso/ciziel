@@ -3,35 +3,33 @@ let foo(a: Int, b: Float) -> String {
 }
 
 
-for Int {
-	let .bar(b: Float) -> String {
-		"{a} and {b}"
-	}
+let (Int).bar(b: Float) -> String {
+	"{a} and {b}"
 }
 
 
 let example-partial-application() -> Io[] {
-	Io::print(foo(___, 0.5).Type)
-	-- \Int -> String
+	Io.print({ foo(___, 0.5) }.Type.name)
+	// Int -> String
 
-	Io::print(foo(123, ___).Type)
-	-- \Float -> String
+	Io.print({ foo(123, ___) }.Type.name)
+	// Float -> String
 
-	Io::print(foo(___, ___).Type)
-	-- \(Int, Float) -> String
+	Io.print({ foo(___, ___) }.Type.name)
+	// (Int, Float) -> String
 
-	Io::print(___.bar(0.5).Type)
-	-- \Int -> String
+	Io.print({ ___.bar(0.5) }.Type.name)
+	// Int -> String
 
-	Io::print(123.bar(___).Type)
-	-- \Float -> String
+	Io.print({ 123.bar(___) }.Type.name)
+	// Float -> String
 
-	Io::print(___.bar(___).Type)
-	-- \(Int, Float) -> String
+	Io.print({ ___.bar(___) }.Type.name)
+	// (Int, Float) -> String
 }
 
 
 def main() {
-	let ex1 = 123.apply-to( foo("abc", ___) )
-	let ex2 = 123.apply-to() \x { foo("abc", x) }
+	let ex2 = 123.pipe { x => foo("abc", x) }
+	let ex1 = 123.pipe { foo("abc", ___) }
 }

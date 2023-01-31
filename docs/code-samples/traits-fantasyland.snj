@@ -1,100 +1,152 @@
-trait #setoid =
-    (Self).equals(other: Self) -> Bool
+def #setoid {
+	has (Self).equals(other: Self) -> Bool
+}
 
-trait #ord =
-    #ord
-    (Self).lte(other: Self) -> Bool
 
----
+def #ord {
+	has #setoid
+	has (Self).lte(other: Self) -> Bool
+}
 
-trait #semigroupoid =
-    (Self[I, J]).compose(other: Self[J, K]) -> Self[I, K]
 
-trait #category =
-    #semigroupoid
-    Self[A, A]'id() -> Self[A, A]
+/*****/
 
----
+def #semigroupoid {
+	has (Self[I, J]).compose(other: Self[J, K]) -> Self[I, K]
+}
 
-trait #semigroup =
-    (Self).concat(other: Self) -> Self
 
-trait #monoid =
-    #semigroup
-    Self'empty() -> Self
+def #category {
+	has #semigroupoid
+	has Self[A, A].id() -> Self[A, A]
+}
 
-trait #group =
-    #monoid
-    (Self).invert -> Self
 
----
+/*****/
 
-trait #filterable =
-    (Self[A]).filter(test: A -> Bool) -> Self[A]
 
----
+def #semigroup {
+	has (Self).concat(other: Self) -> Self
+}
 
-trait #contravariant =
-    (Self[A]).contramap(operation: B -> A) -> Self[B]
 
----
+def #monoid {
+	has #semigroup
+	has Self.empty -> Self
+}
 
-trait #functor =
-    (Self[A]).map(operation: A -> B) -> Self[B]
 
-trait #apply =
-    #functor
-    (Self[A]).ap(Self[A -> B]) -> Self[B]
+def #group {
+	has #monoid
+	has (Self).invert -> Self
+}
 
-trait #applicative =
-    #apply
-    Self[A]'of(value: A) -> Self[A]
 
-trait #alt =
-    #functor
-    (Self[A]).alt(other: Self[A]) -> Self[A]
+/*****/
 
-trait #plus =
-    #alt
-    Self[A]'zero() -> Self[A]
 
-trait #alternative =
-    #applicative
-    #plus
+def #filterable {
+	has (Self[A]).filter(test: A -> Bool) -> Self[A]
+}
 
-trait #foldable =
-    (Self[A]).reduce(operation: (B, A) -> B, init: B) -> B
 
-trait #traversable =
-    #functor
-    #foldable
-    (Self[A]).traverse(operation: A -> F[B] #applicative) -> F[Self[B]]
+/*****/
 
-trait #chain =
-    #apply
-    (Self[A]).chain(operation: A -> Self[B]) -> Self[B]
 
-trait #chain-rec =
-    #chain
-    Self[_]'chain-rec(operation: (A -> C, B -> C, A) -> Self[C], init: A) -> Self[B]
-        --what???
+def #contravariant {
+	has (Self[A]).contramap(operation: B -> A) -> Self[B]
+}
 
-trait #monad =
-    #applicative
-    #chain
 
-trait #extend =
-    #functor
-    (Self[A]).extend(operation: Self[A] -> B) -> Self[B]
+/*****/
 
-trait #comonad =
-    #extend
-    (Self[A]).extract -> A
 
-trait #bifunctor =
-    #functor
-    (Self[A, C]).bimap(operation-1: A -> B, operation-2: C -> D) -> Self[B, D]
+def #functor {
+	has (Self[A]).map(operation: A -> B) -> Self[B]
+}
 
-trait #profunctor =
-    #functor
-    (Self[B, C]).promap(operation-1: A -> B, operation-2: C -> D) -> Self[A, D]
+
+def #apply {
+	has #functor
+	has (Self[A]).ap(Self[A -> B]) -> Self[B]
+}
+
+
+def #applicative {
+	has #apply
+	has Self[A].of(value: A) -> Self[A]
+}
+
+
+def #alt {
+	has #functor
+	has (Self[A]).alt(other: Self[A]) -> Self[A]
+}
+
+
+def #plus {
+	has #alt
+	has Self[A].zero -> Self[A]
+}
+
+
+def #alternative {
+	has #applicative
+	has #plus
+}
+
+
+def #foldable {
+	has (Self[A]).reduce(operation: (B, A) -> B, init: B) -> B
+}
+
+
+def #traversable {
+	has #functor
+	has #foldable
+	has (Self[A]).traverse(operation: A -> F[B]) -> F[Self[B]]
+		forall F #applicative
+}
+
+
+def #chain {
+	has #apply
+	has (Self[A]).chain(operation: A -> Self[B]) -> Self[B]
+}
+
+
+def #chain-rec {
+	has #chain
+	has Self[Any].chain-rec(operation: (A -> C, B -> C, A) -> Self[C], init: A) -> Self[B]
+	 	// what???
+}
+
+
+def #monad {
+	has #applicative
+	has #chain
+}
+
+
+def #extend {
+	has #functor
+	has (Self[A]).extend(operation: Self[A] -> B) -> Self[B]
+}
+
+
+def #comonad {
+	has #extend
+	has (Self[A]).extract -> A
+}
+
+
+def #bifunctor {
+	has #functor
+	has (Self[A, C]).bimap(operation-1: A -> B, operation-2: C -> D) -> Self[B, D]
+}
+
+
+def #profunctor {
+	has #functor
+	has (Self[B, C]).promap(operation-1: A -> B, operation-2: C -> D) -> Self[A, D]
+}

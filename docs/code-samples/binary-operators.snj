@@ -1,42 +1,44 @@
 module std.ops
 
 
-def #add {
-    has zero: Self
-    has +(left: Self, right: Self) -> Self
+def #add = trait {
+    has Self.zero: Self
+    has (Self) + (other: Self) -> Self
 }
 
 
-def #add-with[A] {
-    has Output
-    has zero: Self
-    has +(left: Self, right: A) -> Self.Output
-    has +(left: A, right: Self) -> Self.Output
+def #add-with[A] = trait {
+    has Self.Add-Output
+    has Self.zero: Self
+    has (Self) + (other: A) -> Self.Add-Output
+    has (A) + (other: Self) -> Self.Add-Output
 }
 
 
-def #mul {
-    has one: Self
-    has *(left: Self, right: Self) -> Self
+def #mul = trait {
+    has Self.one: Self
+    has (Self) * (other: Self) -> Self
 }
 
 
-def #mul-with[Other] {
-    has Output
-    has *(left: Self, right: Other) -> Self.Output
-    has *(left: Other, right: Self) -> Self.Output
+def #mul-with[A] = trait {
+    has Self.Mul-Output
+    has Self.one: Self
+    has (Self) * (other: A) -> Self.Mul-Output
+    has (A) * (other: Self) -> Self.Mul-Output
 }
 
 
-forall A: #add-with[A]
-extend A as #add {
-    def Output = A#add-with[A].Output
-    def zero = A#add-with[A].zero
-    def +(left: A, right: A) -> A.Output {
-        left' = left#add-with[A]
-        left' + right
-    }
-}
+/* *** */
+
+
+forall A #add
+def #add-with[A] for A
+
+
+forall A #add
+def A.Add-Output = A
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,9 +50,9 @@ module vec
 use std::ops (#add, #mul)
 
 
-def Vec2 {
-    var x: Float
-    var y: Float
+def Vec2 = struct {
+    data x: Float
+    data y: Float
 }
 
 

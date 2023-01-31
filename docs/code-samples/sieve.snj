@@ -7,20 +7,21 @@ def main() -> Io[] {
     let all-numbers = Array(False, False, True, ..., [1001] = True)
     let primes = sieve(all-numbers, 2)
 
-    primes.traverse-index() \(i, is-prime) {
-        if is-prime {
-            Io::print("{i} ")
-        }
+    primes.traverse-indexed {
+        i, is-prime =>
+            if is-prime {
+                Io.print("{i} ")
+            }
     }
 }
 
 
 let sieve(flags: Array[Bool], start: Int) -> Array[Bool] {
     let cross-multiples(flags, n, i) {
-        if n * i >= flags.size() {
+        if n * i >= flags.size {
             flags
         } else {
-            let flags' = flags.with([n * i]: False)
+            let flags' = flags.with([n * i] = False)
             cross-multiples(flags', n, i + 1)
         }
     }
@@ -33,7 +34,7 @@ let sieve(flags: Array[Bool], start: Int) -> Array[Bool] {
         }
     }
 
-    if start >= flags.size() {
+    if start >= flags.size {
         flags
     } else {
         let flags' = cross-multiples(flags, start, 1)

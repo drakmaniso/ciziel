@@ -1,59 +1,55 @@
 let Pet = Cat | Dog
 
 
-let Cat {
-    let name: String
-    let favorite-toy: Cat-Toy
-}
+let Cat(
+    let name: String,
+    let favorite-toy: Cat-Toy,
+)
 
 
-let Dog {
-    let name: String
-    let favorite-toy: Dog-Toy
-}
+let Dog(
+    let name: String,
+    let favorite-toy: Dog-Toy,
+)
 
 
-derive Pet {
-    def name: String
-    def favorite-toy: Cat-Toy | Dog-Toy
-}
+has (Pet).name -> String
+has (Pet).favorite-toy -> Cat-Toy | Dog-Toy
 
 
-let Cat-Toy = Wool-Ball | Laser | Wand
+let Cat.Toy = Wool-Ball | Laser | Wand
 let Wool-Ball
 let Laser
 let Wand
 
 
-let Dog-Toy = Chew-Bone | Stick | Squeaky-Ball
+let Dog.Toy = Chew-Bone | Stick | Squeaky-Ball
 let Chew-Bone
 let Stick
 let Squeaky-Ball
 
 
-extend Cat {
-    let play(toy: Cat-Toy) -> Io[] {
-        Io.print("{self.name} plays with {toy}")
-    }
+has Pet.Toy = Cat.Toy | Dog.Toy
 
-    let greets(human: String) -> Io[] {
-        Io.print("{self.name} ignores {human}")
-    }
+
+let (Cat).play(toy: Cat.Toy) -> Io[] {
+    Io.print("{self.name} plays with {toy}")
 }
 
 
-extend Dog {
-    let play(toy: Dog-Toy) -> Io[] {
-        Io.print("{self.name} plays with {toy}")
-    }
-
-    let greets(human: String) -> Io[] {
-        Io.print("{self.name} plays with {human}")
-    }
+let (Cat).greets(human: String) -> Io[] {
+    Io.print("{self.name} ignores {human}")
 }
 
 
-derive Pet {
-    def play(toy: Cat-Toy | Dog-Toy) -> Io[]
-    def greets(human: String) -> Io[]
+let (Dog).play(toy: Dog.Toy) -> Io[] {
+    Io.print("{self.name} plays with {toy}")
 }
+
+let (Dog).greets(human: String) -> Io[] {
+    Io.print("{self.name} plays with {human}")
+}
+
+
+has (Pet).play(toy: Pet.Toy) -> Io[]
+has (Pet).greets(human: String) -> Io[]

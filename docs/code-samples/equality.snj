@@ -1,0 +1,188 @@
+module std
+
+
+def #eq = trait {
+    has (Self) == (other: Self) -> Bool
+}
+
+
+## Multiple Dispatch ##########################################################
+
+
+module basic
+
+
+def Basic = union {
+    case First
+    case Second
+}
+
+
+def #eq for Basic, First, Second
+
+
+def (Basic) == (other: Basic) -> Bool { ... }
+
+
+-------------------------------------------------------------------------------
+
+
+module extended
+
+
+use basic (Basic, First, Second)
+
+
+def Extended = union {
+    alias Basic
+    case Third
+}
+
+
+def #eq for Extended, Third
+
+
+def (Basic) == (other: Third) -> Bool { ... }
+def (Third) == (other: Extended) -> Bool { ... }
+
+
+## Single Dispatch ############################################################
+
+
+module basic
+
+
+def Basic = union {
+    case Foo
+    case Bar
+}
+
+
+def #basic = trait {
+    has (Self).as-basic -> Option[Basic]
+}
+
+
+def #basic for Basic
+def (Foo).as-basic { Some(self) }
+def (Bar).as-basic { Some(self) }
+
+
+def #eq for Basic
+
+
+forall A #basic
+def (Foo) == (other: A) -> Bool {
+    match other.as-basic {
+        case Some(Foo) => True
+        case Some(Bar) => False
+        case None => False
+    }
+}
+
+
+forall A #basic
+def (Bar) == (other: A) -> Bool {
+    match other.as-basic {
+        case Some(Foo) => False
+        case Some(Bar) => True
+        case None => False
+    }
+}
+
+
+-------------------------------------------------------------------------------
+
+
+module extended
+
+use basic (Basic, Foo, Bar, #basic)
+
+
+def Extended = union {
+    alias Basic
+    case Baz
+}
+
+
+def #basic for Extended
+def (Baz).as-basic { None }
+
+
+def #extended = trait {
+    has (Self).as-extended -> Option[Extended]
+}
+
+
+def #extended for Extended
+def (Foo).as-extended { Some(self) }
+def (Bar).as-extended { Some(self) }
+def (Baz).as-extended { Some(self) }
+
+
+def #eq for Extended
+
+
+forall A #extended
+def (Baz) == (other: A) -> Bool {
+    match other.as-extended {
+        case Foo => False
+        case Bar => False
+        case Baz => True
+    }
+}
+
+
+## Open Unions ################################################################
+
+
+module basic
+
+
+def Extensible = union {
+    case Foo
+    case Bar
+    case ...
+}
+
+
+def #eq for Extensible
+
+
+def (Foo) == (other: Extensible) -> Bool {
+    case Foo => True
+    case Bar => False
+    case any => False
+}
+
+
+def (Bar) == (other: Extensible) -> Bool {
+    case Foo => True
+    case Bar => False
+    case any => False
+}
+
+
+-------------------------------------------------------------------------------
+
+
+module extended
+
+
+use basic { Extensible; Foo; Bar }
+
+
+def Extensible = union {
+    case Baz
+    case ...
+}
+
+
+def (Baz) == (other: Extensible) -> Bool {
+    match other {
+        case Foo => False
+        case Bar => False
+        case Baz => True
+        case any => False
+    }
+}

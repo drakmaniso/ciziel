@@ -1,27 +1,32 @@
 module std
 
 
+def #to[A] {
+    has (Self) <to> A -> A
+}
+
+
 def #from[A] {
-    has <from>(value: A) -> Self
+    has (A) <to> Self -> Self
 }
 
 
 
-/**/
+/*****/
 module float
 
 
-extend Float64 as #from[Int32] {
-    def <from>(value: Int32) -> Float64 {
-        ...
-    }
+def #to[Float64] for Int32
+def #from[Int32] for Float64
+def (Int32) <to> Float64 -> Float64 {
+    ...
 }
 
 
-extend String as #from[Float64] {
-    def <from>(value: Float64) -> String {
-        ...
-    }
+def #to[String] for Float64
+def #from[Float64] for String
+def (Float64) <to> String -> String {
+    ...
 }
 
 
@@ -32,12 +37,16 @@ extend Int32 as #try-from[Float64] {
 }
 
 
-/**/
+/*****/
 
-forall A, B: #add #from[A]
-def sum(values: Array[A]) -> B {
-    values.fold(B.zero) fun(accum, value) {
-        b = B <from> val
-        accum + b
+
+def sum(values: Array[A]) -> B
+    forall A #to[B], B #add
+{
+    values.fold(B.zero) {
+        accum, v =>
+            let b = v <to> B
+            accum + b
     }
+    values.fold(B.zero) { ___ + (___ <to> B) }
 }

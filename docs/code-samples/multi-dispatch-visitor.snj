@@ -4,170 +4,267 @@
 
 
 /*
-## Simple single module version
+## Non Extensible `encounter`
 */
 
 
 module pets
 
-def #pet {
+
+def Cat(data name: String)
+def Dog(data name: String)
+
+
+def #usual-pet {
+    has (Self).name -> String
+    has (Self).meets-usual(other: #usual-pet) -> String
+    has (Self).visit-cat(other: Cat) -> String
+    has (Self).visit-bird(other: Cat) -> String
+}
+
+
+def #usual-pet for Cat, Dog
+
+
+def (Cat).meets-usual(other: #usual-pet-visitor) -> String {
+    other.visit-cat(self)
+}
+
+
+def (Dog).meets-usual(other: #usual-pet-visitor) -> String {
+    other.visit-dog(self)
+}
+
+
+def (Cat).visit-cat(other: Cat) -> String { "slinks" }
+def (Cat).visit-dog(other: Dog) -> String { "hisses" }
+def (Dog).visit-cat(other: Cat) -> String { "chases" }
+def (Dog).visit-dog(other: Dog) -> String { "sniffs" }
+
+
+def encounter-usual(a: A, b: B) -> String
+    forall A #usual-pet, B #usual-pet
+{
+    let verb = a.meets-usual(b)
+    "{a.name} meets {b.name} and {verb}"
+}
+
+
+/*****/
+
+
+module exotic-pets
+
+
+def Bird(def name: String)
+
+
+def #usual-pet for Bird
+
+
+def (Bird).visit-cat(other: Cat) -> String { "chirps" }
+def (Bird).visit-dog(other: Dog) -> String { "chirps" }
+
+
+def #exotic-pet {
+    has #usual-pet
+    has (Self).meets-exotic(other: #exotic-pet) -> String
+    has (Self).visit-bird(other: #exotic-pet) -> String
+}
+
+def #exotic-pet for Cat, Dog, Bird
+
+def (Cat).meets-exotic(other: #exotic-visitor) -> String {
+    other.visit-cat(self)
+}
+
+def (Dog).meets-exotic(other: #exotic-visitor) -> String {
+    other.visit-dog(self)
+}
+
+def (Bird).meets-exotic(other: #exotic-visitor) -> String {
+    other.visit-bird(self)
+}
+
+def #exotic-visitor {
     has #pet-visitor
-    has Self(name: String, ...)
-    has meets(other: #pet) -> String
+    has (Self).visit-bird(other: Bird) -> String
 }
 
+def #exotic-visitor for Cat, Dog, Bird
 
-def #pet-visitor {
-    has visit-dog(other: Dog) -> String
-    has visit-cat(other: Cat) -> String
-}
+def (Cat).visit-bird(other: Bird) -> String { "hunts" }
+def (Dog).visit-bird(other: Bird) -> String { "barks" }
+def (Bird).visit-bird(other: Bird) -> String { "chirps" }
 
 
-forall A #pet, B #pet
-def encounter(a: A, b: B) -> String {
+def encounter-exotic(a: A, b: B) -> String
+    forall A #exotic-pet, B #exotic-pet
+{
     let verb = a.meets(b)
     "{a.name} meets {b.name} and {verb}"
 }
 
 
-def Cat {
-    var name: String
-}
-
-extend Cat as #pet {
-    def meets(other: A #pet) -> String = { other.visit-cat(self) }
-}
-
-extend Cat as #pet-visitor {
-    def visit-cat(other: Cat) -> String = { "slinks" }
-    def visit-dog(other: Dog) -> String = { "hisses" }
-}
-
-
-def Dog {
-    var name: String
-}
-
-extend Dog as #pet {
-    def meets(other: B #pet) -> String = { other.visit-dog(self) }
-}
-
-extend Dog as #pet-visitor {
-    def visit-cat(other: Cat) -> String = { "chases" }
-    def visit-dog(other: Dog) -> String = { "sniffs" }
-}
-
-
 /*
-## Combined with the extension problem
+## Extensible Encounter #######################################################
 */
 
 
 module pets
 
 
-forall V: #visitor
-def #pet[V] {
-    has name() -> String
+def Cat[V](data name: String)
+def Dog[V](data name: String)
 
-    has meets(other: V[Self]) -> String {
-        V.visit(self, other)
+
+def #pet {
+    has (Self[V]).name -> String
+    has (Self[V]).meets(other: V.Pet) -> String
+        forall V #visitor
+}
+
+
+def #visitor {
+    has Self.Pet #pet
+    has Self.visit(a: Self.Pet, b: Self.Pet) -> String
+}
+
+
+def Visitor
+def #visitor for Visitor
+def Visitor.Pet = Cat[Visitor] | Dog[Visitor]
+def Visitor.visit(a: Visitor.Pet, b: Visitor.Pet) -> String {
+    match a, b {
+        case Cat, Cat => "slinks"
+        case Cat, Dog => "hisses"
+        case Dog, Cat => "chases"
+        case Dog, Dog => "sniffs"
     }
 }
 
 
-forall P: #pet
-def #visitor[P] {
-    has visit(a: P[V], b: Self[V]) -> String
-    implement Pet
+def encounter(a: P[V], b: P[V]) -> String
+    forall P #pet, V #visitor, V.Pet == P[V]
+{
+    let verb = a.meets(b)
+    "{a.name} meets {b.name} and {verb}"
 }
 
 
---
-
-module cats-and-dogs
-
-use pets (#pet, #visitor)
-
-def Cat[V] = struct { name: String } implement #pet
-
-def Dog[V] = struct { name: String } implement #pet
-
-def Pet[V] = enum(Cat[V] | Dog[V]) implement #visitor
-
-def Pet[V].visit(a: Pet[V], b: Pet[V]) -> String =
-    match (a, b)
-    case (a: Cat, b: Cat) then "slinks"
-    case (a: Cat, b: Dog) then "hisses"
-    case (a: Dog, b: Cat) then "chases"
-    case (a: Dog, b: Dog) then "sniffs"
-    end
+/*****/
 
 
---
+module exotic-pets
 
 
-module birds
+def Bird[V](def name: String)
 
-use cats-and-dogs (Cat, Dog)
-use pets (#pet, #visitor, Pet)
 
-def Bird[V] = struct() implement #pet
+def #pet for Bird
 
-def Ext-Pet[V] = enum(Pet[V] | Bird[V]) implement #visitor
 
-def Ext-Pet[V].visit(a: Ext-Pet[V], b: Ext-Pet[V]) -> String =
-    match (a, b)
-    case (a: Pet, b: Pet) then Pet.visit(a, b)
-    case (a: Cat, b: Bird) then "hunts"
-    case (a: Bird, b: Cat) then "flees"
-    case (a: Dog, b: Bird) then "barks"
-    case (a: Bird, b: Dog) then "flees"
-    end
+def Exotic-Visitor
+def #visitor for Exotic-Visitor
+def Exotic-Visitor.Pet = Cat[Exotic-Visitor] | Dog[Exotic-Visitor] | Bird[Exotic-Visitor]
+def Exotic-Visitor.visit(a: Exotic-Visitor.Pet, b: Exotic-Visitor.Pet) -> String {
+    match a, b {
+        case Cat, Bird => "hunts"
+        case Dog, Bird => "barks"
+        case Bird, Cat => "chirps"
+        case Bird, Dog => "chirps"
+        case Bird, Bird => "chirps"
+        case a': Visitor.Pet, b': Visitor.Pet =>
+            Visitor.visit(a', b')
+    }
+}
+
+
+## With Single Dispatch and Open Unions #######################################
+
+
+module pets
+
+
+def Pet = union {
+    case Cat { data name: String }
+    case Dog { data name: String }
+    case ...
+}
+
+
+def #meeter = trait {
+    has (Self).meets(other: Pet) -> String
+}
+def #cat-visitor = trait {
+    has (Self).visit-cat(other: Cat)
+}
+def #dog-visitor = trait {
+    has (Self).visit-dog(other: Dog)
+}
+
+
+def #meeter for Pet
+
+
+def (Cat).meets(other: Pet) -> String {
+    other.visit-cat(self)
+}
+
+
+def (Dog).meets(other: Pet) -> String {
+    other.visit-dog(self)
+}
+
+
+def #cat-visitor for Pet
+def #dog-visitor for Pet
+
+
+def (Cat).visit-cat(other: Cat) -> String { "slinks" }
+def (Cat).visit-dog(other: Dog) -> String { "hisses" }
+def (Dog).visit-cat(other: Cat) -> String { "chases" }
+def (Dog).visit-dog(other: Dog) -> String { "sniffs" }
+
+
+def encounter(a: Pet, b: Pet) -> String {
+    let verb = a.meets(b)
+    "{a.name} meets {b.name} and {verb}"
+}
 
 
 -------------------------------------------------------------------------------
 
-module test
 
-use pets (#pet)
-use dogs (Dog)
-use cats (Cat)
+module exotic-pets
 
-def example_encounter() -> Io[] =
-    Io.do {
-        let fido = Dog("Fido")
-        let rex = Dog("Rex")
-        let whiskers = Cat("Whiskers")
-        let spot = Cat("Spot")
+use pets (Pet, Cat, Dog)
 
-        Io.print(encounter(fido, rex))
-        --> Fido meets Rex and sniffs
-        Io.print(encounter(fido, whiskers))
-        --> Fido meets Whiskers and chases
-        Io.print(encounter(whiskers, rex))
-        --> Whiskers meets Rex and hisses
-        Io.print(encounter(whiskers, spot))
-        --> Whiskers meets Spot and slinks
 
-        let pets = Array(fido, whiskers)
-        Io.wrap(
-            pets.map(fun(pet) ->
-                Io.print("{pet.name}: {pet.type}")
-            )
-        )
-        --> Fido: enum(Cat | Dog)
-        --> Whiskers: enum(Cat | Dog)
+def Pet = union {
+    ...pets::Pet
+    case Bird { def name: String }
+    case ...
+}
 
-        Io.wrap(
-            pets.map(fun(a) ->
-                pets.map(fun(b) ->
-                    Io.print(encounter(a, b))
-                )
-            )
-        )
-        --> Fido meets Fido and sniffs
-        --> Fido meets Whiskers and chases
-        --> Whiskers meets Fido and hisses
-        --> Whiskers meets Whiskers and slinks
-    }
+
+def (Bird).meets(other: Pet) -> String {
+    other.visit-bird(self)
+}
+
+
+def (Bird).visit-cat(other: Cat) -> String { "chirps" }
+def (Bird).visit-dog(other: Dog) -> String { "chirps" }
+
+
+def #bird-visitor = trait {
+    has (Self).visit-bird(other: Bird) -> String
+}
+
+
+def #bird-visitor for Pet
+
+
+def (Cat).visit-bird(other: Bird) -> String { "hunts" }
+def (Dog).visit-bird(other: Bird) -> String { "barks" }
+def (Bird).visit-bird(other: Bird) -> String { "chirps" }

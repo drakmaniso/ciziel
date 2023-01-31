@@ -1,8 +1,9 @@
 def Nil
 
-def Bool = False | True
-def False
-def True
+def Bool = union {
+    case False
+    case True
+}
 
 
 /*
@@ -10,44 +11,37 @@ def True
 */
 
 
-def Option[A] = None | Some[A]
-def None
-def Some[A](var item: A)
-
-
-forall A
-derive Option[A] as #functor[A]
-
-
-forall A
-extend Some[A] as #functor[A] {
-    def .map(transform: \(A) -> B) -> Some[B] where B {
-        Some(transform(self.item))
-    }
+def Option[A] = union {
+    case None
+    case Some { data item: A }
 }
 
 
-forall A
-extend None as #functor[A] {
-    def .map(transform: \(A) -> B) -> None
-    where B {
-        None
-    }
+def #functor[A] for Option[A], None, Some[A]
+
+
+def (None).map(transform: fun(A) -> B) -> None {
+    None
 }
 
 
-forall A
-extend Option[A] as #monad[A] {
-    def ::wrap(value: A) -> Option[A] {
-        Some(value)
-    }
+def (Some[A]).map(transform: fun(A) -> B) -> Some[B] {
+    Some(transform(self.item))
+}
 
-    def .chain(operation: \(A) -> Option[B]) -> Option[B]
-    where B {
-        match self {
-        case Some(item): operation(item)
-        case None: None
-        }
+
+def #monad[A] for Option[A]
+
+
+def Option[A].wrap(value: A) -> Option[A] {
+    Some(value)
+}
+
+
+def (Option[A]).chain(operation: fun(A) -> Option[B]) -> Option[B] {
+    match self {
+        case Some(item) => operation(item)
+        case None => None
     }
 }
 
@@ -57,33 +51,27 @@ extend Option[A] as #monad[A] {
 */
 
 
-def Result[A, E] =
-    | Ok[A] 
-    | Error[E]
+def Result[A, E] = union {
+    case Ok { data value: A }
+    case Error { data error: E }
+}
 
 
-def Ok[A](
-    var value: A,
-)
+def #monad[A] for Result[A, E]
 
 
-forall E: #error
-def Error[E](
-    var error: E,
-)
+def Result[A, E].pure(value: A) -> Result[A, E] {
+    Ok(value)
+}
 
 
-extend Result[A, E] as #monad[A] {
-    def ::wrap(value: A) -> Result[A, E] {
-        Result(Ok(value))
-    }
+def (Ok[A, E]).and-then(operation: A -> Result[B, E]) -> Result[B, E] {
+    operation(self.value)
+}
 
-    def .chain(operation: \(A) -> Result[A, E]) -> Result[A, E] {
-        match self {
-        case Ok(value): operation(value)
-        case e as Error[E]: Result(e)
-        }
-    }
+
+def (Error[A, E]).and-then(operation: A -> Result[B, E]) -> Error[B, E] {
+    self
 }
 
 
@@ -92,35 +80,37 @@ extend Result[A, E] as #monad[A] {
 */
 
 
-forall I: #iterator
-def Map[I, A](
-    let iterator: I,
-    let transform: \(I::Item) -> A,
-)
-
-
-forall I: #iterator
-for Map[I, A] {
-    def ::new(iterator: I, transform: \(I::Item) -> A) -> Map[I, A] {
-        Map(iterator, transform)
-    }
+def Map[I, A] = struct {
+    let iterator: I
+    let transform: I.Item -> A
 }
 
 
-forall I: #iterator
-extend Map[I, A] as #iterator {
-    def ::Item = A
+def Map[I, A].new(iterator: I, transform: I.Item -> A) -> Map[I, A]
+    forall I #iterator
+{
+    Map(iterator, transform)
+}
 
-    def .next() -> (Map[I, A], Option[A]) {
-        match self.iterator.next() {
-        case (_, None):
-            (Self, None)
 
-        case (iter, Some(item)):
-            let new-self = self.with(iterator: iter)
+def #iterator for Map[I, A]
+    forall I #iterator
+
+
+def Map[I, A].Item = A
+
+
+def (Map[I, A]).next -> (Map[I, A], Option[A])
+    forall I #iterator
+{
+    match self.iterator.next {
+        case (Any, None) =>
+            (self, None)
+
+        case (i, Some(item)) =>
+            let new-self = self.with(iterator: i)
             let transformed = transform(item)
+
             (new-self, Some(transformed))
-        }
     }
 }
-

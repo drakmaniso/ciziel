@@ -3,17 +3,18 @@ module main
 use std::io (Io)
 
 
+-- I/O Using the IO Monad -----------------------------------------------------
+
+
 def main() -> Io[] {
 	let get-number() {
 		Io.put-string("Please enter a number: ")
 		let? answer = Io.input()
-		match answer.to-int() {
-		case Some(n):
-			Io(n)
-		case None:
-			get-number()
+		match answer.to-int {
+			case Some(n) => Io(n)
+			case None => get-number()
 		}
-    }
+	}
 
 	let? number = get-number()
 	let naive = naive-factorial(number)
@@ -26,12 +27,39 @@ def main() -> Io[] {
 }
 
 
+-- I/O Using Procedures -------------------------------------------------------
+
+
+def main!() -> Nil {
+	let get-number!() {
+		Io.put-string!("Please enter a number: ")
+		let answer = Io.input!()
+		match answer.to-int {
+			case Some(n) => Io(n)
+			case None => get-number!()
+		}
+	}
+
+	let number = get-number!()
+	let naive = naive-factorial(number)
+	let tail = tail-factorial(number)
+	let folded = folded-factorial(number)
+
+	Io.print!("naive factorial: {naive}")
+	Io.print!("tail recursice factorial: {tail}")
+	Io.print!("fold-based factorial: {folded}")
+}
+
+
+-- Various Implementations of Factorial ---------------------------------------
+
+
 let naive-factorial(n) {
 	if n <= 1 {
 		1
 	} else {
 		n * naive-factorial(n - 1)
-    }
+	}
 }
 
 
@@ -41,84 +69,93 @@ let tail-factorial(n: Int) -> Int {
 			accum
 		} else {
 			step(n - 1, n * accum)
-        }
-    }
+		}
+	}
 
 	step(n, 1)
 }
 
 
 let fold-factorial(n: Int) -> Int {
-	(2 <upto> n).fold(1, ___ * ___)
+	(2 <upto> n).fold(1) { ___ * ___ }
 }
 
 
-forall N: #num
+forall N #num
 let generic-tail-factorial(number: N) -> N {
-    let step(num, accum) {
-        if num <= N.one {
+	let step(num, accum) {
+		if num <= N.one {
 			accum
-        } else {
+		} else {
 			step(num - N.one, num * accum)
-        }
-    }
+		}
+	}
 
 	step(number, N.one)
 }
 
 
-forall N: #num #range
+forall N #num #range
 let generic-fold-factorial(number: N) -> N {
-	(N.one <upto> number).fold(N.one, ___ * ___)
+	(N.one <upto> number).fold(N.one) { ___ * ___ }
 }
 
 
+-- A Other Algorithms ---------------------------------------------------------
+
+
 let gcd(a: Int, b: Int) -> Int
-	require
-		a > 0
-		b > 0
-	ensure
-		result > 0
-{
-	let (a', b') = (max(a, b), min(a, b))
+require {
+	a > 0
+	b > 0
+} ensure {
+	result > 0
+} {
+	let a' = (a, b).max
+	let b' = (a, b).min
 	if b' == 0 {
 		a'
 	} else {
 		gcd(b', a' <mod> b')
-    }
+	}
 }
 
 
 let fibonacci(n: Int) -> Int
-	require n > 0
-	ensure result > 0
+	require  { n > 0 }
+	ensure { result > 0 }
 {
 	let step(n, previous, current) {
 		if n == 0 {
 			current
 		} else {
 			step(n - 1, current, previous + current)
-        }
-    }
+		}
+	}
 
 	step(n, 1, 1)
 }
 
 
+-- An Example of Method-Chaining ----------------------------------------------
+
+
 let pipeline-example() {
 	let my-array = Array(1, 2, 3, 4, 5, 6, 7)
 	my-array
-        .iterator()
-		.filter(___.is-even())
-		.map(___ * 2)
-		.fold("") fun(string, number) {
-            "{string}, {String <from> number}"
+		.iterator
+		.filter { ___.is-even }
+		.map { ___ * 2 }
+		.fold("") {
+			s, n => "{s}, {n <to> String}"
 		}
- 		.map fun(rune) {
-            if rune.is-letter() {
-                rune.to-uppercase()
-            } else {
-                Rune("?")
-            }
+ 		.map {
+			c =>
+				if c.is-letter {
+					c.to-uppercase
+				} else {
+					Rune("?")
+				}
 		}
+		<collect> Array
 }

@@ -1,6 +1,6 @@
-/*
+---
 # Linked List
-*/
+---
 
 
 module std::list
@@ -9,176 +9,150 @@ module std::list
 use std::iter (#iterator, #iterable)
 
 
-def List[A] = Empty | *Node[A]
-def Empty
-def Node[A] {
-    var item: A
-    var tail: List[A]
-}
-
-
-extend List[A] {
-    def new(...items: Array[A]) -> List[A] {
-        items.rev-fold(Empty) fun(item, acc) {
-            Node(item, acc)
-        }
+def List[A] = union {
+    case Empty
+    case *Node {
+        data head: A
+        data tail: List[A]
     }
 }
 
 
-/*
-## Equality #############################################################
-*/
-
-
-forall A: #eq
-extend List[A] as #eq {
-    dispatch ==(left: List[A], right: List[A]) -> Bool
-}
-
-
-extend Empty as #eq {
-    def == (left: Empty, right: Empty) -> True {
-        True
-    }
-
-
-forall A: #eq
-extend Node[A] as #eq {
-    def == (left: Node[A], right: Node[A]) -> Bool {
-        left.item == right.item
-            and left.rest == right.rest
+def List[A].new(...items: Array[A]) -> List[A] {
+    items.rev-fold(Empty) {
+        item, list =>
+            Node(head = item, tail = list)
     }
 }
 
 
-forall A: #eq
-extend Node[A] {
-    def == (left: Node[A], right: Empty) -> False {
-        False
-    }
-
-    def == (left: Empty, right: Node[A]) -> False {
-        False
-    }
-}
+---
+## Equality ###################################################################
+---
 
 
-/*
-## Pushing and Poping ###################################################
-*/
+def #eq for List[#eq], Empty, Node[#eq]
 
 
-extend List[A] {
-    def push(self, item: A) -> *Node[A] {
-        Node(item, self)
-    }
-
-    dispatch head(self) -> Option[A]
-    dispatch tail(self) -> List[A]
-}
-
-
-extend Empty {
-    def head(self) -> None {
-        None
-    }
-
-    def tail(self) -> Empty {
-        Empty
+def (List[A]) == (other: List[A]) -> Bool
+    forall A #eq
+{
+    match self, other {
+        case Empty, Empty =>
+            True
+        case a: Node, b: Node =>
+            (a.head == b.item)
+                (and a.tail == b.tail)
+        case any, any =>
+            False
     }
 }
 
 
-extend Node[A] {
-    def head(self) -> Some[A] {
-        self.item
-    }
+---
+## Pushing and Poping #########################################################
+---
 
-    def tail(self) -> List[A] {
-        self.rest
-    }
+
+def (List[A]).push(item: A) -> *Node[A] {
+    Node(head = item, tail = self)
 }
 
 
-/*
-## Functor Implementation ###############################################
-*/
+def (List[A]).head -> Option[A]
 
 
-forall A
-extend List[A] as #functor {
-    forall B
-    dispatch map(self, transform: fun(A) -> B) -> List[B]
+def (Empty).head -> None {
+    None
 }
 
 
-forall A
-extend Empty as #functor {
-    forall B
-    def map(self, transform: fun(A) -> B) -> Empty {
-        Empty
-    }
+def (List[A]).tail -> List[A]
+
+
+def (Empty).tail -> Empty {
+    Empty
 }
 
 
-forall A
-extend *Node[A] as #functor {
-    forall B
-    def map(self, transform: fun(A) -> B) -> *Node[B] {
-        Node(transform(self.item), self.rest.map(transform))
-    }
+---
+## Functor Implementation #####################################################
+---
+
+
+def #functor for List[A], Empty, Node[A] forall A
+
+
+def (List[A]).map(transform: A -> B) -> List[B]
+    forall A, B
+
+
+def (Empty).map(transform: A -> B) -> Empty
+    forall A, B
+{
+    Empty
 }
 
 
-/*
-## Iterator Implementation ##############################################
-*/
-
-
-extend List[A] as #iterable {
-    def Iterator = List-Iterator[A]
-
-    def iterator(self) -> List-Iterator[A] {
-        List-Iterator(current: self)
-    }
+def (*Node[A]).map(transform: A -> B) -> *Node[B]
+    forall A, B
+{
+    Node(
+        head = transform(self.head),
+        tail = self.tail.map(transform),
+    )
 }
 
 
-def List-Iterator[A] {
+---
+## Iterator Implementation ####################################################
+---
+
+
+def #iterable for List[A]
+
+
+def List[A].Iterator = struct {
     let current: List[A]
 }
 
 
-extend List-Iterator[A] as #iterator {
-    def Item = A
+def (List[A]).iterator -> List[A].Iterator {
+    List.Iterator(current = self)
+}
 
-    def next(self) -> (List-Iterator[A], Option[A]) {
-        match self.current {
-        case Empty:
+
+def #iterator for List[A].Iterator
+
+
+def List[A].Iterator.Item = alias A
+
+
+def (List[A].Iterator).next -> (List[A].Iterator, Option[A]) {
+    match self.current {
+        case Empty =>
             (self, None)
 
-        case Node(item, rest):
-            let new-self = self.with(current: rest)
-            (new-self, Some(item))
-        }
+        case Node(head, tail) =>
+            let new-self = self.with(current = tail)
+            (new-self, Some(head))
     }
 }
 
 
 /*
-## Usage ################################################################
+## Usage ######################################################################
 */
 
 
 module main
 
 
-use std::list { List, Node, Empty }
+use std::list (List, Node, Empty)
 
 
 let double(list: List[Int]) -> List[Int] {
-    list.map(___ * 2)
+    list.map { ___ * 2 }
 }
 
 
@@ -186,12 +160,12 @@ let main() -> Io[] {
     let a = Node(1, Node(2, Node(3, Empty)))
     let b = List.new(1, 2, 3)
 
-    Io.print(a.Type)
+    Io.print(a.Type.name)
     // Node[Int]
 
-    Io.print(b.Type)
+    Io.print(b.Type.name)
     // List[Int]
 
-    Io.print(a.map.Type))
-    // fun(Node[Int], fun(Int) -> A) -> Node[A]
+    Io.print(a.map.Type.name))
+    // (Node[Int], Int -> A) -> Node[A]
 }

@@ -1,248 +1,237 @@
+<< A simple example of algebraic data types (ADT). >>
 module geom
 
 use std::vec (Point)
 
 
-def Shape =
-	| Circle
-	| BBox
-	| Square
-	| Rectangle
-	| Polygon
-
-
-def Circle {
-	var center: Point
-	var radius: Float64
+def Shape = union {
+	alias Basic-Shape
+	alias ...
 }
 
 
-def Triangle {
-	var a: Point
-	var b: Point
-	var c: Point
+def Basic-Shape = union {
+    case Circle {
+        data center: Point
+        data radius: Float64
+    }
+
+    case Triangle {
+        data a: Point
+        data b: Point
+        data c: Point
+    }
+
+    case Rectangle {
+        data origin: Point
+        def width: Float64
+        def height: Float64
+        def angle: Float64
+    }
+
+    case BBox {
+        def min: Point
+        def max: Point
+    }
+
+    case Polygon {
+        def points: Array[Point]
+    }
 }
 
 
-def Rectangle {
-	var origin: Point
-	def width: Float64
-	def height: Float64
-	def angle: Float64
+def #shape = trait {
+	has (Self).perimeter -> Float64
+	has (Self).area -> Float64
+	has (Self).move-to(destination: Point) -> Self
+	has (Self).scale-by(factor: Float64) -> Self
 }
 
 
-def BBox {
-	def min: Point
-	def max: Point
-}
+def #shape for Shape
 
 
-def Polygon {
-	def points: Array[Point]
-}
+--- Circle --------------------------------------------------------------------
 
 
-def #shape {
-	has perimeter(self) -> Float64
-	has area(self) -> Float64
-}
-
-
-def #movable {
-	has move-to(self, destination: Point) -> Self
-}
-
-
-def #scalable {
-	has scale-by(self, factor: Float64) -> Self
-}
-
-
-// Circle /////////////////////////////////////////////////////////////////////
-
-
-extend Circle {
-	def around(points: Array[Point]) -> Circle {
-		let welzl(points, boundary) {
-			match points {
-			case _ and boundary.length() == 3:
+def Circle.around(points: Array[Point]) -> Circle {
+    let welzl(points, boundary) {
+        match points {
+			case _ and boundary.length == 3 =>
 				trivial(boundary)
 
-			case []:
+			case [] =>
 				trivial(boundary)
 
-			case [p, ...rest]:
-				d = welzl(points.remove(p), boundary)
+			case [p, ...rest] =>
+				let d = welzl(points.remove(p), boundary)
 				if d.encloses(p) {
 					d
 				} else {
 					welzl(points.remove(p), boundary.push(p))
 				}
-			}
+        }
+    }
+
+    welzl(points, [])
+}
+
+
+def (Circle).diameter -> Float64 {
+    self.radius * 2
+}
+
+
+def #shape for Circle
+
+
+def (Circle).perimeter -> Float64 {
+    math::pi * self.diameter
+}
+
+
+def (Circle).area -> Float64 {
+    math::pi * (self.radius ** 2)
+}
+
+
+def (Circle).move-to(destination: Point) -> Circle {
+    self.with(center = destination)
+}
+
+
+def (Circle).scale-by(factor: Float64) -> Circle {
+    self.with(radius = self.radius * factor)
+}
+
+
+--- BBox ----------------------------------------------------------------------
+
+
+def BBox.new(a: Point, b: Point) -> BBox {
+	let xs = (a.x, b.x)
+	let ys = (a.y, b.y)
+
+	BBox(
+		min = Point(min(...xs), min(...ys)),
+		max = Point(max(...xs), max(...ys)),
+	)
+}
+
+
+def (BBox).width -> Float64 {
+	self.max.x - self.min.x
+}
+
+
+def (BBox).height -> Float64 {
+	self.max.y - self.min.y
+}
+
+
+def (BBox).size -> Vec2 {
+	Vec2(self.width, self.height)
+}
+
+
+def #shape for BBox
+
+
+def (BBox).perimeter -> Float64 {
+	(2 * self.width) + (2 * self.height)
+}
+
+
+def (BBox).area -> Float64 {
+	self.width * self.height
+}
+
+
+def (BBox).move-to(destination: Point) -> BBox {
+	self.with(min = destination, max = destination + self.size)
+}
+
+
+def (BBox).scale-by(factor: Float64) -> BBox {
+	let delta = (factor * self.size) - self.size
+	self.with(
+		min = self.min - (delta / 2),
+		max = self.max + (delta / 2),
+	)
+}
+
+
+--- Rectangle -----------------------------------------------------------------
+
+
+def Rectangle.new(
+	origin: Point,
+	width: Float64,
+	height: Float64,
+	angle: Float64,
+) -> Rectangle {
+    let (x, width') =
+		if width < 0 {
+			(self.x - width, - width)
+		} else {
+			(self.x, width)
 		}
 
-		welzl(points, [])
-	}
+    let (y, height') =
+		if height < 0 {
+			(self.y - height, - height)
+		} else {
+			(self.y, height)
+		}
 
-	def diameter(self) -> Float64 {
-		self.radius * 2
-	}
+    Rectangle(
+        origin = Point(x, y),
+        width = width',
+        height = height',
+        angle <mod> (2 * math::pi),
+    )
 }
 
 
-extend Circle as #shape {
-	def perimeter(self) -> Float64 {
-		math::pi * self.diameter()
-	}
-
-	def area(self) -> Float64 {
-		math::pi * (self.radius ** 2)
-	}
+def (Rectangle).size -> Vec2 {
+	Vec2(self.width, self.height)
 }
 
 
-extend Circle as #movable {
-	def move(self, destination: Point) -> Circle {
-		self.with(center: destination)
-	}
+def #shape for Rectangle
+
+
+def (Rectangle).perimeter -> Float64 {
+	2 * (self.width + self.height)
 }
 
 
-extend Circle as #scalable {
-	def scale-by(self, factor: Float64) -> Circle {
-		self.with(radius: self.radius * factor)
-	}
+def (Rectangle).area -> Float64 {
+	self.width * self.height
 }
 
 
-// BBox ///////////////////////////////////////////////////////////////////////
-
-
-extend BBox {
-	def new(a: Point, b: Point) -> BBox {
-		xs = (a.x, b.x)
-		ys = (a.y, b.y)
-
-		BBox(
-			min = Point(min(...xs), min(...ys)),
-			max = Point(max(...xs), max(...ys)),
-		)
-	}
-
-
-	def width(self) -> Float64 {
-		self.max.x - self.min.x
-	}
-
-
-	def height(self) -> Float64 {
-		self.max.y - self.min.y
-	}
-
-
-	def size(self) -> Vec2 {
-		Vec2(self.width(), self.height())
-	}
+def (Rectangle).move-to(destination: Point) -> Rectangle {
+	self.with(origin = destination)
 }
 
 
-
-extend BBox as #shape {
-	def perimeter(self) -> Float64 {
-		(2 * self.width()) + (2 * self.height())
-	}
-
-
-	def area(self) -> Float64 {
-		self.width() * self.height()
-	}
+def (Rectangle).scale-by(factor: Float64) -> Rectangle {
+	self.with(
+		width = self.width * factor,
+		height = self.height * factor,
+	)
 }
 
 
-extend BBox as #movable {
-	def move-to(destination: Point) -> BBox {
-		self.with(min: destination, max: destination + self.size())
-	}
+--- Polygon -------------------------------------------------------------------
+
+
+def Polygon.new(...points: Array[Point]) {
+	Polygon(points)
 }
 
 
-extend BBox as #scalable {
-	def scale-by(self, factor: Float64) -> BBox {
-		delta = (factor * self.size) - self.size
-		self.with(
-			min: self.min - (delta / 2),
-			max: self.max + (delta / 2),
-		)
-	}
-}
-
-
-// Rectangle //////////////////////////////////////////////////////////////////
-
-
-
-extend Rectangle {
-	def new(
-		origin: Point,
-		width: Float64,
-		height: Float64,
-		angle: Float64,
-	) {
-		Rectangle(
-			origin,
-			width: min(0, width),
-			height: min(0, height),
-			angle: angle <mod> (2 * math::pi),
-		)
-	}
-
-
-	def size(self) -> Vec2 {
-		Vec2(self.width, self.height)
-	}
-}
-
-
-extend Rectangle as #shape {
-	def perimeter(self) -> Float64 {
-		2 * (self.width + self.height)
-	}
-
-
-	def area(self) -> Float64 {
-		self.width * self.height
-	}
-}
-
-
-extend Rectangle as #movable {
-	def move-to(self, destination: Point) -> Rectangle {
-		self.with(origin: destination)
-	}
-}
-
-
-extend Rectangle as #scalable {
-	def scale-by(self, factor: Float64) -> Rectangle {
-		self.with(
-			width: self.width * factor,
-			height: self.height * factor,
-		)
-	}
-}
-
-
-// Polygon ////////////////////////////////////////////////////////////////////
-
-
-extend Polygon {
-	def new(...points: Array[Point]) {
-		Polygon(points)
-	}
-
-
-	def [](self, index: Int) -> Point {
-		self.points[index]
-	}
+def (Polygon)[](index: Int) -> Point {
+	self.points[index]
 }

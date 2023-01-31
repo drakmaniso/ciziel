@@ -1,170 +1,162 @@
-/*
-# Encapsulation
-*/
+--- Encapsulation
 
 
-/*
-## Structs ####################################################################
-*/
+--- Structs -------------------------------------------------------------------
 
 
-/*
-Private Struct
-*/
-let Private {
+<< A struct declared with `let` is completely private: it cannot be used outside
+the module, and cannot appear in the public interface of the module. All its
+fields are private and must be declared with `let`. >>
+let Private = struct {
     let foo: Int
     let bar: Bool
 }
 
 
-/*
-Opaque Struct
-*/
-def Opaque {
+<< A struct declared with `def` is public, and can be used outside the module.
+However, if the fields are declared with `let`, then the constructor is private
+and so are the fields. >>
+def Opaque = struct {
     let foo: Int
     let bar: Bool
 }
 
 
-/*
-Read-Only Struct
-*/
-def Read-Only {
+<< Read-Only Struct >>
+def Read-Only = struct {
     def foo: Int
-    def bar: Int
+    def bar: Bool
 }
 
 
-/*
-Transparent Struct
-*/
-def Transparent {
-    var foo: Int
-    var bar: Bool
+<< Transparent Struct >>
+def Transparent = struct {
+    data foo: Int
+    data bar: Bool
 }
 
 
-/*
-Translucent Struct
-*/
-def Translucent {
+<< Translucent Struct >>
+def Translucent = struct {
     let opaque: Int
     def read-only: Bool
-    var transparent: String
+    data transparent: String
 }
 
 
-/*
-Proxy Struct?
-*/
-def Proxy {
-    let underlying: Int | Float
 
-    def Proxy(foo: String) {
-        n = (foo <to> Option[Int])
-            .or-else(___ <to> Option[Float])
-            .with-default(0 as Int)
-        Proxy(underlying: n)
+--- Unions --------------------------------------------------------------------
+
+
+<< Private Union >>
+let Private = union {
+    case Foo
+    case Bar
+}
+
+
+<< Opaque Union >>
+def Opaque = union {
+    alias Private
+}
+
+
+<< Transparent Union >>
+def Transparent = union {
+    case Foo
+    case Bar
+}
+
+
+<< Translucent Union >>
+def Translucent = union {
+    case Foo
+    alias Private
+}
+
+
+<< NOTE: Because unions are structural, it's impossible to create an opaque union of
+public types. >>
+
+
+-- Structs as Syntax Sugar ----------------------------------------------------
+
+
+def My-Struct = struct {
+    def foo: Int
+    let bar: Bool
+}
+
+
+def My-Struct = union {
+    case My-Struct {
+        def foo: Int
+        let bar: Bool
     }
-
-    def foo -> String {
-        underlying <to> String
-    }
-
-    def bar -> Bool {
-        match self.underlying {
-        case n as Int:
-            n.is-even()
-        case _:
-            False
-        }
-    }
-}
-
-/* would be used like:*/
-
-def Proxy {
-    var foo: String
-    def bar: Bool
-
-    def Proxy(foo: String) {
-        ...
-    }
-}
-
-/*
-## Unions #####################################################################
-*/
-
-
-let Private-Foo
-let Private-Bar
-def Public-Foo
-def Public-Bar
-
-
-/*
-Private Union
-*/
-let Private = Private-Foo | Private-Bar
-
-
-/*
-Opaque Union
-*/
-def Opaque = Private-Foo | Private-Bar
-
-
-/*
-Translucent Union
-*/
-def Translucent = Public-Foo | Private-Bar
-
-
-/*
-Transparent Union
-*/
-def Transparent = Public-Foo | Public-Bar
-
-
-/*
-NOTE: Because unions are structural, it's impossible to create an opaque union of
-public types.
-*/
-
-
-/*
-## Traits #####################################################################
-*/
-
-
-/*
-Private Traits
-*/
-let #private {
-    has foo() -> Int
-    has bar(arg: Bool) -> String
 }
 
 
-/*
-Public Traits
-*/
-def #transparent {
-    has foo() -> Int
-    has bar(arg: Bool) -> String
+--- Traits --------------------------------------------------------------------
+
+
+<< Private Traits >>
+let #private = trait {
+    has (Self).foo -> Int
+    has (Self).bar(arg: Bool) -> String
 }
 
 
-/*
-Opaque Traits
-*/
-def #opaque {
+<< Public Traits >>
+def #transparent = trait {
+    has (Self).foo -> Int
+    has (Self).bar(arg: Bool) -> String
+}
+
+
+<< Opaque Traits >>
+def #opaque = trait {
     has #private
 }
 
 
-let #private {
-    has foo() -> Int
-    has bar(arg: Bool) -> String
+let #private = trait {
+    has (Self).foo -> Int
+    has (Self).bar(arg: Bool) -> String
+}
+
+
+--- Proxy Struct? -------------------------------------------------------------
+
+
+let Proxy = union {
+    case INum(let value: Float64)
+    case FNum(let value: Int64)
+    case Invalid
+}
+
+
+def Proxy(value: String) {
+    if Float64.parse(value) case Some(n) then
+        FNum(value = n)
+    else if Int64.parse(value) case Some(n) then
+        INum(value = n)
+    else
+        Invalid
+}
+
+
+def (Proxy).value -> String {
+    match self {
+        case FNum(value) => value <to> String
+        case INum(value) => value <to> String
+        case Invalid => "*** invalid ***"
+    }
+}
+
+
+<< ...would be used like the following struct: >>
+
+
+def Proxy = struct {
+    data value: String
 }

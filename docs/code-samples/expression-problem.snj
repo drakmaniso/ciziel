@@ -1,128 +1,207 @@
-/*
-# The Expression Problem
-*/
+## The Expression Problem #####################################################
 
 
-/*
-## Base Module ################################################################
-*/
+## With Generics and Unions ###################################################
+
+
 module basic
 
 
+def Basic-Expr[E] = union {
+    case Literal(data value: Int)
+
+    case Addition(
+        data left: *E,
+        data right: *E,
+    )
+}
+
+
 def #eval {
-	has eval(self) -> Int
+	has (Self).eval -> Int
 }
 
 
-def Literal {
-    var value: Int
+def #eval for Basic-Expr[#eval]
+
+
+def (Literal).eval -> Int {
+    self.value
 }
 
 
-def Addition[A] {
-    var left: A
-    var right: A
+def (Addition[#eval]).eval -> Int {
+    self.left.eval + self.right.eval
 }
 
 
-extend Literal as #eval {
-    def eval(self) -> Int {
-        self.value
-    }
+-------------------------------------------------------------------------------
+
+
+module extended
+
+
+use basic (#eval, Basic-Expr, Literal, Addition)
+
+
+def Extended-Expr[E] = union {
+    alias Basic-Expr[E]
+    case Negation = struct { data subexpr: *E }
 }
 
 
-forall A: #eval
-extend Addition[A] as #eval {
-    def eval(self) -> Int {
-        self.left.eval() + self.right.eval()
-    }
+def #eval for Extended-Expr[#eval]
+
+
+def (Negation[#eval]).eval -> Int {
+    - self.subexpr.eval
 }
-
-
-/*
-## Extension Module ###########################################################
-*/
-module advanced
-
-
-use basic (#eval, Literal, Addition)
 
 
 def #pretty {
-	has pretty(self) -> String
+	has (Self).pretty -> String
 }
 
 
-def Negation[A] {
-    var subexpr: A
+def #pretty for Extended-Expr[#pretty]
+
+
+def (Literal).pretty -> String {
+    self.eval.to-string
 }
 
 
-forall A: #eval
-extend Negation[A] as #eval {
-    def eval(self) -> Int {
-        - self.subexpr.eval()
+def (Addition[#pretty]).pretty -> String {
+    let l = self.left.pretty
+    let r = self.right.pretty
+
+    match self.left, self.right {
+        case Literal(...), Literal(...) => "{l} + {r}"
+        case Literal(...), any => "{l} + ({r})"
+        case any, Literal(...) => "({l}) + {r}"
+        case any, any => "({l}) + ({r})"
     }
 }
 
 
-extend Literal as #pretty {
-    def pretty(self) -> String {
-        self.eval().to-string()
-    }
+def (Negation[#pretty]).pretty -> String {
+    "- ({self.subexpr.pretty})"
 }
 
 
-forall A: #pretty
-extend Addition[A] as #pretty {
-    def pretty(self) -> String {
-        l = self.left.pretty()
-        r = self.right.pretty()
-
-        match (self.left, self.right) {
-        case (_ as Literal, _ as Literal):
-            "{l} + {r}"
-        case (_ as Literal, _):
-            "{l} + ({r})"
-        case (_, _ as Literal):
-            "({l}) + {r}"
-        case (_, _):
-            "({l}) + ({r})"
-        }
-    }
-}
+-------------------------------------------------------------------------------
 
 
-forall A: #pretty
-extend Negation[A] as #pretty {
-    def pretty(self) -> String {
-        match self.subexpr {
-        case e as Literal:
-            "-{e.pretty()}"
-        case e:
-            "- ({e.pretty()})"
-        }
-    }
-}
-
-
-/*
-## Usage ######################################################################
-*/
 module main
 
 
 use basic (#eval, Literal, Addition)
-use advanced (#pretty, Negation)
+use extended (#pretty, Extended-Expr, Negation)
 
 
-def Expr = Literal | Addition[Expr] | Negation[Expr]
-extend Expr as #eval
-extend Expr as #pretty
+let Expr = alias Extended-Expr[Extended-Expr]
 
 
 def main() -> Io[] {
 	let e1: Expr = Addition(Literal(77), Negation(Literal(12)))
-	Io.print("{e1.pretty()} = {e1.eval()}")
+	Io.print("{e1.pretty} = {e1.eval}")
+}
+
+
+## With Extensible ADT ########################################################
+
+
+module basic
+
+
+def Expr = union {
+    case Literal = struct { data value: Int }
+    case Addition = struct { data left: *Expr, data right: *Expr }
+    alias ...
+}
+
+
+def #eval = trait {
+	has (Self).eval -> Int
+}
+
+
+def #eval for Expr
+
+
+def (Literal).eval -> Int {
+    self.value
+}
+
+
+def (Addition[#eval]).eval -> Int {
+    self.left.eval + self.right.eval
+}
+
+
+-------------------------------------------------------------------------------
+
+
+module advanced
+
+
+use basic (Expr, #eval)
+
+
+def Expr = union {
+    alias basic::Expr
+    case Negation = struct { data subexpr: *Expr }
+    alias ...
+}
+
+
+def (Negation[#eval]).eval -> Int {
+    - self.subexpr.eval
+}
+
+
+def #pretty = trait {
+	has (Self).pretty -> String
+}
+
+
+def #pretty for Expr
+
+
+def (Literal).pretty -> String {
+    self.eval.to-string
+}
+
+
+def (Addition[#pretty]).pretty -> String {
+    let l = self.left.pretty
+    let r = self.right.pretty
+
+    match self.left, self.right {
+        case Literal(...), Literal(...) => "{l} + {r}"
+        case Literal(...), any => "{l} + ({r})"
+        case any, Literal(...) => "({l}) + {r}"
+        case any, any => "({l}) + ({r})"
+    }
+}
+
+
+def (Negation[#pretty]).pretty -> String {
+    "- ({self.subexpr.pretty})"
+}
+
+
+-------------------------------------------------------------------------------
+
+
+module main
+
+
+use basic (#eval)
+use advanced (Expr, Addition, Literal, Negation, #pretty)
+
+
+def main() -> Io[] {
+	let e1 = Addition(Literal(77), Negation(Literal(12)))
+	Io.print("{e1.pretty} = {e1.eval}")
 }

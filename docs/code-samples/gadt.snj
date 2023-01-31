@@ -1,265 +1,290 @@
-/*
-# GADT
-*/
+<< # GADT >>
 
 
-/*
 ## First GADT Example #########################################################
 
-[from wikipedia]: https://en.wikipedia.org/wiki/Generalized_algebraic_data_type
-*/
+
+<<
+[from wikipedia]: https:--en.wikipedia.org/wiki/Generalized_algebraic_data_type
+>>
+
+
 module gadt1
 
 
-let #expr {
-    has Self.Output: #eq
-    has eval(self) -> Output
+let Expr = union {
+    case EBool { data value: Bool }
+    case EInt { data value: Int }
+    case EEqual { data left: *EInt; data right: *EInt }
 }
 
 
-let Expr = EBool | EInt | EEqual
-
-let EBool {
-    var value: Bool
-}
-
-let EInt {
-    var value: Int
-}
-
-let EEqual {
-    var left: *EInt
-    var right: *EInt
+let #expr = trait {
+    has Self.Output
+    has (Self).eval -> Self.Output
 }
 
 
-extend Expr as #expr {
-    has Expr.Output = Int | Bool
-    has eval(self) -> Int | Bool
+let #expr for Expr, EBool, EInt, EEqual
+
+
+def (Expr).eval -> union { alias Int; alias Bool }
+
+
+let EBool.Output = Bool
+let (EBool).eval -> Bool {
+    self.value
 }
 
-extend EBool as #expr {
-    let EBool.Output = Bool
-    let eval(self) -> Bool {
-        self.value
-    }
+
+let EInt.Output = Int
+let (EInt).eval -> Int {
+    self.value
 }
 
-extend EInt as #expr {
-    let EInt.Output = Int
-    let eval(self) -> Int {
-        self.value
-    }
-}
 
-extend EEqual as #expr {
-    let EEqual.Output = Bool
-    let eval(self) -> Bool {
-        self.left.eval() == self.right.eval()
-    }
+let EEqual.Output = Bool
+let (EEqual).eval -> Bool {
+    self.left.eval == self.right.eval
 }
 
 
 let main() -> Io[] {
-    expr1 = EEqual(EInt 2, EInt 3)
-    Io.print("{expr1.Type}")
-    // EEqual
+    let expr1 = EEqual(EInt 2, EInt 3)
+    Io.print("{expr1.Type.name}")
+    --> EEqual
 
-    eval1 = expr1.eval()
-    Io.print("{eval1.Type}")
-    // Bool
+    eval1 = expr1.eval
+    Io.print("{eval1.Type.name}")
+    --> Bool
 
     exprs = Array(EInt 2, EBool True, EEqual(EInt 2, EInt 3))
-    Io.print("{expr2.Type}")
-    // Array[EBool | EEqual | EInt]
+    Io.print("{expr2.Type.name}")
+    --> Array[Expr]
 
-    evals = exprs.map(___.eval())
-    Io.print("{evals.Type}")
-    // Array[Bool | Int]
+    evals = exprs.map(___.eval)
+    Io.print("{evals.Type.name}")
+    --> Array[Bool | Int]
 }
 
 
-/*
 ## Second GADT Example: Phantom Types #########################################
 
+
+<<
 From ["Fun with phantom types"] by R. Hinze
 
 ["Fun with phantom types"]:
-https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
-*/
+https:--www.researchgate.net/publication/228707929_Fun_with_phantom_types
+>>
+
+
 module gadt2
 
 
-let Term[T] = Zero[T] | Succ[T] | Pred[T] | IsZero[T] | If[T]
-
-let Zero[T]
-
-let Succ[T] {
-    var arg: Term[T]
-}
-
-let Pred[T] {
-    var arg: Term[T]
-}
-
-let IsZero[T] {
-    var arg: Term[Int]
-}
-
-let If[T] {
-    var condition: Term[Bool]
-    var then-branch: Term[T]
-    var else-branch: Term[T]
-}
-
-
-derive Term[T] {
-    let eval(self) -> T
-}
-
-forall T = Int
-extend Zero[T] {
-    let eval(self) -> Int {
-        0
-    }
-}
-
-forall T = Int
-extend Succ[T] {
-    let eval(self) -> Int {
-        self.arg.eval() + 1
-    }
-}
-
-forall T = Int
-extend Pred[T] {
-    let eval(self) -> Int {
-        self.arg.eval() - 1
-    }
-}
-
-forall T = Bool
-extend IsZero[T] {
-    let eval(self) -> Bool {
-        self.arg.eval() == 0
-    }
-}
-
-extend If[T] {
-    let eval(self) -> T {
-        if self.condition.eval() {
-            self.then-branch.eval()
-        } else {
-            self.else-branch.eval()
-        }
+let Term[T] = union {
+    case Zero
+    case Succ { data arg: Term[Int] }
+    case Pred { data arg: Term[Int] }
+    case Is-Zero { data arg: Term[Int] }
+    case If {
+        data condition: Term[Bool],
+        data then-branch: T,
+        data else-branch: T,
     }
 }
 
 
-/*
+let (Term[T]).eval -> T
+
+
+forall T == Int
+let (Zero[T]).eval -> T { 0 }
+
+
+forall T == Int
+let (Succ[T]).eval -> T { self.arg.eval + 1 }
+
+
+forall T == Int
+let (Pred[T]).eval -> T { self.arg.eval - 1 }
+
+
+forall T == Bool
+let (Is-Zero[T]).eval -> T { self.arg.eval == 0 }
+
+
+let (If[T]).eval -> T {
+    if self.condition.eval {
+        self.then-branch.eval
+    } else {
+        self.else-branch.eval
+    }
+}
+
+
+--- alternative implementation: ---
+
+
+module gadt2
+
+
+let Term = union {
+    alias ITerm
+    alias BTerm
+}
+
+
+let ITerm = union {
+    case Zero
+    case Succ { data arg: ITerm }
+    case Pred { data arg: ITerm }
+    alias If[ITerm]
+}
+
+
+let BTerm = union {
+    case Is-Zero { data arg: ITerm }
+    alias If[BTerm]
+}
+
+
+let If[T] = struct {
+    data condition: BTerm
+    data then-branch: T
+    data else-branch: T
+}
+
+
+has Term.Output = union { alias Int; alias Bool }
+has ITerm.Output = Int
+has BTerm.Output = Bool
+let Zero.Output = Int
+let Succ.Output = Int
+let Pred.Output = Int
+let Is-Zero.Output = Bool
+let If[T].Output = T
+
+
+has (Term).eval -> Term.Output
+has (ITerm).eval -> Int
+has (BTerm).eval -> Bool
+let (Zero).eval -> Int { 0 }
+let (Succ).eval -> Int { self.arg.eval + 1 }
+let (Pred).eval -> Int { self.arg.eval - 1 }
+let (Is-Zero).eval -> Bool { self.arg.eval == 0 }
+let (If[T]).eval -> T {
+    if self.condition.eval {
+        self.then-branch.eval
+    } else {
+        self.else-branch.eval
+    }
+}
+
+
 ## Third GADT Example: Higher-Order Abstract Syntax ###########################
 
+
+<<
 From
-[wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
-*/
+[wikipedia](https:--en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
+>>
+
+
 module gadt3
 
 
-let #expr {
-    has Output
-    has eval(self) -> Self.Output
+let Lift[T] = struct {
+    data value: T
 }
 
 
-let Lift[T] {
-    var value: T
-}
-
-let Pair[T, U] {
-    var first: T
-    var second: U
-}
-
-let Lambda[T, U] {
-    var value: fun(T) -> U
-}
-
-let Apply[T, U] {
-    var function: Lambda[T, U]
-    var argument: U
-}
-
-let Fix[T] {
-    var function: Lambda[T, T]
+forall T #expr, U #expr
+let Pair[T, U] = struct {
+    data first: T
+    data second: U
 }
 
 
-extend Lift[T] as #expr {
-    let Output = T
-
-    let eval() -> T {
-        self.first.value
-    }
-}
-
-forall T: #expr, U: #expr
-extend Pair[T,U] as #expr {
-    let Output = (T, U)
-
-    let eval() -> (T, U) {
-        (self.first.eval(), self.second.eval())
-    }
+forall T #expr, U #expr
+let Lambda[T, U] = struct {
+    data value: T -> U
 }
 
 
-forall T: #expr, U: #expr
-extend Lambda[T, U] as #expr {
-    let Output = fun(T) -> U
-
-    let eval() -> fun(T) -> U {
-        fun(x) {
-            self.function(Lift(x)).eval()
-        }
-    }
+forall T #expr, U #expr
+let Apply[T, U] = struct {
+    data function: Lambda[T, U]
+    data argument: U
 }
 
 
-forall T: #expr, U: #expr
-extend Apply[T, U] as #expr {
-    let Output = U
-
-    let eval() -> U {
-        self.function.eval(self.argument.eval())
-    }
+forall T #expr, U #expr
+let Fix[T] = struct {
+    data function: Lambda[T, T]
 }
 
 
-forall T: #expr
-extend Fix[T] as #expr {
-    let Output = T
-
-    let eval() -> T {
-        self.function.eval(Fix(self.function).eval())
-    }
+let #expr = trait {
+    has Self.Output
+    has (Self).eval -> Self.Output
 }
 
 
-let example() {
-    let factorial =
-        Fix(
-            Lambda(fun(f) {
-                Lambda(fun(y) {
-                    y' = y.eval()
-                    f' = f.eval()
+def #expr for Lift[T], Pair[T, U], Lambda[T, U], Apply[T, U], Fix[T]
 
-                    if y' == 0 {
-                        Lift(1)
-                    } else {
-                        Lift(y' * f'(y' - 1))
+
+let Lift[T].Output = alias T
+let Pair[T, U].Output = alias (T, U)
+let Lambda[T, U].Output = alias T -> U
+let Apply[T, U].Output = alias U
+let Fix[T].Output = alias T
+
+
+let (Lift[T]).eval -> T {
+    self.first.value
+}
+
+
+let (Pair[T, U]).eval -> (T, U) {
+    (self.first.eval, self.second.eval)
+}
+
+
+let (Lambda[T, U]).eval -> (T -> U) {
+    { x => self.function(Lift(x)).eval }
+}
+
+
+let (Apply[T, U]).eval -> U {
+    self.function.eval(self.argument.eval)
+}
+
+
+let (Fix[T]).eval -> T {
+    self.function.eval(Fix(self.function).eval)
+}
+
+
+let example() -> Io[] {
+    let factorial = Fix(
+        Lambda {
+                f =>
+                    Lambda {
+                        y =>
+                            let y' = y.eval
+                            let f' = f.eval
+
+                            if y' == 0 {
+                                Lift(1)
+                            } else {
+                                Lift(y' * f'(y' - 1))
+                            }
                     }
-                })
-            })
-        )
+        }
+    )
 
-    Io.print(Apply(factorial, Lift(10)).eval())
+    let factorial-of-ten = Apply(factorial, Lift(10))
+
+    Io.print(factorial-of-ten.eval)
 }
