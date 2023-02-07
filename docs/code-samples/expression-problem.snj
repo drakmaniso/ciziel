@@ -8,16 +8,18 @@ module basic
 
 
 def Basic-Expr[E] = union {
-    case Literal(data value: Int)
+    def Literal {
+        data value: Int
+    }
 
-    case Addition(
-        data left: *E,
-        data right: *E,
-    )
+    def Addition {
+        data left: *E
+        data right: *E
+    }
 }
 
 
-def #eval {
+def #eval = trait {
 	has (Self).eval -> Int
 }
 
@@ -45,8 +47,11 @@ use basic (#eval, Basic-Expr, Literal, Addition)
 
 
 def Extended-Expr[E] = union {
-    alias Basic-Expr[E]
-    case Negation = struct { data subexpr: *E }
+    Basic-Expr[E]
+
+    def Negation {
+        data subexpr: *E
+    }
 }
 
 
@@ -115,9 +120,16 @@ module basic
 
 
 def Expr = union {
-    case Literal = struct { data value: Int }
-    case Addition = struct { data left: *Expr, data right: *Expr }
-    alias ...
+    def Literal {
+        data value: Int
+    }
+
+    def Addition {
+        data left: *Expr
+        data right: *Expr
+    }
+
+    ...
 }
 
 
@@ -149,9 +161,11 @@ use basic (Expr, #eval)
 
 
 def Expr = union {
-    alias basic::Expr
-    case Negation = struct { data subexpr: *Expr }
-    alias ...
+    ...
+
+    def Negation {
+        data subexpr: *Expr
+    }
 }
 
 

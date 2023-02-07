@@ -1,7 +1,7 @@
-// [Haskell's Typeclassopedia]: https://wiki.haskell.org/Typeclassopedia
+-- [Haskell's Typeclassopedia]: https:--wiki.haskell.org/Typeclassopedia
 
 
-def #functor[A] {
+def #functor[A] = trait {
     has (Self[A]).fmap(transform: A -> B) -> Self[B]
 
     has (Self[A]) $> (value: B) -> Self[B] {
@@ -14,24 +14,24 @@ def #functor[A] {
 }
 
 
-/************************************************************************************/
+-------------------------------------------------------------------------------
 
 
-def #applicative {
+def #applicative = trait {
     has #functor
 
-    // aka `wrap`
+    -- aka `wrap`
     has Self[A].pure(value: A) -> Self[A]
 
-    // aka `apply`
+    -- aka `apply`
     has (Self[A -> B]) <*> (functor: Self[A]) -> Self[B]
 
-    // aka `and-then`?
+    -- aka `and-then`?
     has (Self[A]) *> (other: Self[B]) -> Self[B] {
         (identity <$ a) <*> b
     }
 
-    // aka `discard`? `when-also`?
+    -- aka `discard`? `when-also`?
     has (Self[A]) <* (other: Self[B]) -> Self[A] {
         let const-f = { x, any => x }
         Self.lift-2(const-f)
@@ -48,13 +48,12 @@ def #applicative {
 }
 
 
-/************************************************************************************/
+-------------------------------------------------------------------------------
 
-
-def #monad {
+def #monad = trait {
     has #applicative
 
-    // aka `chain`, `flat-map`, `bind`...
+    -- aka `chain`, `flat-map`, `bind`...
     has (Self[A]) >>= (operation: A -> Self[B]) -> Self[B]
 
     has (Self[A]) >> (other: Self[B]) -> Self[B] {
@@ -69,20 +68,20 @@ def #monad {
 }
 
 
-def #monad-fail {
+def #monad-fail = trait {
     has #monad
 
     has Self[A].fail(msg: String) -> Self[A]
 }
 
 
-//TODO: is this correct?
-def #monad-trans {
+--TODO: is this correct?
+def #monad-trans = trait {
     has Self[M, A].lift(monad: M[A]) -> Self[M, A]
 }
 
 
-def #comonad
+def #comona= trait d
 {
     has #functor
 
@@ -100,10 +99,10 @@ def #comonad
 }
 
 
-/************************************************************************************/
+-------------------------------------------------------------------------------
 
 
-def #semigroup {
+def #semigroup = trait {
     has append(self, other: Self) -> Self
 }
 
@@ -113,31 +112,32 @@ has #monoid {
 
     has empty: Self
 
-    has concat(values: A[Self] #functor) -> Self {
+    forall A[Self] #functor
+    has concat(values: A[Self]) -> Self {
         values.fold(Self.append, Self.empty)
     }
 }
 
 
-/************************************************************************************/
+-------------------------------------------------------------------------------
 
-def #alternative {
+
+def #alternative = trait {
     has #applicative
 
     has #monoid
 }
 
 
-def #monad-plus {
+def #monad-plus = trait {
     has #monad
 
     has #monoid
 }
 
 
-/************************************************************************************/
-
-def #reduce {
+-------------------------------------------------------------------------------
+def #reduce = trait {
     has (Self[T]).reduce(operation: (T, T) -> T) -> T
         forall T #monoid
 
@@ -150,24 +150,23 @@ def [T #monoid] #reduce =
     has reduce(self, operation: (T, T) -> T) -> T
     has fold-map(self, operation: T -> A) -> A
 
-// Catamorphisms
+-- Catamorphisms
 def [T] #foldable =
     has fold(self, initial: A, operation: (A, T) -> A) -> A
     has rev-fold(self, initial: A, operation: (T, A) -> A) -> A
 
-// Anamorphisms
+-- Anamorphisms
 def [T] #unfoldable =
     has unfold(initial: A, operation: A -> Option[(T, A)]) -> Self[T]
 
 def [T] #traversable =
     has Self[T] #functor
-    has Self[T] #foldable // or #reduce?
+    has Self[T] #foldable -- or #reduce?
     has traverse(self, operation: T -> F[B] #functor) -> F[Self[B]]
     has sequence(stuff: Self[F[T] #functor]) -> F[Self[T]]
 
 
-/************************************************************************************/
-
+-------------------------------------------------------------------------------
 def [T, U] #bifunctor =
     has bimap(self, left-operation: T -> A, right-operation: U -> B) -> Self[A, B]
     has left-map(self, left-operation: T -> A) -> Self[A, U] =
@@ -176,8 +175,7 @@ def [T, U] #bifunctor =
         self.bimap(identity, right-operation)
 
 
-/************************************************************************************/
-
+-------------------------------------------------------------------------------
 def [T, U] #category =
     has id: Self[T, T]
     has compose(self, other: Self[U -> A]) -> Self[T -> A]
@@ -198,8 +196,7 @@ def [T, U] #arrow-loop =
     has loop(Self[(A, C), (B, C)]) -> Self[A, B]
 
 
-/************************************************************************************/
-
+-------------------------------------------------------------------------------
 def [T] #comonad =
     has Self[T] #functor
     has extract(self) -> T

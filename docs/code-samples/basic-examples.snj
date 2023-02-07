@@ -105,12 +105,14 @@ let generic-fold-factorial(number: N) -> N {
 
 
 let gcd(a: Int, b: Int) -> Int
-require {
-	a > 0
-	b > 0
-} ensure {
-	result > 0
-} {
+	require {
+		a > 0
+		b > 0
+	}
+	ensure {
+		result > 0
+	}
+{
 	let a' = (a, b).max
 	let b' = (a, b).min
 	if b' == 0 {

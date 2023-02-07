@@ -1,6 +1,4 @@
----
-# Linked List
----
+-- Linked List
 
 
 module std::list
@@ -10,8 +8,8 @@ use std::iter (#iterator, #iterable)
 
 
 def List[A] = union {
-    case Empty
-    case *Node {
+    def Empty
+    def *Node {
         data head: A
         data tail: List[A]
     }
@@ -26,17 +24,14 @@ def List[A].new(...items: Array[A]) -> List[A] {
 }
 
 
----
-## Equality ###################################################################
----
+-- Equality -------------------------------------------------------------------
 
 
 def #eq for List[#eq], Empty, Node[#eq]
 
 
-def (List[A]) == (other: List[A]) -> Bool
-    forall A #eq
-{
+forall A #eq
+def (List[A]) == (other: List[A]) -> Bool {
     match self, other {
         case Empty, Empty =>
             True
@@ -49,9 +44,7 @@ def (List[A]) == (other: List[A]) -> Bool
 }
 
 
----
-## Pushing and Poping #########################################################
----
+-- Pushing and Poping ---------------------------------------------------------
 
 
 def (List[A]).push(item: A) -> *Node[A] {
@@ -75,28 +68,24 @@ def (Empty).tail -> Empty {
 }
 
 
----
-## Functor Implementation #####################################################
----
+-- Functor Implementation -----------------------------------------------------
 
 
 def #functor for List[A], Empty, Node[A] forall A
 
 
+forall A, B
 def (List[A]).map(transform: A -> B) -> List[B]
-    forall A, B
 
 
-def (Empty).map(transform: A -> B) -> Empty
-    forall A, B
-{
+forall A, B
+def (Empty).map(transform: A -> B) -> Empty {
     Empty
 }
 
 
-def (*Node[A]).map(transform: A -> B) -> *Node[B]
-    forall A, B
-{
+forall A, B
+def (*Node[A]).map(transform: A -> B) -> *Node[B] {
     Node(
         head = transform(self.head),
         tail = self.tail.map(transform),
@@ -104,9 +93,7 @@ def (*Node[A]).map(transform: A -> B) -> *Node[B]
 }
 
 
----
-## Iterator Implementation ####################################################
----
+-- Iterator Implementation ----------------------------------------------------
 
 
 def #iterable for List[A]
@@ -140,9 +127,7 @@ def (List[A].Iterator).next -> (List[A].Iterator, Option[A]) {
 }
 
 
-/*
-## Usage ######################################################################
-*/
+-- Usage ----------------------------------------------------------------------
 
 
 module main
@@ -161,11 +146,11 @@ let main() -> Io[] {
     let b = List.new(1, 2, 3)
 
     Io.print(a.Type.name)
-    // Node[Int]
+    -- Node[Int]
 
     Io.print(b.Type.name)
-    // List[Int]
+    -- List[Int]
 
     Io.print(a.map.Type.name))
-    // (Node[Int], Int -> A) -> Node[A]
+    -- (Node[Int], Int -> A) -> Node[A]
 }

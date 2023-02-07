@@ -11,8 +11,40 @@ def #from[A] {
 }
 
 
+-------------------------------------------------------------------------------
 
-/*****/
+
+def Cartesian = struct {
+    data x: Float64
+    data y: Float64
+}
+
+
+def Polar = struct {
+    data radius: Float64
+    data angle: Float64
+}
+
+
+def (Polar) <to> Cartesian -> Cartesian {
+    Cartesian(
+        x = radius * math::cos(angle),
+        y = radius * math::sin(angle),
+    )
+}
+
+
+def (Cartesian) <to> Polar -> Polar {
+    Polar(
+        radius = math::sqrt((self.x ^ 2) + (self.y ^ 2))
+        angle = math::atan2(self.y, self.x)
+    )
+}
+
+
+-------------------------------------------------------------------------------
+
+
 module float
 
 

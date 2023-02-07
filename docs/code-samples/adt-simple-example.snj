@@ -4,39 +4,33 @@ module geom
 use std::vec (Point)
 
 
-def Shape = union {
-	alias Basic-Shape
-	alias ...
-}
-
-
 def Basic-Shape = union {
-    case Circle {
+    def Circle {
         data center: Point
         data radius: Float64
-    }
+	}
 
-    case Triangle {
+    def Triangle {
         data a: Point
         data b: Point
         data c: Point
-    }
+	}
 
-    case Rectangle {
+    def Rectangle {
         data origin: Point
         def width: Float64
         def height: Float64
         def angle: Float64
-    }
+	}
 
-    case BBox {
+    def BBox {
         def min: Point
         def max: Point
-    }
+	}
 
-    case Polygon {
-        def points: Array[Point]
-    }
+    def Polygon {
+        def ...points: Array[Point]
+	}
 }
 
 
@@ -188,7 +182,7 @@ def Rectangle.new(
         origin = Point(x, y),
         width = width',
         height = height',
-        angle <mod> (2 * math::pi),
+        angle = angle <mod> (2 * math::pi),
     )
 }
 

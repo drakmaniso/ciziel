@@ -56,23 +56,23 @@ def get-char() -> Io[Char] {
 }
 
 def get-2-chars() -> Io[String] {
-    get-char().and-then() fun(a) {
-        get-char().and-then() fun(b) {
+    get-char().and-then { a =>
+        get-char().and-then { b =>
             Io("{a} {b}")
         }
     }
 }
 
 def get-4-chars() -> Io[String] {
-    get-2-chars().and-then() fun(a) {
-        get-2-chars().and-then() fun(b) {
+    get-2-chars().and-then { a =>
+        get-2-chars().and-then { b =>
             Io("{a} {b}")
         }
     }
 }
 
 def get-confirmation() -> Io[Bool] {
-    get-char().and-then() fun(a) {
+    get-char().and-then { a =>
         Io(a == "y")
     }
 }

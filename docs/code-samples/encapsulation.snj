@@ -7,6 +7,8 @@
 << A struct declared with `let` is completely private: it cannot be used outside
 the module, and cannot appear in the public interface of the module. All its
 fields are private and must be declared with `let`. >>
+
+
 let Private = struct {
     let foo: Int
     let bar: Bool
@@ -16,6 +18,8 @@ let Private = struct {
 << A struct declared with `def` is public, and can be used outside the module.
 However, if the fields are declared with `let`, then the constructor is private
 and so are the fields. >>
+
+
 def Opaque = struct {
     let foo: Int
     let bar: Bool
@@ -50,28 +54,29 @@ def Translucent = struct {
 
 << Private Union >>
 let Private = union {
-    case Foo
-    case Bar
+    let Foo
+    let Bar
 }
 
 
 << Opaque Union >>
 def Opaque = union {
-    alias Private
+    let Foo
+    let Bar
 }
 
 
 << Transparent Union >>
 def Transparent = union {
-    case Foo
-    case Bar
+    def Foo
+    def Bar
 }
 
 
 << Translucent Union >>
 def Translucent = union {
-    case Foo
-    alias Private
+    def Foo
+    let Bar
 }
 
 
@@ -88,8 +93,11 @@ def My-Struct = struct {
 }
 
 
+<< ...is sugar for: >>
+
+
 def My-Struct = union {
-    case My-Struct {
+    def My-Struct {
         def foo: Int
         let bar: Bool
     }
@@ -128,35 +136,39 @@ let #private = trait {
 --- Proxy Struct? -------------------------------------------------------------
 
 
-let Proxy = union {
-    case INum(let value: Float64)
-    case FNum(let value: Int64)
-    case Invalid
+def Cartesian = struct {
+    data x: Float64
+    data y: Float64
 }
 
 
-def Proxy(value: String) {
-    if Float64.parse(value) case Some(n) then
-        FNum(value = n)
-    else if Int64.parse(value) case Some(n) then
-        INum(value = n)
-    else
-        Invalid
+def Polar = proxy Cartesian
+
+
+def Polar(radius: Float64, angle: Float64) -> Cartesian {
+    Cartesian(
+        x = radius * math::cos(angle),
+        y = radius * math::sin(angle),
+    )
 }
 
 
-def (Proxy).value -> String {
-    match self {
-        case FNum(value) => value <to> String
-        case INum(value) => value <to> String
-        case Invalid => "*** invalid ***"
-    }
+def (Polar).radius -> Float64 {
+    math::sqrt((self.x ^ 2) + (self.y ^ 2))
 }
 
+
+def (Polar).angle -> Float64 {
+    math::atan2(self.y, self.x)
+}
+
+
+<< ...or: >>
 
 << ...would be used like the following struct: >>
 
 
-def Proxy = struct {
-    data value: String
+def Polar = struct {
+    data radius: Float64
+    data angle: Float64
 }

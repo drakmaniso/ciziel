@@ -10,22 +10,22 @@ let (Int).bar(b: Float) -> String {
 
 let example-partial-application() -> Io[] {
 	Io.print({ foo(___, 0.5) }.Type.name)
-	// Int -> String
+	-- Int -> String
 
 	Io.print({ foo(123, ___) }.Type.name)
-	// Float -> String
+	-- Float -> String
 
 	Io.print({ foo(___, ___) }.Type.name)
-	// (Int, Float) -> String
+	-- (Int, Float) -> String
 
 	Io.print({ ___.bar(0.5) }.Type.name)
-	// Int -> String
+	-- Int -> String
 
 	Io.print({ 123.bar(___) }.Type.name)
-	// Float -> String
+	-- Float -> String
 
 	Io.print({ ___.bar(___) }.Type.name)
-	// (Int, Float) -> String
+	-- (Int, Float) -> String
 }
 
 

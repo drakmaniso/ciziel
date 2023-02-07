@@ -1,40 +1,36 @@
-let Pet = Cat | Dog
+let Pet = union {
+    let Cat {
+        let name: String
+        let favorite-toy: Cat.Toy
+    }
+
+    let Dog {
+        let name: String
+        let favorite-toy: Dog.Toy
+    }
+}
 
 
-let Cat(
-    let name: String,
-    let favorite-toy: Cat-Toy,
-)
+let Cat.Toy = union {
+    let Wool-Ball
+    let Laser
+    let Wand
+}
 
 
-let Dog(
-    let name: String,
-    let favorite-toy: Dog-Toy,
-)
+let Dog.Toy = union {
+    let Chew-Bone
+    let Stick
+    let Squeaky-Ball
+}
 
 
 has (Pet).name -> String
-has (Pet).favorite-toy -> Cat-Toy | Dog-Toy
+has (Pet).favorite-toy -> union { Cat.Toy; Dog.Toy }
+has Pet.Toy = union { Cat.Toy; Dog.Toy }
 
 
-let Cat.Toy = Wool-Ball | Laser | Wand
-let Wool-Ball
-let Laser
-let Wand
-
-
-let Dog.Toy = Chew-Bone | Stick | Squeaky-Ball
-let Chew-Bone
-let Stick
-let Squeaky-Ball
-
-
-has Pet.Toy = Cat.Toy | Dog.Toy
-
-
-let (Cat).play(toy: Cat.Toy) -> Io[] {
-    Io.print("{self.name} plays with {toy}")
-}
+let (Pet).greets(human: String) -> Io[]
 
 
 let (Cat).greets(human: String) -> Io[] {
@@ -42,14 +38,19 @@ let (Cat).greets(human: String) -> Io[] {
 }
 
 
-let (Dog).play(toy: Dog.Toy) -> Io[] {
-    Io.print("{self.name} plays with {toy}")
-}
-
 let (Dog).greets(human: String) -> Io[] {
     Io.print("{self.name} plays with {human}")
 }
 
 
-has (Pet).play(toy: Pet.Toy) -> Io[]
-has (Pet).greets(human: String) -> Io[]
+let (Pet).play(toy: Pet.Toy) -> Io[]
+
+
+let (Cat).play(toy: Cat.Toy) -> Io[] {
+    Io.print("{self.name} plays with {toy}")
+}
+
+
+let (Dog).play(toy: Dog.Toy) -> Io[] {
+    Io.print("{self.name} plays with {toy}")
+}

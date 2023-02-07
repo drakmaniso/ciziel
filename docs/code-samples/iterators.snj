@@ -1,53 +1,50 @@
-/*
-## Standard traits for iterators ##############################################
-*/
+-- Standard traits for iterators ----------------------------------------------
+
+
 module std::iter
 
 
-def #iterable {
-    has Iterator: #iterator
-    has iterator(self) -> Self::Iterator
+def #iterable = trait {
+    has Self.Iterator: #iterator
+    has (Self).iterator -> Self.Iterator
 }
 
 
-def #iterator {
-    has Item
-    has next(self) -> (Self, Maybe[Self::Item])
+def #iterator = trait {
+    has Self.Item
+    has (Self).next -> (Self, Maybe[Self.Item])
 }
 
 
-/*
-## Simple iterator example ####################################################
-*/
+-- Simple iterator example ----------------------------------------------------
+
+
 module counter
 
 
 use std::iter (#iterator)
 
 
-def Counter {
+def Counter = struct {
     let count: Int
     def limit: Int
 }
 
-extend Counter {
-    def new(limit: Int) -> Counter {
-        Counter(count: 0, limit: limit)
-    }
+
+def Counter.new(limit: Int) -> Counter {
+    Counter(count: 0, limit: limit)
 }
 
 
-extend Counter as #iterator {
-    def Item = Int
-
-    def next(self) -> (Counter, Maybe[Int]) {
-        if self.count >= self.limit {
-            (self, None)
-        } else {
-            let count = self.count
-            let new-counter = self.with(count: count + 1)
-            (new-counter, Some(count))
-        }
+def Counter as #iterator
+def Counter.Item = Int
+def (Counter).next -> (Counter, Maybe[Int]) {
+    if self.count >= self.limit {
+        (self, None)
+    } else {
+        let count = self.count
+        let new-counter = self.with(count: count + 1)
+        (new-counter, Some(count))
     }
 }
 
@@ -55,9 +52,9 @@ extend Counter as #iterator {
 let example() -> Io[] {
     let step(c) {
         match c.next() {
-            case (_, None):
+            case (_, None) =>
                 Io.print("Done!")
-            case (rest, Some(number)):
+            case (rest, Some(number)) =>
                 Io.print("{number}, ")
                 step(rest)
         }
@@ -68,9 +65,9 @@ let example() -> Io[] {
 }
 
 
-/*
 -------------------------------------------------------------------------------
-*/
+
+
 module main
 
 
@@ -84,10 +81,10 @@ let foo(iterator: I, f: fun(I::Item) -> Int) -> Array[Int] {
 
 
 forall
-    I: #iterator,
-    J: #iterator,
-    I::Item == J::Item,
-    I::Item: #eq
+    I #iterator,
+    J #iterator,
+    I.Item == J.Item,
+    I.Item #eq
 let compare(i: I, j: J) -> Bool {
     match (i.next(), j.next()) {
         case ((_, None), (_, None)):

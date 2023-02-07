@@ -1,31 +1,29 @@
 def Nil
 
 def Bool = union {
-    case False
-    case True
+    def False
+    def True
 }
 
 
-/*
-## Option #####################################################################
-*/
+-- Option ---------------------------------------------------------------------
 
 
 def Option[A] = union {
-    case None
-    case Some { data item: A }
+    def None
+    def Some { data item: A }
 }
 
 
 def #functor[A] for Option[A], None, Some[A]
 
 
-def (None).map(transform: fun(A) -> B) -> None {
+def (None).map(transform: A -> B) -> None {
     None
 }
 
 
-def (Some[A]).map(transform: fun(A) -> B) -> Some[B] {
+def (Some[A]).map(transform: A -> B) -> Some[B] {
     Some(transform(self.item))
 }
 
@@ -38,7 +36,7 @@ def Option[A].wrap(value: A) -> Option[A] {
 }
 
 
-def (Option[A]).chain(operation: fun(A) -> Option[B]) -> Option[B] {
+def (Option[A]).chain(operation: A -> Option[B]) -> Option[B] {
     match self {
         case Some(item) => operation(item)
         case None => None
@@ -46,14 +44,12 @@ def (Option[A]).chain(operation: fun(A) -> Option[B]) -> Option[B] {
 }
 
 
-/*
-## Result #####################################################################
-*/
+-- Result ---------------------------------------------------------------------
 
 
 def Result[A, E] = union {
-    case Ok { data value: A }
-    case Error { data error: E }
+    def Ok { data value: A }
+    def Error { data error: E }
 }
 
 
@@ -75,9 +71,7 @@ def (Error[A, E]).and-then(operation: A -> Result[B, E]) -> Error[B, E] {
 }
 
 
-/*
-## Map Iterator ###############################################################
-*/
+-- Map Iterator ---------------------------------------------------------------
 
 
 def Map[I, A] = struct {
@@ -86,23 +80,21 @@ def Map[I, A] = struct {
 }
 
 
-def Map[I, A].new(iterator: I, transform: I.Item -> A) -> Map[I, A]
-    forall I #iterator
-{
+forall I #iterator
+def Map[I, A].new(iterator: I, transform: I.Item -> A) -> Map[I, A] {
     Map(iterator, transform)
 }
 
 
+forall I #iterator
 def #iterator for Map[I, A]
-    forall I #iterator
 
 
 def Map[I, A].Item = A
 
 
-def (Map[I, A]).next -> (Map[I, A], Option[A])
-    forall I #iterator
-{
+forall I #iterator
+def (Map[I, A]).next -> (Map[I, A], Option[A]) {
     match self.iterator.next {
         case (Any, None) =>
             (self, None)

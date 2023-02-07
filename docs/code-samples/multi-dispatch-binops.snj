@@ -11,8 +11,8 @@
 module cats-and-dogs
 
 
-def Cat(def name: String)
-def Dog(def name: String)
+def Cat = struct { def name: String }
+def Dog = struct { def name: String }
 
 
 def (Cat) <meets> (other: Cat) -> String { "slinks" }
@@ -30,7 +30,7 @@ module birds
 use cats-and-birds (Cat, Dog)
 
 
-def Bird(def name: String)
+def Bird = struct { def name: String }
 
 
 def (Bird) <meets> (other: Bird) -> String { "chirps" }

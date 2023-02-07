@@ -13,9 +13,9 @@ module gadt1
 
 
 let Expr = union {
-    case EBool { data value: Bool }
-    case EInt { data value: Int }
-    case EEqual { data left: *EInt; data right: *EInt }
+    def EBool { data value: Bool }
+    def EInt { data value: Int }
+    def EEqual { data left: *EInt; data right: *EInt }
 }
 
 
@@ -83,11 +83,11 @@ module gadt2
 
 
 let Term[T] = union {
-    case Zero
-    case Succ { data arg: Term[Int] }
-    case Pred { data arg: Term[Int] }
-    case Is-Zero { data arg: Term[Int] }
-    case If {
+    let Zero
+    let Succ { data arg: Term[Int] }
+    let Pred { data arg: Term[Int] }
+    let Is-Zero { data arg: Term[Int] }
+    let If {
         data condition: Term[Bool],
         data then-branch: T,
         data else-branch: T,
@@ -130,22 +130,22 @@ module gadt2
 
 
 let Term = union {
-    alias ITerm
-    alias BTerm
+    ITerm
+    BTerm
 }
 
 
 let ITerm = union {
-    case Zero
-    case Succ { data arg: ITerm }
-    case Pred { data arg: ITerm }
-    alias If[ITerm]
+    let Zero
+    let Succ { data arg: ITerm }
+    let Pred { data arg: ITerm }
+    If[ITerm]
 }
 
 
 let BTerm = union {
-    case Is-Zero { data arg: ITerm }
-    alias If[BTerm]
+    let Is-Zero { data arg: ITerm }
+    If[BTerm]
 }
 
 
@@ -156,7 +156,7 @@ let If[T] = struct {
 }
 
 
-has Term.Output = union { alias Int; alias Bool }
+has Term.Output = union { Int; Bool }
 has ITerm.Output = Int
 has BTerm.Output = Bool
 let Zero.Output = Int
