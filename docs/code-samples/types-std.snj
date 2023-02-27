@@ -1,18 +1,15 @@
-def Nil
+def Nil = struct {}
 
-def Bool = union {
-    def False
-    def True
-}
+
+def Bool = def False | def True
 
 
 -- Option ---------------------------------------------------------------------
 
 
-def Option[A] = union {
-    def None
-    def Some { data item: A }
-}
+def Option[A] = None[A] | Some[A]
+def None[A] = struct {}
+def Some[A] = struct { data item: A }
 
 
 def #functor[A] for Option[A], None, Some[A]
@@ -38,8 +35,8 @@ def Option[A].wrap(value: A) -> Option[A] {
 
 def (Option[A]).chain(operation: A -> Option[B]) -> Option[B] {
     match self {
-        case Some(item) => operation(item)
-        case None => None
+        | Some(item) => operation(item)
+        | None => None
     }
 }
 
@@ -47,10 +44,9 @@ def (Option[A]).chain(operation: A -> Option[B]) -> Option[B] {
 -- Result ---------------------------------------------------------------------
 
 
-def Result[A, E] = union {
-    def Ok { data value: A }
-    def Error { data error: E }
-}
+def Result[A, E] = Ok[A] | Error[E]
+def Ok[A] = struct { data value: A }
+def Error[E] = struct { data error: E }
 
 
 def #monad[A] for Result[A, E]
@@ -96,10 +92,10 @@ def Map[I, A].Item = A
 forall I #iterator
 def (Map[I, A]).next -> (Map[I, A], Option[A]) {
     match self.iterator.next {
-        case (Any, None) =>
+        | (Any, None) =>
             (self, None)
 
-        case (i, Some(item)) =>
+        | (i, Some(item)) =>
             let new-self = self.with(iterator: i)
             let transformed = transform(item)
 

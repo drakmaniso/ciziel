@@ -1,19 +1,18 @@
-/*
+<<
 # Covariance and Contravariance
 
 Adapted from a [blog article]
 (https://quuxplusone.github.io/blog/2019/01/20/covariance-and-contravariance/).
-*/
+>>
 
 
-/*
-## Unions #####################################################################
-
-With unions, only covariance works.
-*/
+-- Unions ---------------------------------------------------------------------
 
 
-let Cat
+<< With unions, only covariance works. >>
+
+
+let Cat = struct {}
 
 
 let (Cat).make-noise -> Io[] {
@@ -21,7 +20,7 @@ let (Cat).make-noise -> Io[] {
 }
 
 
-let Horse
+let Horse = struct {}
 
 
 let (Horse).make-noise -> Io[] {
@@ -40,10 +39,10 @@ let Animal = Cat | Horse
 has (Animal).make-noise(self) -> Io[]
 
 
-/* Breeders: covariance */
+<< Breeders: covariance >>
 
 
-let Cat-Breeder
+let Cat-Breeder = struct {}
 
 
 let (Cat-Breeder).produce -> Cat {
@@ -51,7 +50,7 @@ let (Cat-Breeder).produce -> Cat {
 }
 
 
-let Horse-Breeder
+let Horse-Breeder = struct {}
 
 
 let (Horse-Breeder).produce -> Horse {
@@ -65,10 +64,10 @@ let Animal-Breeder = Cat-Breeder | Horse-Breeder
 has (Animal-Breeder).produce -> Animal
 
 
-/* Doctors: contravariance */
+<< Doctors: contravariance >>
 
 
-let Cat-Doctor
+let Cat-Doctor = struct {}
 
 
 let (Cat-Doctor).treat(patient: Cat) -> Io[] {
@@ -76,7 +75,7 @@ let (Cat-Doctor).treat(patient: Cat) -> Io[] {
 }
 
 
-let Horse-Doctor
+let Horse-Doctor struct {}
 
 
 let (Horse-Doctor).treat(patient: Horse) -> Io[] {
@@ -87,43 +86,42 @@ let (Horse-Doctor).treat(patient: Horse) -> Io[] {
 let Animal-Doctor = Cat-Doctor | Horse-Doctor
 
 
-/*
+<<
 `Animal-Doctor` has no `treat` method, because it cannot be unified!
 
-```
-has (Animal-Doctor).treat(self, patient: ???) -> Io[]
-```
-*/
+    ```
+    has (Animal-Doctor).treat(self, patient: ???) -> Io[]
+    ```
+>>
 
 
 let produce-and-treat(breeder: Animal-Breeder, doctor: Animal-Doctor) -> Io[] {
     let animal = breeder.produce
     animal.make-noise
     match animal, doctor {
-        case c: Cat, d: Cat-Doctor =>
+        | c: Cat, d: Cat-Doctor =>
             d.treat(c)
-        case h: Horse, d: Horse-Doctor =>
+        | h: Horse, d: Horse-Doctor =>
             d.treat(h)
-        case Cat, Horse-Doctor =>
+        | Cat, Horse-Doctor =>
             std::panic("This doctor cannot treat a cat!")
-        case Horse, Cat-Doctor =>
+        | Horse, Cat-Doctor =>
             std::panic("This doctor cannot treat a horse!")
     }
 }
 
 
-/*
-## Traits #####################################################################
-
-With traits, both covariance and contravariance works.
-*/
+-- Traits ---------------------------------------------------------------------
 
 
-let Cat
-let Horse
+<< With traits, both covariance and contravariance works. >>
 
 
-let #animal {
+let Cat = struct {}
+let Horse = struct {}
+
+
+let #animal = trait {
     has (Self).make-noise -> Io[]
 }
 
@@ -153,7 +151,7 @@ let Cat-Breeder
 let Horse-Breeder
 
 
-let #animal-breeder {
+let #animal-breeder = trait {
     has Self.Animal
     has (Self).produce -> Self.Animal
 }
@@ -181,7 +179,7 @@ let Cat-Doctor
 let Horse-Doctor
 
 
-let #animal-doctor {
+let #animal-doctor = trait {
     has Self.Animal
     has (Self).treat(patient: Self.Animal) -> Io[]
 }

@@ -1,7 +1,7 @@
 << # GADT >>
 
 
-## First GADT Example #########################################################
+-- First GADT Example ---------------------------------------------------------
 
 
 <<
@@ -12,11 +12,10 @@
 module gadt1
 
 
-let Expr = union {
-    def EBool { data value: Bool }
-    def EInt { data value: Int }
-    def EEqual { data left: *EInt; data right: *EInt }
-}
+let Expr = EBool | EInt | EEqual
+let EBool = struct { data value: Bool }
+let EInt = struct { data value: Int }
+let EEqual = struct { data left: *EInt; data right: *EInt }
 
 
 let #expr = trait {
@@ -28,7 +27,7 @@ let #expr = trait {
 let #expr for Expr, EBool, EInt, EEqual
 
 
-def (Expr).eval -> union { alias Int; alias Bool }
+let (Expr).eval -> Int | Bool
 
 
 let EBool.Output = Bool
@@ -68,7 +67,7 @@ let main() -> Io[] {
 }
 
 
-## Second GADT Example: Phantom Types #########################################
+-- Second GADT Example: Phantom Types -----------------------------------------
 
 
 <<
@@ -82,16 +81,17 @@ https:--www.researchgate.net/publication/228707929_Fun_with_phantom_types
 module gadt2
 
 
-let Term[T] = union {
-    let Zero
-    let Succ { data arg: Term[Int] }
-    let Pred { data arg: Term[Int] }
-    let Is-Zero { data arg: Term[Int] }
-    let If {
-        data condition: Term[Bool],
-        data then-branch: T,
-        data else-branch: T,
-    }
+let Term[T] = Zero[T] | Succ[T] | Pred[T] | Is-Zero[T] | If[T]
+
+
+let Zero[T] = struct {}
+let Succ[T] = struct { data arg: Term[T] }
+let Pred[T] = struct { data arg: Term[T] }
+let Is-Zero[T] = struct { data arg: Term[T] }
+let If[T] = struct {
+    data condition: Term[Bool],
+    data then-branch: T,
+    data else-branch: T,
 }
 
 
@@ -123,32 +123,21 @@ let (If[T]).eval -> T {
 }
 
 
---- alternative implementation: ---
+<< alternative implementation: >>
 
 
 module gadt2
 
 
-let Term = union {
-    ITerm
-    BTerm
-}
+let Term = ITerm | BTerm
+let ITerm = Zero | Succ | Pred | If[Term]
+let BTerm = Is-Zero | If[Bool]
 
 
-let ITerm = union {
-    let Zero
-    let Succ { data arg: ITerm }
-    let Pred { data arg: ITerm }
-    If[ITerm]
-}
-
-
-let BTerm = union {
-    let Is-Zero { data arg: ITerm }
-    If[BTerm]
-}
-
-
+let Zero = struct {}
+let Succ = struct { data arg: ITerm }
+let Pred = struct { data arg: ITerm }
+let Is-Zero = struct { data arg: ITerm }
 let If[T] = struct {
     data condition: BTerm
     data then-branch: T
@@ -156,9 +145,9 @@ let If[T] = struct {
 }
 
 
-has Term.Output = union { Int; Bool }
-has ITerm.Output = Int
-has BTerm.Output = Bool
+let Term.Output = Int | Bool
+let ITerm.Output = Int
+let BTerm.Output = Bool
 let Zero.Output = Int
 let Succ.Output = Int
 let Pred.Output = Int
@@ -166,9 +155,9 @@ let Is-Zero.Output = Bool
 let If[T].Output = T
 
 
-has (Term).eval -> Term.Output
-has (ITerm).eval -> Int
-has (BTerm).eval -> Bool
+let (Term).eval -> Term.Output
+let (ITerm).eval -> Int
+let (BTerm).eval -> Bool
 let (Zero).eval -> Int { 0 }
 let (Succ).eval -> Int { self.arg.eval + 1 }
 let (Pred).eval -> Int { self.arg.eval - 1 }
@@ -182,7 +171,7 @@ let (If[T]).eval -> T {
 }
 
 
-## Third GADT Example: Higher-Order Abstract Syntax ###########################
+-- Third GADT Example: Higher-Order Abstract Syntax ---------------------------
 
 
 <<

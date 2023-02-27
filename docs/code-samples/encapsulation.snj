@@ -52,56 +52,38 @@ def Translucent = struct {
 --- Unions --------------------------------------------------------------------
 
 
+let Private-Foo = struct {}
+let Private-Bar = struct {}
+def Public-Foo = struct {}
+def Public-Bar = struct {}
+
+
 << Private Union >>
-let Private = union {
-    let Foo
-    let Bar
-}
+let Private =
+    | Private-Foo
+    | Private-Bar
 
 
 << Opaque Union >>
-def Opaque = union {
-    let Foo
-    let Bar
-}
+def Opaque =
+    | Private-Foo
+    | Private-Bar
 
 
 << Transparent Union >>
-def Transparent = union {
-    def Foo
-    def Bar
-}
+def Transparent =
+    | Public-Foo
+    | Public-Bar
 
 
 << Translucent Union >>
-def Translucent = union {
-    def Foo
-    let Bar
-}
+def Translucent =
+    | Public-Foo
+    | Private-Bar
 
 
 << NOTE: Because unions are structural, it's impossible to create an opaque union of
 public types. >>
-
-
--- Structs as Syntax Sugar ----------------------------------------------------
-
-
-def My-Struct = struct {
-    def foo: Int
-    let bar: Bool
-}
-
-
-<< ...is sugar for: >>
-
-
-def My-Struct = union {
-    def My-Struct {
-        def foo: Int
-        let bar: Bool
-    }
-}
 
 
 --- Traits --------------------------------------------------------------------
@@ -130,45 +112,4 @@ def #opaque = trait {
 let #private = trait {
     has (Self).foo -> Int
     has (Self).bar(arg: Bool) -> String
-}
-
-
---- Proxy Struct? -------------------------------------------------------------
-
-
-def Cartesian = struct {
-    data x: Float64
-    data y: Float64
-}
-
-
-def Polar = proxy Cartesian
-
-
-def Polar(radius: Float64, angle: Float64) -> Cartesian {
-    Cartesian(
-        x = radius * math::cos(angle),
-        y = radius * math::sin(angle),
-    )
-}
-
-
-def (Polar).radius -> Float64 {
-    math::sqrt((self.x ^ 2) + (self.y ^ 2))
-}
-
-
-def (Polar).angle -> Float64 {
-    math::atan2(self.y, self.x)
-}
-
-
-<< ...or: >>
-
-<< ...would be used like the following struct: >>
-
-
-def Polar = struct {
-    data radius: Float64
-    data angle: Float64
 }

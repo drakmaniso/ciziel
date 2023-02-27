@@ -1,18 +1,21 @@
 -- Linked List
 
 
-module std::list
+module std/list
 
 
-use std::iter (#iterator, #iterable)
+use #iterator, #iterable from std/iter
 
 
-def List[A] = union {
-    def Empty
-    def *Node {
-        data head: A
-        data tail: List[A]
-    }
+def List[A] = Empty[A] | *Node[A]
+
+
+def Empty[A] = struct {}
+
+
+def Node[A] = struct {
+    data head: A
+    data tail: List[A]
 }
 
 
@@ -33,12 +36,13 @@ def #eq for List[#eq], Empty, Node[#eq]
 forall A #eq
 def (List[A]) == (other: List[A]) -> Bool {
     match self, other {
-        case Empty, Empty =>
+        | Empty, Empty =>
             True
-        case a: Node, b: Node =>
-            (a.head == b.item)
-                (and a.tail == b.tail)
-        case any, any =>
+
+        | a: Node, b: Node =>
+            (a.head == b.item) and (a.tail == b.tail)
+
+        | any, any =>
             False
     }
 }
@@ -47,7 +51,7 @@ def (List[A]) == (other: List[A]) -> Bool {
 -- Pushing and Poping ---------------------------------------------------------
 
 
-def (List[A]).push(item: A) -> *Node[A] {
+def (List[A]).push(item: A) -> *List[A].Node {
     Node(head = item, tail = self)
 }
 
@@ -55,7 +59,7 @@ def (List[A]).push(item: A) -> *Node[A] {
 def (List[A]).head -> Option[A]
 
 
-def (Empty).head -> None {
+def (Empty[A]).head -> None[A] {
     None
 }
 
@@ -63,7 +67,7 @@ def (Empty).head -> None {
 def (List[A]).tail -> List[A]
 
 
-def (Empty).tail -> Empty {
+def (Empty[A]).tail -> Empty[A] {
     Empty
 }
 
@@ -71,7 +75,7 @@ def (Empty).tail -> Empty {
 -- Functor Implementation -----------------------------------------------------
 
 
-def #functor for List[A], Empty, Node[A] forall A
+def #functor for List[A], List[A].Empty, List[A].Node forall A
 
 
 forall A, B
@@ -79,7 +83,7 @@ def (List[A]).map(transform: A -> B) -> List[B]
 
 
 forall A, B
-def (Empty).map(transform: A -> B) -> Empty {
+def (Empty[A]).map(transform: A -> B) -> Empty[B] {
     Empty
 }
 
@@ -105,7 +109,7 @@ def List[A].Iterator = struct {
 
 
 def (List[A]).iterator -> List[A].Iterator {
-    List.Iterator(current = self)
+    Iterator(current = self)
 }
 
 
@@ -117,10 +121,10 @@ def List[A].Iterator.Item = alias A
 
 def (List[A].Iterator).next -> (List[A].Iterator, Option[A]) {
     match self.current {
-        case Empty =>
+        | Empty =>
             (self, None)
 
-        case Node(head, tail) =>
+        | Node(head, tail) =>
             let new-self = self.with(current = tail)
             (new-self, Some(head))
     }

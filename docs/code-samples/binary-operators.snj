@@ -44,7 +44,7 @@ def A.Add-Output = A
 module vec
 
 
-use std::ops (#add, #mul)
+use #add, #mul from std::ops
 
 
 def Vec2 = struct {

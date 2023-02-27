@@ -1,111 +1,114 @@
-/*
-## Constructors ###############################################################
-*/
+-- Constructors ---------------------------------------------------------------
 
 
-let Foo {
+let Foo = struct {
     let a: Int
     let b: Bool
 }
 
 
-/*
-implicitly declares the default constructor:
-*/
+<< implicitly declares the default constructor: >>
 
 
-let Foo(a: Int, b: Bool) -> Foo {
-    Foo(a, b)
-}
+let Foo(a: Int, b: Bool) -> Foo
 
 
-/*
-## Functional Update ##########################################################
-*/
+-- Functional Update ----------------------------------------------------------
 
 
 my-foo.with(a: 33)
 
 
-/*
-desugars to:
-*/
+<< desugars to: >>
 
 
 Foo(a: 33, ...my-foo)
 
 
-/*
-## Associated Functions #######################################################
-*/
+-- Associated Functions -------------------------------------------------------
 
 
-extend Foo {
-    let bar(a: Int, b: Bool) -> String {
+let Foo.bar(a: Int, b: Bool) -> String {
+    "foobar"
+}
+
+
+<< desugars to an associated constant: >>
+
+
+let Foo.bar: (Int, Bool) -> String = {
+    a, b =>
         "foobar"
-    }
 }
 
 
-/*
-desugars to an associated constant:
-*/
+-- Methods --------------------------------------------------------------------
 
 
-extend Foo {
-    let bar: fun(Int, Bool) -> String =
-        fun(a, b) {
-            "foobar"
-        }
+let (Foo).baz(self, a: Int, b: Bool) -> String {
+    "foobaz"
 }
 
 
-/*
-## Methods ####################################################################
-*/
+<< desugars to an associated function: >>
 
 
-extend Foo {
-    let baz(self, a: Int, b: Bool) -> String {
+let Foo.baz(self: Foo, a: Int, b: Bool) -> String {
+    "foobaz"
+}
+
+
+<< which desugars to an associated constant: >>
+
+
+let Foo.baz: (Foo, Int, Bool) -> String = {
+    self, a, b =>
         "foobaz"
-    }
 }
 
 
-/* desugars to an associated function: */
-
-
-extend Foo {
-    let baz(self: Foo, a: Int, b: Bool) -> String {
-        "foobaz"
-    }
-}
-
-
-/*
-which desugars to an associated constant:
-*/
-
-
-extend Foo {
-    let baz: fun(Foo, Int, Bool) -> String =
-        fun(self, a, b) {
-            "foobaz"
-        }
-}
-
-
-/*
-## Method Calls ###############################################################
-*/
+-- Method Calls ---------------------------------------------------------------
 
 
 my-foo.baz(1, True)
 
 
-/*
-desugars to: (assuming `Foo` is the type of `my-foo`)
-*/
+<< desugars to: (assuming `Foo` is the type of `my-foo`) >>
 
 
 Foo.baz(my-foo, 1, True)
+
+
+-- Operators ------------------------------------------------------------------
+
+
+let Foo <my-static-operator> Bar -> String {
+    "foobaz"
+}
+
+
+let Foo <my-half-static-operator> (other: Bar) -> String {
+    "foobaz"
+}
+
+
+let (Foo) <my-other-half-static-operator> Bar -> String {
+    "foobaz"
+}
+
+
+let (Foo) <my-operator> (other: Bar) -> String {
+    "foobaz"
+}
+
+
+-- Operators Calls ------------------------------------------------------------
+
+
+Foo <my-static-operator> Bar
+
+Foo <my-half-static-operator> my-bar
+
+my-foo <my-other-half-static-operator> Bar
+
+my-foo <my-operator> my-bar

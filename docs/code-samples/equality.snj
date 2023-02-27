@@ -12,15 +12,12 @@ def #eq = trait {
 module basic
 
 
-def Basic = union {
-    case First
-    case Second
-}
+def Basic = First | Second
+def First = struct {}
+def Second = struct {}
 
 
 def #eq for Basic, First, Second
-
-
 def (Basic) == (other: Basic) -> Bool { ... }
 
 
@@ -33,15 +30,11 @@ module extended
 use basic (Basic, First, Second)
 
 
-def Extended = union {
-    alias Basic
-    case Third
-}
+def Extended = Basic | Third
+def Third = struct {}
 
 
 def #eq for Extended, Third
-
-
 def (Basic) == (other: Third) -> Bool { ... }
 def (Third) == (other: Extended) -> Bool { ... }
 
@@ -52,10 +45,9 @@ def (Third) == (other: Extended) -> Bool { ... }
 module basic
 
 
-def Basic = union {
-    case Foo
-    case Bar
-}
+def Basic = Foo | Bar
+def Foo
+def Bar
 
 
 def #basic = trait {
@@ -74,9 +66,9 @@ def #eq for Basic
 forall A #basic
 def (Foo) == (other: A) -> Bool {
     match other.as-basic {
-        case Some(Foo) => True
-        case Some(Bar) => False
-        case None => False
+        | Some(Foo) => True
+        | Some(Bar) => False
+        | None => False
     }
 }
 
@@ -84,9 +76,9 @@ def (Foo) == (other: A) -> Bool {
 forall A #basic
 def (Bar) == (other: A) -> Bool {
     match other.as-basic {
-        case Some(Foo) => False
-        case Some(Bar) => True
-        case None => False
+        | Some(Foo) => False
+        | Some(Bar) => True
+        | None => False
     }
 }
 
@@ -99,14 +91,12 @@ module extended
 use basic (Basic, Foo, Bar, #basic)
 
 
-def Extended = union {
-    alias Basic
-    case Baz
-}
+def Extended = Basic | Baz
+def Baz = struct {}
 
 
 def #basic for Extended
-def (Baz).as-basic { None }
+def (Baz).as-basic -> None { None }
 
 
 def #extended = trait {
@@ -126,9 +116,9 @@ def #eq for Extended
 forall A #extended
 def (Baz) == (other: A) -> Bool {
     match other.as-extended {
-        case Foo => False
-        case Bar => False
-        case Baz => True
+        | Foo => False
+        | Bar => False
+        | Baz => True
     }
 }
 
@@ -140,9 +130,9 @@ module basic
 
 
 def Extensible = union {
-    case Foo
-    case Bar
-    case ...
+    | Foo
+    | Bar
+    | ...
 }
 
 
@@ -150,16 +140,16 @@ def #eq for Extensible
 
 
 def (Foo) == (other: Extensible) -> Bool {
-    case Foo => True
-    case Bar => False
-    case any => False
+    | Foo => True
+    | Bar => False
+    | any => False
 }
 
 
 def (Bar) == (other: Extensible) -> Bool {
-    case Foo => True
-    case Bar => False
-    case any => False
+    | Foo => True
+    | Bar => False
+    | any => False
 }
 
 
@@ -173,16 +163,16 @@ use basic { Extensible; Foo; Bar }
 
 
 def Extensible = union {
-    case Baz
-    case ...
+    | Baz
+    | ...
 }
 
 
 def (Baz) == (other: Extensible) -> Bool {
     match other {
-        case Foo => False
-        case Bar => False
-        case Baz => True
-        case any => False
+        | Foo => False
+        | Bar => False
+        | Baz => True
+        | any => False
     }
 }

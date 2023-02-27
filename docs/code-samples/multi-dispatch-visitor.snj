@@ -11,11 +11,11 @@
 module pets
 
 
-def Cat(data name: String)
-def Dog(data name: String)
+def Cat = struct { data name: String }
+def Dog = struct { data name: String }
 
 
-def #usual-pet {
+def #usual-pet = trait {
     has (Self).name -> String
     has (Self).meets-usual(other: #usual-pet) -> String
     has (Self).visit-cat(other: Cat) -> String
@@ -26,12 +26,12 @@ def #usual-pet {
 def #usual-pet for Cat, Dog
 
 
-def (Cat).meets-usual(other: #usual-pet-visitor) -> String {
+def (Cat).meets-usual(other: #usual-pet) -> String {
     other.visit-cat(self)
 }
 
 
-def (Dog).meets-usual(other: #usual-pet-visitor) -> String {
+def (Dog).meets-usual(other: #usual-pet) -> String {
     other.visit-dog(self)
 }
 
@@ -42,21 +42,20 @@ def (Dog).visit-cat(other: Cat) -> String { "chases" }
 def (Dog).visit-dog(other: Dog) -> String { "sniffs" }
 
 
-def encounter-usual(a: A, b: B) -> String
-    forall A #usual-pet, B #usual-pet
-{
+forall A #usual-pet, B #usual-pet
+def encounter-usual(a: A, b: B) -> String {
     let verb = a.meets-usual(b)
     "{a.name} meets {b.name} and {verb}"
 }
 
 
-/*****/
+-------------------------------------------------------------------------------
 
 
 module exotic-pets
 
 
-def Bird(def name: String)
+def Bird = struct { def name: String }
 
 
 def #usual-pet for Bird
@@ -69,38 +68,30 @@ def (Bird).visit-dog(other: Dog) -> String { "chirps" }
 def #exotic-pet {
     has #usual-pet
     has (Self).meets-exotic(other: #exotic-pet) -> String
-    has (Self).visit-bird(other: #exotic-pet) -> String
+    has (Self).visit-bird(other: Bird) -> String
 }
 
 def #exotic-pet for Cat, Dog, Bird
 
-def (Cat).meets-exotic(other: #exotic-visitor) -> String {
+def (Cat).meets-exotic(other: #exotic-pet) -> String {
     other.visit-cat(self)
 }
 
-def (Dog).meets-exotic(other: #exotic-visitor) -> String {
+def (Dog).meets-exotic(other: #exotic-pet) -> String {
     other.visit-dog(self)
 }
 
-def (Bird).meets-exotic(other: #exotic-visitor) -> String {
+def (Bird).meets-exotic(other: #exotic-pet) -> String {
     other.visit-bird(self)
 }
-
-def #exotic-visitor {
-    has #pet-visitor
-    has (Self).visit-bird(other: Bird) -> String
-}
-
-def #exotic-visitor for Cat, Dog, Bird
 
 def (Cat).visit-bird(other: Bird) -> String { "hunts" }
 def (Dog).visit-bird(other: Bird) -> String { "barks" }
 def (Bird).visit-bird(other: Bird) -> String { "chirps" }
 
 
-def encounter-exotic(a: A, b: B) -> String
-    forall A #exotic-pet, B #exotic-pet
-{
+forall A #exotic-pet, B #exotic-pet
+def encounter-exotic(a: A, b: B) -> String {
     let verb = a.meets(b)
     "{a.name} meets {b.name} and {verb}"
 }
@@ -136,10 +127,10 @@ def #visitor for Visitor
 def Visitor.Pet = Cat[Visitor] | Dog[Visitor]
 def Visitor.visit(a: Visitor.Pet, b: Visitor.Pet) -> String {
     match a, b {
-        case Cat, Cat => "slinks"
-        case Cat, Dog => "hisses"
-        case Dog, Cat => "chases"
-        case Dog, Dog => "sniffs"
+        | Cat, Cat => "slinks"
+        | Cat, Dog => "hisses"
+        | Dog, Cat => "chases"
+        | Dog, Dog => "sniffs"
     }
 }
 
@@ -152,7 +143,7 @@ def encounter(a: P[V], b: P[V]) -> String
 }
 
 
-/*****/
+-------------------------------------------------------------------------------
 
 
 module exotic-pets
@@ -169,12 +160,12 @@ def #visitor for Exotic-Visitor
 def Exotic-Visitor.Pet = Cat[Exotic-Visitor] | Dog[Exotic-Visitor] | Bird[Exotic-Visitor]
 def Exotic-Visitor.visit(a: Exotic-Visitor.Pet, b: Exotic-Visitor.Pet) -> String {
     match a, b {
-        case Cat, Bird => "hunts"
-        case Dog, Bird => "barks"
-        case Bird, Cat => "chirps"
-        case Bird, Dog => "chirps"
-        case Bird, Bird => "chirps"
-        case a': Visitor.Pet, b': Visitor.Pet =>
+        | Cat, Bird => "hunts"
+        | Dog, Bird => "barks"
+        | Bird, Cat => "chirps"
+        | Bird, Dog => "chirps"
+        | Bird, Bird => "chirps"
+        | a': Visitor.Pet, b': Visitor.Pet =>
             Visitor.visit(a', b')
     }
 }
@@ -186,11 +177,9 @@ def Exotic-Visitor.visit(a: Exotic-Visitor.Pet, b: Exotic-Visitor.Pet) -> String
 module pets
 
 
-def Pet = union {
-    case Cat { data name: String }
-    case Dog { data name: String }
-    case ...
-}
+def Pet = Cat | Dog | ...
+def Cat = struct { data name: String }
+def Dog = struct { data name: String }
 
 
 def #meeter = trait {
@@ -233,7 +222,7 @@ def encounter(a: Pet, b: Pet) -> String {
 }
 
 
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
 
 module exotic-pets
@@ -243,8 +232,8 @@ use pets (Pet, Cat, Dog)
 
 def Pet = union {
     ...pets::Pet
-    case Bird { def name: String }
-    case ...
+    | Bird { def name: String }
+    | ...
 }
 
 

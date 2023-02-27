@@ -52,9 +52,9 @@ def (Counter).next -> (Counter, Maybe[Int]) {
 let example() -> Io[] {
     let step(c) {
         match c.next() {
-            case (_, None) =>
+            | (_, None) =>
                 Io.print("Done!")
-            case (rest, Some(number)) =>
+            | (rest, Some(number)) =>
                 Io.print("{number}, ")
                 step(rest)
         }
@@ -87,17 +87,17 @@ forall
     I.Item #eq
 let compare(i: I, j: J) -> Bool {
     match (i.next(), j.next()) {
-        case ((_, None), (_, None)):
+        | ((_, None), (_, None)):
             True
 
-        case ((i-next, Some(a)), (j-next, Some(b))):
+        | ((i-next, Some(a)), (j-next, Some(b))):
             if a == b {
                 compare(i-next, j-next)
             } else {
                 False
             }
 
-        case _:
+        | _:
             False
     }
 }

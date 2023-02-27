@@ -1,33 +1,33 @@
-let Pet = union {
-    let Cat {
-        let name: String
-        let favorite-toy: Cat.Toy
-    }
+let Pet = Cat | Dog
 
-    let Dog {
-        let name: String
-        let favorite-toy: Dog.Toy
-    }
+
+let Cat = struct {
+    let name: String
+    let favorite-toy: Cat.Toy
 }
 
 
-let Cat.Toy = union {
-    let Wool-Ball
-    let Laser
-    let Wand
+let Dog = struct {
+    let name: String
+    let favorite-toy: Dog.Toy
 }
 
 
-let Dog.Toy = union {
-    let Chew-Bone
-    let Stick
-    let Squeaky-Ball
-}
+let Cat.Toy = Wool-Ball | Laser | Wand
+let Wool-Ball = struct {}
+let Laser = struct {}
+let Wand = struct {}
 
 
-has (Pet).name -> String
-has (Pet).favorite-toy -> union { Cat.Toy; Dog.Toy }
-has Pet.Toy = union { Cat.Toy; Dog.Toy }
+let Dog.Toy = Chew-Bone | Stick | Squeaky-Ball
+let Chew-Bone = struct {}
+let Stick = struct {}
+let Squeaky-Ball = struct {}
+
+
+let (Pet).name -> String
+let (Pet).favorite-toy -> Cat.Toy | Dog.Toy
+let Pet.Toy = Cat.Toy | Dog.Toy
 
 
 let (Pet).greets(human: String) -> Io[]
@@ -43,7 +43,7 @@ let (Dog).greets(human: String) -> Io[] {
 }
 
 
-let (Pet).play(toy: Pet.Toy) -> Io[]
+<< The `play` method cannot be unified: >>
 
 
 let (Cat).play(toy: Cat.Toy) -> Io[] {

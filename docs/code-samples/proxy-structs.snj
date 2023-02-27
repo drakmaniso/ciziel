@@ -1,0 +1,136 @@
+<< Different approaches for proxy structs >>
+
+
+def Date = struct {
+    let repr: UInt32
+}
+
+
+def Date.new(day: Int, month: Int, year: Int) -> Date {
+    require {
+        1 <= day <= 31
+        1 <= month <= 12
+        -32768 <= year <= 32767
+    }
+
+    let d = day - 1
+    let m = (month - 1) <lshift> 16
+    let y = (year - 1) <lshift> 32
+
+    Date(repr = y <and> m <and> d)
+}
+
+
+def (Date).day -> Int {
+    self.repr <and> 0x000000FF
+}
+
+
+def (Date).with-day(value: Int) -> Date {
+    let d = value - 1
+
+    Date(repr = d <and> (self.repr <and> 0xFFFFFF00))
+}
+
+
+def (Date).month -> Int {
+    (self.repr <and> 0x0000FF00) <rshift> 16
+}
+
+
+def (Date).with-month(value: Int) -> Date {
+    let m = (value - 1) <lshift> 16
+
+    Date(repr = m <and> (self.repr <and> 0xFFFF00FF))
+}
+
+
+def (Date).year -> Int {
+    self.repr <rshift> 32
+}
+
+
+def (Date).with-year(value: Int) -> Date {
+    let y = value <lshift> 32
+
+    Date(repr = y <and> (self.repr <and> 0xFFFF00FF))
+}
+
+
+--- Custom Constructors? ------------------------------------------------------
+
+
+def Date = struct {
+    let repr: UInt32
+}
+
+
+def Date(day: Int, month: Int, year: Int) -> Date {
+    require {
+        1 <= day <= 31
+        1 <= month <= 12
+        -32768 <= year <= 32767
+    }
+
+    let d = day - 1
+    let m = (month - 1) <lshift> 16
+    let y = (year - 1) <lshift> 32
+
+    Date(repr = y <and> m <and> d)
+}
+
+
+def (Date).day -> Int {
+    self.repr <and> 0x000000FF
+}
+
+
+def (Date).with(day: Int) -> Date {
+    let d = day - 1
+
+    Date(repr = d <and> (self.repr <and> 0xFFFFFF00))
+}
+
+
+def (Date).month -> Int {
+    (self.repr <and> 0x0000FF00) <rshift> 16
+}
+
+
+def (Date).with(month: Int) -> Date {
+    let m = (month - 1) <lshift> 16
+
+    Date(repr = m <and> (self.repr <and> 0xFFFF00FF))
+}
+
+
+def (Date).year -> Int {
+    self.repr <rshift> 32
+}
+
+
+def (Date).with(year: Int) -> Date {
+    let y = year <lshift> 32
+
+    Date(repr = y <and> (self.repr <and> 0xFFFF00FF))
+}
+
+
+--- Proxy Struct? -------------------------------------------------------------
+
+
+def Date = proxy {
+    data day: Int = self.repr <and> 0x000000FF
+
+    data month: Int = (self.repr <and> 0x0000FF00) <rshift> 16
+
+    data year: Int = self.repr <rshift> 32
+} struct {
+    let repr: UInt32 = do {
+        let d = self.day - 1
+        let m = (self.month - 1) <lshift> 16
+        let y = (self.year - 1) <lshift> 32
+
+        y <and> m <and> d
+    }
+}

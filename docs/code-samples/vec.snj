@@ -93,7 +93,7 @@ def (V.Scalar) * (other: V) -> V {
 -- Concrete Types ----------------------------------------------------------
 
 
-<< Implement Vec2 using the automatic extension: >>
+<< Implement `#vector` for `Vec2` using the automatic extension: >>
 
 
 def Vec2 = struct {
@@ -109,7 +109,7 @@ def Vec2.Scalar = alias Float32
 def #vec2, #vector for Vec2
 
 
-<< Implement #vector for Polar2 manually: >>
+<< Implement `#vector` for `Polar2` manually: >>
 
 
 def Polar2 = struct {

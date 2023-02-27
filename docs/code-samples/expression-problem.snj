@@ -7,15 +7,14 @@
 module basic
 
 
-def Basic-Expr[E] = union {
-    def Literal {
-        data value: Int
-    }
+def Literal = struct {
+    data value: Int
+}
 
-    def Addition {
-        data left: *E
-        data right: *E
-    }
+
+def Addition[E] = struct {
+    data left: *E
+    data right: *E
 }
 
 
@@ -24,7 +23,7 @@ def #eval = trait {
 }
 
 
-def #eval for Basic-Expr[#eval]
+def #eval for Literal, Addition[#eval]
 
 
 def (Literal).eval -> Int {
@@ -43,19 +42,15 @@ def (Addition[#eval]).eval -> Int {
 module extended
 
 
-use basic (#eval, Basic-Expr, Literal, Addition)
+use #eval, Literal, Addition from basic
 
 
-def Extended-Expr[E] = union {
-    Basic-Expr[E]
-
-    def Negation {
-        data subexpr: *E
-    }
+def Negation[E] = struct {
+    data subexpr: *E
 }
 
 
-def #eval for Extended-Expr[#eval]
+def #eval for Negation[#eval]
 
 
 def (Negation[#eval]).eval -> Int {
@@ -63,12 +58,12 @@ def (Negation[#eval]).eval -> Int {
 }
 
 
-def #pretty {
+def #pretty = trait {
 	has (Self).pretty -> String
 }
 
 
-def #pretty for Extended-Expr[#pretty]
+def #pretty for Literal, Addition[#pretty], Negation[#pretty]
 
 
 def (Literal).pretty -> String {
@@ -81,10 +76,10 @@ def (Addition[#pretty]).pretty -> String {
     let r = self.right.pretty
 
     match self.left, self.right {
-        case Literal(...), Literal(...) => "{l} + {r}"
-        case Literal(...), any => "{l} + ({r})"
-        case any, Literal(...) => "({l}) + {r}"
-        case any, any => "({l}) + ({r})"
+        | Literal(...), Literal(...) => "{l} + {r}"
+        | Literal(...), any => "{l} + ({r})"
+        | any, Literal(...) => "({l}) + {r}"
+        | any, any => "({l}) + ({r})"
     }
 }
 
@@ -100,11 +95,12 @@ def (Negation[#pretty]).pretty -> String {
 module main
 
 
-use basic (#eval, Literal, Addition)
-use extended (#pretty, Extended-Expr, Negation)
+use Io from std
+use #eval, Literal, Addition from basic
+use #pretty, Negation from extended
 
 
-let Expr = alias Extended-Expr[Extended-Expr]
+let Expr = Literal | Addition[Expr] | Negation[Expr]
 
 
 def main() -> Io[] {
@@ -192,10 +188,10 @@ def (Addition[#pretty]).pretty -> String {
     let r = self.right.pretty
 
     match self.left, self.right {
-        case Literal(...), Literal(...) => "{l} + {r}"
-        case Literal(...), any => "{l} + ({r})"
-        case any, Literal(...) => "({l}) + {r}"
-        case any, any => "({l}) + ({r})"
+        | Literal(...), Literal(...) => "{l} + {r}"
+        | Literal(...), any => "{l} + ({r})"
+        | any, Literal(...) => "({l}) + {r}"
+        | any, any => "({l}) + ({r})"
     }
 }
 

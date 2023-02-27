@@ -1,11 +1,7 @@
-/*
-# Multiple dispatch using custom binary operators
-*/
+<< Multiple dispatch using custom binary operators >>
 
 
-/*
-## Simple Version: Non-generic `encounter`
-*/
+-- Simple Version: Non-generic `encounter` ------------------------------------
 
 
 module cats-and-dogs
@@ -21,7 +17,7 @@ def (Dog) <meets> (other: Dog) -> String { "sniffs" }
 def (Cat) <meets> (other: Cat) -> String { "chases" }
 
 
-/*****/
+-------------------------------------------------------------------------------
 
 
 module birds
@@ -40,7 +36,7 @@ def (Cat) <meets> (other: Bird) -> String { "hunts" }
 def (Dog) <meets> (other: Bird) -> String { "barks" }
 
 
-/*****/
+-------------------------------------------------------------------------------
 
 
 module usage
@@ -72,15 +68,15 @@ let example-encounter() -> Io[] {
             b => Io.print(encounter(a, b))
         }
     }
-    // Spot meets Spot and slinks
-    // Spot meets Fido and hisses
-    // Spot meets Coco and hunts
-    // Fido meets Spot and chases
-    // Fido meets Fido and sniffs
-    // Fido meets Coco and barks
-    // Coco meets Spot and chirps
-    // Coco meets Fido and chirps
-    // Coco meets Coco and chirps
+    -- Spot meets Spot and slinks
+    -- Spot meets Fido and hisses
+    -- Spot meets Coco and hunts
+    -- Fido meets Spot and chases
+    -- Fido meets Fido and sniffs
+    -- Fido meets Coco and barks
+    -- Coco meets Spot and chirps
+    -- Coco meets Fido and chirps
+    -- Coco meets Coco and chirps
 }
 
 
@@ -97,21 +93,19 @@ let example-encounter(io!: Console) {
             b => io!.print(encounter(a, b))
         }
     }
-    // Spot meets Spot and slinks
-    // Spot meets Fido and hisses
-    // Spot meets Coco and hunts
-    // Fido meets Spot and chases
-    // Fido meets Fido and sniffs
-    // Fido meets Coco and barks
-    // Coco meets Spot and chirps
-    // Coco meets Fido and chirps
-    // Coco meets Coco and chirps
+    -- Spot meets Spot and slinks
+    -- Spot meets Fido and hisses
+    -- Spot meets Coco and hunts
+    -- Fido meets Spot and chases
+    -- Fido meets Fido and sniffs
+    -- Fido meets Coco and barks
+    -- Coco meets Spot and chirps
+    -- Coco meets Fido and chirps
+    -- Coco meets Coco and chirps
 }
 
 
-/*
-## Using Traits: Generic `encounter`
-*/
+-- Using Traits: Generic `encounter` ------------------------------------------
 
 
 module pets
@@ -131,7 +125,7 @@ def encounter(a: P, b: P) -> String
 }
 
 
-/*****/
+-------------------------------------------------------------------------------
 
 
 module cats-and-dogs
@@ -152,7 +146,7 @@ def (Dog) <meets> (other: Cat) -> String { "chases" }
 def (Dog) <meets> (other: Dog) -> String { "sniffs" }
 
 
-/*****/
+-------------------------------------------------------------------------------
 
 
 module birds
@@ -174,7 +168,7 @@ def (Cat) <meets> (other: Bird) -> String { "hunts" }
 def (Dog) <meets> (other: Bird) -> String { "barks" }
 
 
-/*****************************************************************************/
+-------------------------------------------------------------------------------
 
 
 module main
@@ -198,13 +192,13 @@ def main() -> Io[] {
             b => Io.print(encounter(a, b))
         }
     }
-    // Spot meets Spot and slinks
-    // Spot meets Fido and hisses
-    // Spot meets Coco and hunts
-    // Fido meets Spot and chases
-    // Fido meets Fido and sniffs
-    // Fido meets Coco and barks
-    // Coco meets Spot and chirps
-    // Coco meets Fido and chirps
-    // Coco meets Coco and chirps
+    -- Spot meets Spot and slinks
+    -- Spot meets Fido and hisses
+    -- Spot meets Coco and hunts
+    -- Fido meets Spot and chases
+    -- Fido meets Fido and sniffs
+    -- Fido meets Coco and barks
+    -- Coco meets Spot and chirps
+    -- Coco meets Fido and chirps
+    -- Coco meets Coco and chirps
 }

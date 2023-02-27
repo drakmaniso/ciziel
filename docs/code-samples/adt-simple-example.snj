@@ -1,36 +1,42 @@
 << A simple example of algebraic data types (ADT). >>
 module geom
 
-use std::vec (Point)
+use Point from std::vec
 
 
-def Basic-Shape = union {
-    def Circle {
-        data center: Point
-        data radius: Float64
-	}
+def Basic-Shape =
+	| Circle
+	| Triangle
+	| Rectangle
+	| BBox
+	| Polygon
 
-    def Triangle {
-        data a: Point
-        data b: Point
-        data c: Point
-	}
 
-    def Rectangle {
-        data origin: Point
-        def width: Float64
-        def height: Float64
-        def angle: Float64
-	}
+def Circle = struct {
+	data center: Point
+	data radius: Float64
+}
 
-    def BBox {
-        def min: Point
-        def max: Point
-	}
+def Triangle = struct {
+	data a: Point
+	data b: Point
+	data c: Point
+}
 
-    def Polygon {
-        def ...points: Array[Point]
-	}
+def Rectangle = struct {
+	data origin: Point
+	def width: Float64
+	def height: Float64
+	def angle: Float64
+}
+
+def BBox = struct {
+	def min: Point
+	def max: Point
+}
+
+def Polygon = struct {
+	def ...points: Array[Point]
 }
 
 
@@ -51,13 +57,13 @@ def #shape for Shape
 def Circle.around(points: Array[Point]) -> Circle {
     let welzl(points, boundary) {
         match points {
-			case _ and boundary.length == 3 =>
+			| _ and boundary.length == 3 =>
 				trivial(boundary)
 
-			case [] =>
+			| [] =>
 				trivial(boundary)
 
-			case [p, ...rest] =>
+			| [p, ...rest] =>
 				let d = welzl(points.remove(p), boundary)
 				if d.encloses(p) {
 					d
@@ -226,6 +232,6 @@ def Polygon.new(...points: Array[Point]) {
 }
 
 
-def (Polygon)[](index: Int) -> Point {
+def (Polygon)[index: Int] -> Point {
 	self.points[index]
 }
