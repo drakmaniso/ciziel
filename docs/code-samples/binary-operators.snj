@@ -1,40 +1,125 @@
+---- With Single Dispatch and Default Implementations -------------------------
+
+
+module /std/ops
+public
+
+
+trait #add {
+	type Self.Add-Output = Self
+	type Self.Add-Right-Hand = Self
+	val Self.zero: Self
+	val Self.right-hand-zero: Self.Add-Right-Hand = Self.zero
+	fun (Self) + (other: Self.Add-Right-Hand) -> Self.Add-Output
+}
+
+
+trait #mul {
+	type Self.Mul-Output = Self
+	type Self.Mul-Right-Hand = Self
+	val Self.one: Self
+	val Self.right-hand-one: Self.Mul-Right-Hand = self.one
+	fun (Self) * (other: Self.Mul-Right-Hand) -> Self.Mul-Output
+}
+
+
+trait #eq {
+	type Self.Eq-Right-Hand = Self
+	fun (Self) == (other: Self.Eq-Right-Hand) -> Bool
+}
+
+
+---- With Single Dispatch Only ------------------------------------------------
+
+
 module std.ops
+public
 
 
-def #add = trait {
-    has Self.zero: Self
-    has (Self) + (other: Self) -> Self
+trait #add {
+	val Self.zero: Self
+	fun (Self) + (other: Self) -> Self
 }
 
 
-def #add-with[A] = trait {
-    has Self.Add-Output
-    has Self.zero: Self
-    has (Self) + (other: A) -> Self.Add-Output
-    has (A) + (other: Self) -> Self.Add-Output
+trait #add-other {
+	type Self.Add-Output
+	type Self.Add-Other
+	val Self.zero: Self
+	fun (Self) + (other: Self.Add-Other) -> Self.Add-Output
 }
 
 
-def #mul = trait {
-    has Self.one: Self
-    has (Self) * (other: Self) -> Self
+trait #mul {
+	val Self.one: Self
+	fun (Self) * (other: Self) -> Self
 }
 
 
-def #mul-with[A] = trait {
-    has Self.Mul-Output
-    has Self.one: Self
-    has (Self) * (other: A) -> Self.Mul-Output
-    has (A) * (other: Self) -> Self.Mul-Output
+trait #mul-other {
+	type Self.Mul-Output
+	type Self.Mul-Other
+	val Self.one: Self
+	fun (Self) * (other: Self.Mul-Other) -> Self.Mul-Output
 }
 
 
-forall A #add
-def #add-with[A] for A
+trait #eq {
+	fun (Self) == (other: Self) -> Bool
+}
 
 
-forall A #add
-def A.Add-Output = A
+trait #eq-other {
+	type Self.Eq-Other
+	fun (Self) == (other: Self.Eq-Other) -> Bool
+}
+
+
+---- With Double Dispatch -----------------------------------------------------
+
+
+module std.ops
+public
+
+
+trait #add {
+	val Self.zero: Self
+	fun (Self) + (other: Self) -> Self
+}
+
+
+trait #add-with[A] {
+	type Self.Add-Output
+	val Self.zero: Self
+	fun (Self) + (other: A) -> Self.Add-Output
+	fun (A) + (other: Self) -> Self.Add-Output
+}
+
+
+trait #mul {
+	val Self.one: Self
+	fun (Self) * (other: Self) -> Self
+}
+
+
+trait #mul-with[A] {
+	type Self.Mul-Output
+	val Self.one: Self
+	fun (Self) * (other: A) -> Self.Mul-Output
+	fun (A) * (other: Self) -> Self.Mul-Output
+}
+
+
+-------------------------------------------------------------------------------
+
+
+<< Generic trait implementation? >>
+
+
+trait #add-with[A] for A #add
+
+
+type A.Add-Output forall A #add = A
 
 
 
@@ -42,39 +127,35 @@ def A.Add-Output = A
 
 
 module vec
+import /std/ops(#add, #mul)
+public
 
 
-use #add, #mul from std::ops
-
-
-def Vec2 = struct {
-    data x: Float
-    data y: Float
+struct Vec2 {
+	data x: Float,
+	data y: Float,
 }
 
 
-def #add for Vec2
+trait #add for Vec2
 
 
-def Vec2.zero = Vec2(0, 0)
+val Vec2.zero = Vec2(0, 0)
 
 
-def (Vec2) + (other: Vec2) -> Vec2 {
+fun (Vec2) + (other: Vec2) -> Vec2 =
     Vec2(self.x + other.x, self.y + other.y)
-}
 
 
-def #mul-with[Float] for Vec2
+trait #mul-with[Float] for Vec2
 
 
-def Vec2#mul-with.Output = Vec2
+type Vec2.Mul-Output = Vec2
 
 
-def (Vec2) * (other: Float) -> Vec2 {
+fun (Vec2) * (other: Float) -> Vec2 =
     Vec2(self.x * other, self.y * other)
-}
 
 
-def (Float) * (other: Vec2) -> Vec2 {
+fun (Float) * (other: Vec2) -> Vec2 =
     Vec2(self * other.x, self * other.y)
-}

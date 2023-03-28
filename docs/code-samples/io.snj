@@ -1,0 +1,30 @@
+module main
+
+
+import /std/io (Io)
+
+
+public
+
+
+<< I/O Using the Io Monad. >>
+fun main() -> Io[]  =
+	fun get-number() =
+		do Io.put-string("Please enter a number: ")
+		val? answer = Io.input()
+
+		case answer.to-int
+		of Some(n) then Io(n)
+		of None then get-number()
+		end
+
+	val? number = get-number()
+	naive = naive-factorial(number)
+	tail = tail-factorial(number)
+	folded = folded-factorial(number)
+
+	do Io.print("naive factorial: {naive}")
+	do Io.print("tail recursice factorial: {tail}")
+	do Io.print("fold-based factorial: {folded}")
+
+	Nil

@@ -1,0 +1,79 @@
+-- Monadic Bind ---------------------------------------------------------------
+
+
+fun example-1(numbers: Array[Int]) -> Int? =
+	first ?= numbers.at(0)
+	second ?= numbers.at(1)
+	Ok(first + second)
+
+
+fun example-1(numbers: Array[Int]) -> Int? =
+	numbers.at(0).and-then(first =>
+		numbers.at(1).and-then(second =>
+			Ok(first + second)
+		)
+	)
+
+
+-- Chaining Operator ----------------------------------------------------------
+
+
+fun example-1(numbers: Array[String]) -> Int? =
+	numbers.at(0)?.to-Int?.abs
+
+
+fun example-1(numbers: Array[Int]) -> String? =
+	numbers.at(0).and-then(___.to-int.and-then(___.abs))
+
+	numbers.at(0).and-then(=> ___.to-int.and-then(=> ___.abs))
+
+
+-- Monadic Bind with failure wrapping -----------------------------------------
+
+
+<<
+From a Rust RFC:
+	fn get_count_item(s: &str) -> (u64, &str) {
+		let mut it = s.split(' ');
+		let (Some(count_str), Some(item)) = (it.next(), it.next()) else {
+			panic!("Can't segment count item pair: '{s}'");
+		};
+		let Ok(count) = u64::from_str(count_str) else {
+			panic!("Can't parse integer: '{count_str}'");
+		};
+		(count, item)
+	}
+>>
+
+
+fun get-count-item(s: String) -> (Int, String) ?? Nil | Int.Parse-Error =
+	it = s.split(Char " ")
+	count-str ?= it.item
+	it' = it.next
+	item ?= it'.item
+	count ?= Int.parse(count-str)
+
+	(count, item)
+
+
+fun get-count-item(s: String) -> (Int, String) ?? String =
+	it = s.split(Char " ")
+	try count-str ?= it.item else _ => Error("Can't segment count item pair: '{s}'")
+	it' = it.next
+	try item ?= it'.item else _ => Error("Can't segment count item pair: '{s}'")
+	try count ?= Int.parse(count-str) else e => Error("Can't parse integer '{count_str}': {e}")
+
+	(count, item)
+
+
+-- Refutable patterns? --------------------------------------------------------
+
+
+fun get-count-item(s: String) -> (Int, String) ?? String =
+	it = s.split(Char " ")
+	try Ok(count-str) = it.item else Error("Can't segment count item pair: '{s}'.")
+	it' = it.next
+	try Ok(item) = it'.item else Error("Can't segment count item pair: '{s}'.")
+	try Ok(count) = Int.parse(count-str) else Error("Can't parse integer '{count_str}'.")
+
+	(count, item)

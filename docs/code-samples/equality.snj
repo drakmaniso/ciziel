@@ -1,27 +1,134 @@
-module std
+---- Single Dispatch ----------------------------------------------------------
 
 
-def #eq = trait {
-    has (Self) == (other: Self) -> Bool
+module /std/ops
+
+
+trait #eq {
+	type Self.Eq-Right-Hand = Self
+	fun (Self) == (other: Self.Eq-Right-Hand) -> Bool
 }
-
-
-## Multiple Dispatch ##########################################################
 
 
 module basic
 
 
-def Basic = First | Second
-def First = struct {}
-def Second = struct {}
+type Basic = Foo | Bar
+struct Foo
+struct Bar
 
 
-def #eq for Basic, First, Second
-def (Basic) == (other: Basic) -> Bool { ... }
+trait #eq for Basic
+fun (Basic) == (other: Basic) -> Bool =
+	case (self, other)
+	of (Foo, Foo) then True
+	of (Bar, Bar) then True
+	of (Foo, Bar) then False
+	of (Bar, Foo) then False
 
 
--------------------------------------------------------------------------------
+<< Question: do `Foo` and `Bar` implement `#eq`? This would require trait
+conformance to accept widening of arguments. >>
+
+<< Note: this approach is not extensible, since the equality trait needs a
+concrete type. >>
+
+
+---- Single Dispatch with Unknown type ----------------------------------------
+
+
+module /std
+
+
+trait #eq {
+	type Self.Eq-Right-Hand = Self
+	fun (Self) == (other: Self.Eq-Right-Hand) -> Bool
+}
+
+
+-- type Unknown = (all types)
+
+
+module basic
+
+
+use /std (#eq, Unknown)
+
+
+public
+
+
+type Basic = Foo | Bar
+struct Foo
+struct Bar
+
+
+trait #eq for Basic
+
+
+trait #eq for Foo
+type Foo.Eq-Right-Hand = Unknown
+fun (Foo) == (other: Unknown) -> Bool =
+	case (self, other)
+	of (Foo, Foo) then True
+	else False
+
+
+trait #eq for Bar
+type Bar.Eq-Right-Hand = Unknown
+fun (Bar) == (other: Unknown) -> Bool =
+	case (self, other)
+	of (Bar, Bar) then True
+	else False
+
+
+module extended
+
+
+use /std (#eq, Unknown)
+use basic (Basic, Foo, Bar)
+
+
+type Extended = Basic | Baz
+struct Baz
+
+
+trait #eq for Extended
+
+
+trait #eq for Baz
+type Baz.Eq-Right-Hand = Unknown
+fun (Baz) == (other: Unknown) -> Bool =
+	case (self, other)
+	of (Baz, Baz) then True
+	else False
+
+
+---- Double Dispatch ----------------------------------------------------------
+
+
+module std
+
+
+trait #eq {
+    fun (Self) == (other: Self) -> Bool
+}
+
+
+module basic
+
+
+type Basic = First | Second
+struct First
+struct Second
+
+
+trait #eq for Basic, First, Second
+fun (First) == (other: Basic) -> Bool = other is First
+fun (First) == (other: Basic) -> Bool = other is Basic
+
+
+-- Extension --
 
 
 module extended
@@ -30,60 +137,58 @@ module extended
 use basic (Basic, First, Second)
 
 
-def Extended = Basic | Third
-def Third = struct {}
+type Extended = Basic | Third
+struct Third
 
 
-def #eq for Extended, Third
-def (Basic) == (other: Third) -> Bool { ... }
-def (Third) == (other: Extended) -> Bool { ... }
+trait #eq for Extended, Third
+fun (Basic) == (other: Third) -> Bool = False
+fun (Third) == (other: Extended) -> Bool = other is Third
 
 
-## Single Dispatch ############################################################
+-- Single Dispatch ------------------------------------------------------------
 
 
 module basic
 
 
-def Basic = Foo | Bar
-def Foo
-def Bar
+type Basic = Foo | Bar
+struct Foo
+struct Bar
 
 
-def #basic = trait {
-    has (Self).as-basic -> Option[Basic]
+trait #basic {
+    fun (Self).as-basic -> Option[Basic]
 }
 
 
-def #basic for Basic
-def (Foo).as-basic { Some(self) }
-def (Bar).as-basic { Some(self) }
+trait #basic for Basic
+fun (Foo).as-basic = Some(self)
+fun (Bar).as-basic = Some(self)
 
 
-def #eq for Basic
+trait #eq for Basic
 
 
 forall A #basic
-def (Foo) == (other: A) -> Bool {
-    match other.as-basic {
-        | Some(Foo) => True
-        | Some(Bar) => False
-        | None => False
-    }
-}
+fun (Foo) == (other: A) -> Bool =
+    case other.as-basic
+	of Some(Foo) then True
+	of Some(Bar) then False
+	of None then False
+	end
 
 
 forall A #basic
-def (Bar) == (other: A) -> Bool {
-    match other.as-basic {
-        | Some(Foo) => False
-        | Some(Bar) => True
-        | None => False
-    }
-}
+fun (Bar) == (other: A) -> Bool =
+    case other.as-basic
+	of Some(Foo) then False
+	of Some(Bar) then True
+	of None then False
+	end
 
 
--------------------------------------------------------------------------------
+-- Extension --
 
 
 module extended
@@ -91,88 +196,32 @@ module extended
 use basic (Basic, Foo, Bar, #basic)
 
 
-def Extended = Basic | Baz
-def Baz = struct {}
+type Extended = Basic | Baz
+type Baz
 
 
-def #basic for Extended
-def (Baz).as-basic -> None { None }
+trait #basic for Extended
+fun (Baz).as-basic = None
 
 
-def #extended = trait {
-    has (Self).as-extended -> Option[Extended]
+trait #extended {
+    fun (Self).as-extended -> Option[Extended]
 }
 
 
-def #extended for Extended
-def (Foo).as-extended { Some(self) }
-def (Bar).as-extended { Some(self) }
-def (Baz).as-extended { Some(self) }
+trait #extended for Extended
+fun (Foo).as-extended = Some(self)
+fun (Bar).as-extended = Some(self)
+fun (Baz).as-extended = Some(self)
 
 
-def #eq for Extended
+trait #eq for Extended
 
 
 forall A #extended
-def (Baz) == (other: A) -> Bool {
-    match other.as-extended {
-        | Foo => False
-        | Bar => False
-        | Baz => True
-    }
-}
-
-
-## Open Unions ################################################################
-
-
-module basic
-
-
-def Extensible = union {
-    | Foo
-    | Bar
-    | ...
-}
-
-
-def #eq for Extensible
-
-
-def (Foo) == (other: Extensible) -> Bool {
-    | Foo => True
-    | Bar => False
-    | any => False
-}
-
-
-def (Bar) == (other: Extensible) -> Bool {
-    | Foo => True
-    | Bar => False
-    | any => False
-}
-
-
--------------------------------------------------------------------------------
-
-
-module extended
-
-
-use basic { Extensible; Foo; Bar }
-
-
-def Extensible = union {
-    | Baz
-    | ...
-}
-
-
-def (Baz) == (other: Extensible) -> Bool {
-    match other {
-        | Foo => False
-        | Bar => False
-        | Baz => True
-        | any => False
-    }
-}
+fun (Baz) == (other: A) -> Bool =
+    case other.as-extended
+	of Foo then False
+	of Bar then False
+	of Baz then True
+	end

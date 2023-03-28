@@ -1,104 +1,71 @@
-def Nil = struct {}
+module /std
 
 
-def Bool = def False | def True
+public
 
 
--- Option ---------------------------------------------------------------------
+struct Nil
 
 
-def Option[A] = None[A] | Some[A]
-def None[A] = struct {}
-def Some[A] = struct { data item: A }
+type Bool = False | True
+struct False
+struct True
 
 
-def #functor[A] for Option[A], None, Some[A]
+-- Option-Result --------------------------------------------------------------
 
 
-def (None).map(transform: A -> B) -> None {
-    None
-}
+type A ? E = Ok[A] | Error[E]
+struct Ok[A](value: data A)
+struct Error[E](error: data E)
 
 
-def (Some[A]).map(transform: A -> B) -> Some[B] {
-    Some(transform(self.item))
-}
+type A? = Ok[A] | None -- A ? Nil
+type None = Error[Nil]
 
 
-def #monad[A] for Option[A]
+trait #functor[A] for A ? E
 
 
-def Option[A].wrap(value: A) -> Option[A] {
-    Some(value)
-}
+auto (A ? E).map(transform: A -> B) -> B ? E
+fun (Ok[A]).map(transform: A -> B) -> Ok[B] = Ok(transform(self.item))
+fun (Error[E]).map(transform: A -> B) -> Error[E] = self
 
 
-def (Option[A]).chain(operation: A -> Option[B]) -> Option[B] {
-    match self {
-        | Some(item) => operation(item)
-        | None => None
-    }
-}
+trait #monad[A] for A ? E
 
 
--- Result ---------------------------------------------------------------------
+fun A ? E.wrap(value: A) -> Result[A, E] = Ok(value)
 
 
-def Result[A, E] = Ok[A] | Error[E]
-def Ok[A] = struct { data value: A }
-def Error[E] = struct { data error: E }
-
-
-def #monad[A] for Result[A, E]
-
-
-def Result[A, E].pure(value: A) -> Result[A, E] {
-    Ok(value)
-}
-
-
-def (Ok[A, E]).and-then(operation: A -> Result[B, E]) -> Result[B, E] {
-    operation(self.value)
-}
-
-
-def (Error[A, E]).and-then(operation: A -> Result[B, E]) -> Error[B, E] {
-    self
-}
+auto (A ? E).and-then(operation: A -> B ? E) -> B ? E
+fun (Ok[A]).and-then(operation: A -> B ? E) -> B ? E = operation(self.value)
+fun (Error[E]).and-then(operation: A -> B ? E) -> Error[E] = self
 
 
 -- Map Iterator ---------------------------------------------------------------
 
 
-def Map[I, A] = struct {
-    let iterator: I
-    let transform: I.Item -> A
+struct Map[I, A] {
+    iterator: I
+    transform: I.Item -> A
 }
 
 
-forall I #iterator
-def Map[I, A].new(iterator: I, transform: I.Item -> A) -> Map[I, A] {
-    Map(iterator, transform)
-}
-
 
 forall I #iterator
-def #iterator for Map[I, A]
+trait #iterator for Map[I, A]
 
 
-def Map[I, A].Item = A
+type Map[I, A].Item = A
 
 
 forall I #iterator
-def (Map[I, A]).next -> (Map[I, A], Option[A]) {
-    match self.iterator.next {
-        | (Any, None) =>
-            (self, None)
-
-        | (i, Some(item)) =>
-            let new-self = self.with(iterator: i)
-            let transformed = transform(item)
-
-            (new-self, Some(transformed))
-    }
-}
+fun (Map[I, A]).next -> (Map[I, A], Option[A]) =
+    case self.iterator.next
+	of (_, None) then (self, None)
+	of (i, Ok(item)) then
+		new-self = self.with(iterator: i)
+		transformed = transform(item)
+		(new-self, Ok(transformed))
+	end

@@ -1,83 +1,86 @@
---- Encapsulation
+<< Encapsulation >>
 
 
 --- Structs -------------------------------------------------------------------
 
 
-<< A struct declared with `let` is completely private: it cannot be used outside
-the module, and cannot appear in the public interface of the module. All its
-fields are private and must be declared with `let`. >>
+private --- Private Struct
 
 
-let Private = struct {
-    let foo: Int
-    let bar: Bool
+struct Private {
+	foo: Int,
+	bar: Bool,
 }
 
 
-<< A struct declared with `def` is public, and can be used outside the module.
-However, if the fields are declared with `let`, then the constructor is private
-and so are the fields. >>
+public --- Opaque Struct
 
 
-def Opaque = struct {
-    let foo: Int
-    let bar: Bool
+struct Opaque {
+	foo: Int,
+	bar: Bool,
 }
 
 
-<< Read-Only Struct >>
-def Read-Only = struct {
-    def foo: Int
-    def bar: Bool
+public --- Read-Only Struct
+
+
+struct Read-Only {
+	foo: public Int,
+	bar: public Bool,
 }
 
 
-<< Transparent Struct >>
-def Transparent = struct {
-    data foo: Int
-    data bar: Bool
+public --- Transparent Struct
+
+
+struct Transparent {
+	foo: data Int,
+	bar: data Bool,
 }
 
 
-<< Translucent Struct >>
-def Translucent = struct {
-    let opaque: Int
-    def read-only: Bool
-    data transparent: String
-}
+public --- Translucent Struct
 
+
+struct Translucent {
+	hidden: Int,
+	read-only: public Bool,
+	read-write: data String,
+}
 
 
 --- Unions --------------------------------------------------------------------
 
 
-let Private-Foo = struct {}
-let Private-Bar = struct {}
-def Public-Foo = struct {}
-def Public-Bar = struct {}
+private --- Private Union
 
 
-<< Private Union >>
-let Private =
+type Private =
     | Private-Foo
     | Private-Bar
 
 
-<< Opaque Union >>
-def Opaque =
+public --- Opaque Union
+
+
+type Opaque =
     | Private-Foo
     | Private-Bar
 
 
-<< Transparent Union >>
-def Transparent =
+public --- Transparent Union
+
+
+type Transparent =
     | Public-Foo
     | Public-Bar
 
 
-<< Translucent Union >>
-def Translucent =
+public --- Translucent Union
+
+
+type Translucent =
     | Public-Foo
     | Private-Bar
 
@@ -89,27 +92,27 @@ public types. >>
 --- Traits --------------------------------------------------------------------
 
 
-<< Private Traits >>
-let #private = trait {
-    has (Self).foo -> Int
-    has (Self).bar(arg: Bool) -> String
+private --- Private Traits
+
+
+trait #private {
+	def (Self).foo -> Int
+	def (Self).bar(arg: Bool) -> String
 }
 
 
-<< Public Traits >>
-def #transparent = trait {
-    has (Self).foo -> Int
-    has (Self).bar(arg: Bool) -> String
+public --- Public Traits
+
+
+trait #transparent {
+	def (Self).foo -> Int
+	def (Self).bar(arg: Bool) -> String
 }
 
 
-<< Opaque Traits >>
-def #opaque = trait {
-    has #private
-}
+public --- Opaque Traits
 
 
-let #private = trait {
-    has (Self).foo -> Int
-    has (Self).bar(arg: Bool) -> String
+trait #opaque {
+	trait #private
 }

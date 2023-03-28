@@ -1,165 +1,143 @@
-module main
-
-use std::io (Io)
+module main --- Some Simple Examples ------------------------------------------
 
 
--- I/O Using the IO Monad -----------------------------------------------------
+import /std/io(&io)
 
 
-def main() -> Io[] {
-	let get-number() {
-		Io.put-string("Please enter a number: ")
-		let? answer = Io.input()
-		match answer.to-int {
-			| Some(n) => Io(n)
-			| None => get-number()
-		}
-	}
-
-	let? number = get-number()
-	let naive = naive-factorial(number)
-	let tail = tail-factorial(number)
-	let folded = folded-factorial(number)
-
-	Io.print("naive factorial: {naive}")
-	Io.print("tail recursice factorial: {tail}")
-	Io.print("fold-based factorial: {folded}")
-}
+public ------------------------------------------------------------------------
 
 
--- I/O Using Procedures -------------------------------------------------------
+fun main() -> Nil &io =
+	fun get-number() =
+		do io.put-string("Please enter a number: ")
+		answer = io.input()
+
+		case answer.to-int
+		of Some(n) then
+			Io(n)
+		of None then
+			get-number()
+		end
+
+	number = get-number()
+	naive = naive-factorial(number)
+	tail = tail-factorial(number)
+	folded = folded-factorial(number)
+
+	do io.print("naive factorial: {naive}")
+	do io.print("tail recursive factorial: {tail}")
+	do io.print("fold-based factorial: {folded}")
+
+	Nil
 
 
-def main!() -> Nil {
-	let get-number!() {
-		Io.put-string!("Please enter a number: ")
-		let answer = Io.input!()
-		match answer.to-int {
-			| Some(n) => Io(n)
-			| None => get-number!()
-		}
-	}
-
-	let number = get-number!()
-	let naive = naive-factorial(number)
-	let tail = tail-factorial(number)
-	let folded = folded-factorial(number)
-
-	Io.print!("naive factorial: {naive}")
-	Io.print!("tail recursice factorial: {tail}")
-	Io.print!("fold-based factorial: {folded}")
-}
+private --- Various Implementations of Factorial ------------------------------
 
 
--- Various Implementations of Factorial ---------------------------------------
-
-
-let naive-factorial(n) {
-	if n <= 1 {
+fun naive-factorial(n) =
+	if n <= 1 then
 		1
-	} else {
+	else
 		n * naive-factorial(n - 1)
-	}
-}
 
 
-let tail-factorial(n: Int) -> Int {
-	let step(n, accum) {
-		if n <= 1 {
+fun tail-factorial(n: Int) -> Int =
+	fun step(n, accum) =
+		if n <= 1 then
 			accum
-		} else {
+		else
 			step(n - 1, n * accum)
-		}
-	}
 
 	step(n, 1)
-}
 
 
-let fold-factorial(n: Int) -> Int {
-	(2 <upto> n).fold(1) { ___ * ___ }
-}
+fun fold-factorial(n: Int) -> Int =
+	(2 <upto> n).fold(1, Int.*)
 
 
 forall N #num
-let generic-tail-factorial(number: N) -> N {
-	let step(num, accum) {
-		if num <= N.one {
+fun generic-tail-factorial(number: N) -> N =
+	fun step(num, accum) =
+		if num <= N.one then
 			accum
-		} else {
+		else
 			step(num - N.one, num * accum)
-		}
-	}
 
 	step(number, N.one)
-}
 
 
 forall N #num #range
-let generic-fold-factorial(number: N) -> N {
-	(N.one <upto> number).fold(N.one) { ___ * ___ }
-}
+fun generic-fold-factorial(number: N) -> N =
+	(N.one <upto> number).fold(N.one, N.*)
 
 
--- A Other Algorithms ---------------------------------------------------------
+private --- A few Other Algorithms --------------------------------------------
 
 
-let gcd(a: Int, b: Int) -> Int {
-	require {
-		a > 0
-		b > 0
-	}
-	ensure {
-		result > 0
-	}
+fun gcd(a: Int, b: Int) -> Int =
+	require a > 0
+	require b > 0
+	ensure result > 0
 
-	let a' = (a, b).max
-	let b' = (a, b).min
+	a' = (a, b).max
+	b' = (a, b).min
 
-	if b' == 0 {
+	if b' == 0 then
 		a'
-	} else {
+	else
 		gcd(b', a' <mod> b')
-	}
-}
 
 
-let fibonacci(n: Int) -> Int {
-	require  { n > 0 }
-	ensure { result > 0 }
+fun fibonacci(n: Int) -> Int =
+	require n > 0
+	ensure result > 0
 
-	let step(n, previous, current) {
-		if n == 0 {
+	fun step(n, previous, current) =
+		if n == 0 then
 			current
-		} else {
+		else
 			step(n - 1, current, previous + current)
-		}
-	}
 
 	step(n, 1, 1)
-}
 
 
--- An Example of Method-Chaining ----------------------------------------------
+private --- An Example of Method-Chaining -------------------------------------
 
 
-let pipeline-example() {
-	let my-array = Array(1, 2, 3, 4, 5, 6, 7)
+fun pipeline-example-1() =
+	my-array = Array(1, 2, 3, 4, 5, 6, 7)
 
 	my-array
 		.iterator
-		.filter { ___.is-even }
-		.map { ___ * 2 }
-		.fold("") {
-			s, n => "{s}, {n <to> String}"
-		}
- 		.map {
-			c =>
-				if c.is-letter {
-					c.to-uppercase
-				} else {
-					Rune("?")
-				}
-		}
+		.filter(=> ___.is-even)
+		.map(=> ___ * 2)
+		.fold("", (s, n) => "{s}, {n <to> String}")
+		.map(char =>
+				next-char = (char.code + 1) <to> Char
+
+				if next-char.is-letter then
+					next-char.to-uppercase
+				else
+					Rune "?" )
 		<collect> Array
-}
+
+
+fun pipeline-example-2() =
+	names = Array("Judy", "Mary", "Jane", "", "Bop")
+
+	names
+		.iterator
+		.map(=> ___.to-lowercase)
+		.filter(=> ___.length > 0)
+		.filter(=> ___.test-all(=> ___.is-alpha))
+		.map(=>
+			case ___
+			of "Bop" then "Betty"
+			of n and n.length > 100 then "(too long)"
+			of n then n
+			end )
+		.fold("", (string, name) =>
+			if string.length > 0 then
+				string ++ ", " ++ name
+			else
+				string ++ name )

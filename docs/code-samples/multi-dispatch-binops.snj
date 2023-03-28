@@ -80,7 +80,7 @@ let example-encounter() -> Io[] {
 }
 
 
-let example-encounter(io!: Console) {
+let example-encounter() -> Nil +io {
     let pets =
         Array(
             Cat("Spot"),
@@ -88,9 +88,9 @@ let example-encounter(io!: Console) {
             Bird("Coco"),
         )
 
-    pets.fold(io!) {
-        a => pets.fold(io!) {
-            b => io!.print(encounter(a, b))
+    pets.map {
+        a => pets.map {
+            b => print(encounter(a, b))
         }
     }
     -- Spot meets Spot and slinks

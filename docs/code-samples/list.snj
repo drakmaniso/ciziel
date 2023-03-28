@@ -1,160 +1,149 @@
--- Linked List
+module /std/lists --- Linked Lists --------------------------------------------
 
 
-module std/list
+import /std (#iterator, #iterable)
 
 
-use #iterator, #iterable from std/iter
+public
 
 
-def List[A] = Empty[A] | *Node[A]
-
-
-def Empty[A] = struct {}
-
-
-def Node[A] = struct {
-    data head: A
-    data tail: List[A]
+type List[A] = Empty[A] | *Link[A]
+struct Empty[A]
+struct Link[A] {
+	head: data A
+	tail: data List[A]
 }
 
 
-def List[A].new(...items: Array[A]) -> List[A] {
-    items.rev-fold(Empty) {
-        item, list =>
-            Node(head = item, tail = list)
-    }
-}
+fun List[A].new(...items: Array[A]) -> List[A] =
+    items.rev-fold(
+		Empty,
+        (item, list) =>
+            Link { head = item, tail = list }
+	)
 
 
--- Equality -------------------------------------------------------------------
+public --- Equality -----------------------------------------------------------
 
 
-def #eq for List[#eq], Empty, Node[#eq]
+trait #eq for List[#eq]
+trait #eq for Empty
+trait #eq for Link[#eq]
 
 
 forall A #eq
-def (List[A]) == (other: List[A]) -> Bool {
-    match self, other {
-        | Empty, Empty =>
-            True
-
-        | a: Node, b: Node =>
-            (a.head == b.item) and (a.tail == b.tail)
-
-        | any, any =>
-            False
-    }
-}
+fun (List[A]) == (other: List[A]) -> Bool =
+	case (self, other)
+	of (Empty, Empty) then True
+	of (a: Link, b: Link) then (a.head == b.item) and (a.tail == b.tail)
+	of (_, _) then False
+	end
 
 
--- Pushing and Poping ---------------------------------------------------------
+public --- Pushing and Poping -------------------------------------------------
 
 
-def (List[A]).push(item: A) -> *List[A].Node {
-    Node(head = item, tail = self)
-}
+fun (List[A]).push(item: A) -> *Link[A] =
+    Link { head = item, tail = self }
 
 
-def (List[A]).head -> Option[A]
+auto (List[A]).head -> A?
+fun (Empty[A]).head -> None = None
 
 
-def (Empty[A]).head -> None[A] {
-    None
-}
+auto (List[A]).tail -> List[A]
+fun (Empty[A]).tail -> Empty[A] = Empty
 
 
-def (List[A]).tail -> List[A]
+public --- Functor Implementation ---------------------------------------------
 
 
-def (Empty[A]).tail -> Empty[A] {
+tag List[A] as #functor
+tag Empty[A] as #functor
+tag Link[A] as #functor
+
+
+auto (List[A]).map(transform: A -> B) -> List[B]
+
+
+fun (Empty[A]).map(transform: A -> B) -> Empty[B] =
     Empty
-}
 
 
--- Functor Implementation -----------------------------------------------------
-
-
-def #functor for List[A], List[A].Empty, List[A].Node forall A
-
-
-forall A, B
-def (List[A]).map(transform: A -> B) -> List[B]
-
-
-forall A, B
-def (Empty[A]).map(transform: A -> B) -> Empty[B] {
-    Empty
-}
-
-
-forall A, B
-def (*Node[A]).map(transform: A -> B) -> *Node[B] {
-    Node(
+fun (*Link[A]).map(transform: A -> B) -> *Link[B] =
+    Link {
         head = transform(self.head),
         tail = self.tail.map(transform),
-    )
+	}
+
+
+public --- Iterator Implementation --------------------------------------------
+
+
+trait #iterable for List[A]
+
+
+struct List[A].Iterator {
+	current: List[A]
 }
 
 
--- Iterator Implementation ----------------------------------------------------
+fun (List[A]).iterator -> List[A].Iterator =
+    List.Iterator { current = self }
 
 
-def #iterable for List[A]
+trait #iterator for List[A].Iterator
 
 
-def List[A].Iterator = struct {
-    let current: List[A]
-}
+type List[A].Iterator.Item = A
 
 
-def (List[A]).iterator -> List[A].Iterator {
-    Iterator(current = self)
-}
+fun (List[A].Iterator).item -> A? =
+    self.current.head
 
 
-def #iterator for List[A].Iterator
+fun (List[A].Iterator).next -> List[A].Iterator =
+    case self.current
+	of Empty then self
+	of Link { tail, ... } then
+		self.with { current = tail }
+    end
 
 
-def List[A].Iterator.Item = alias A
+fun (List[A].Iterator).item-next -> (List[A].Iterator, A?) =
+    case self.current
+	of Empty then (self, None)
+	of Link { head, tail } then
+		new-self = self.with { current = tail }
+		(new-self, Ok(head))
+    end
 
 
-def (List[A].Iterator).next -> (List[A].Iterator, Option[A]) {
-    match self.current {
-        | Empty =>
-            (self, None)
-
-        | Node(head, tail) =>
-            let new-self = self.with(current = tail)
-            (new-self, Some(head))
-    }
-}
+module main --- Usage ---------------------------------------------------------
 
 
--- Usage ----------------------------------------------------------------------
+use /std/io (&io)
+use /std/list (List, Link, Empty)
 
 
-module main
+private
 
 
-use std::list (List, Node, Empty)
+fun double(list: List[Int]) -> List[Int] =
+    list.map(___ * 2)
 
 
-let double(list: List[Int]) -> List[Int] {
-    list.map { ___ * 2 }
-}
+fun main() -> Nil &io =
+	a = Link(1, Link(2, Link(3, Empty)))
+	b = List.new(1, 2, 3)
 
+	do io.print(a.type)
+	--> Link[Int]
 
-let main() -> Io[] {
-    let a = Node(1, Node(2, Node(3, Empty)))
-    let b = List.new(1, 2, 3)
+	do io.print(b.type)
+	--> List[Int]
 
-    Io.print(a.Type.name)
-    -- Node[Int]
+	do io.print(a.map.type))
+	--> (Link[Int], Int -> A) -> Link[A]
 
-    Io.print(b.Type.name)
-    -- List[Int]
-
-    Io.print(a.map.Type.name))
-    -- (Node[Int], Int -> A) -> Node[A]
-}
+	Nil

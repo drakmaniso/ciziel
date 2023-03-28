@@ -1,0 +1,115 @@
+-- Constructors ---------------------------------------------------------------
+
+
+struct Foo {
+	a: data Int,
+	b: data Bool,
+}
+
+
+<< automatically implement: >>
+
+
+auto Foo { a: Int, b: Bool } -> Foo
+
+
+auto (Foo).a -> Int
+auto (Foo).b -> Bool
+
+
+auto (Foo).with { a: Int } -> Foo
+auto (Foo).with { b: Bool } -> Foo
+
+
+-- Functional Update ----------------------------------------------------------
+
+
+foo.with { a = 33, b = False }
+
+
+<< desugars to: >>
+
+
+foo.with { a = 33 }.with { b = False }
+
+
+-- Associated Functions -------------------------------------------------------
+
+
+fun Foo.bar(a: Int, b: Bool) -> String =
+    "foobar"
+
+
+<< desugars to an associated constant: >>
+
+
+val Foo.bar: (Int, Bool) -> String =
+    (a, b) =>
+		"foobar"
+
+
+-- Methods --------------------------------------------------------------------
+
+
+fun (Foo).baz(self, a: Int, b: Bool) -> String =
+    "foobaz"
+
+
+<< desugars to an associated function: >>
+
+
+fun Foo.baz(self: Foo, a: Int, b: Bool) -> String =
+    "foobaz"
+
+
+<< which desugars to an associated constant: >>
+
+
+val Foo.baz: (Foo, Int, Bool) -> String =
+    (self, a, b) =>
+		"foobaz"
+
+
+-- Method Calls ---------------------------------------------------------------
+
+
+foo.baz(1, True)
+
+
+<< desugars to: (assuming `Foo` is the type of `foo`) >>
+
+
+Foo.baz(foo, 1, True)
+
+
+-- Operator Calls -------------------------------------------------------------
+
+
+<< All left-associative operators: >>
+
+
+foo + bar
+
+
+<< desugars to a method call: >>
+
+
+foo.+(bar)
+
+
+<< which desugars to: >>
+
+
+Foo.+(foo, bar)
+
+
+-- Short Lambdas --------------------------------------------------------------
+
+
+=> foo(___, 33, ___)
+
+
+<< desugars to: >>
+
+
+(a, b) => foo(a, 33, b)
