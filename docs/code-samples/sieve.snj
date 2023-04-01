@@ -1,44 +1,43 @@
 module eratosthenes
-
-use std::io (Io)
-
-
-def main() -> Io[] {
-    let all-numbers = Array(False, False, True, ..., [1001] = True)
-    let primes = sieve(all-numbers, 2)
-
-    primes.traverse-indexed {
-        i, is-prime =>
-            if is-prime {
-                Io.print("{i} ")
-            }
-    }
-}
+use /std/io (&io)
 
 
-let sieve(flags: Array[Bool], start: Int) -> Array[Bool] {
-    let cross-multiples(flags, n, i) {
-        if n * i >= flags.size {
-            flags
-        } else {
-            let flags' = flags.with([n * i] = False)
-            cross-multiples(flags', n, i + 1)
-        }
-    }
+private
 
-    let first-not-crossed(flags, n) {
-        if flags[n] {
-            n
-        } else {
-            first-not-crossed(flags, n + 1)
-        }
-    }
 
-    if start >= flags.size {
-        flags
-    } else {
-        let flags' = cross-multiples(flags, start, 1)
-        let start' = first-not-crossed(flags', start + 1)
-        sieve(flags', start')
-    }
-}
+main() -> Nil &io =
+	do
+		all-numbers = Array(False, False, True, ..., [1001] = True)
+		primes = sieve(all-numbers, 2)
+
+		primes.foreach-indexed((i, is-prime) =>
+			if is-prime then
+				io.print("{i} ")
+			end
+		)
+	end
+
+
+sieve(flags: Array[Bool], start: Int) -> Array[Bool] =
+	cross-multiples(flags, n, i) =
+		if n * i >= flags.size then
+			flags
+		else
+			flags' = flags.with([n * i] = False)
+			cross-multiples(flags', n, i + 1)
+		end
+
+	first-not-crossed(flags, n) =
+		if flags[n] then
+			n
+		else
+			first-not-crossed(flags, n + 1)
+		end
+
+	if start >= flags.size then
+		flags
+	else
+		flags' = cross-multiples(flags, start, 1)
+		start' = first-not-crossed(flags', start + 1)
+		sieve(flags', start')
+	end

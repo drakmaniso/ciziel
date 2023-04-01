@@ -1,7 +1,5 @@
 module main
-
-
-import /std/io (Io)
+use /std/io (Io)
 
 
 public

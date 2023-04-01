@@ -7,88 +7,93 @@ module basic
 public
 
 
-trait #eval {
-	fun (Self).eval -> Int
-}
+Literal = struct(value: data Int)
+Addition[E] = struct(left: data *E, right: data *E)
 
 
-struct Literal(value: data Int)
-struct Addition[E](left: data *E, right: data *E)
+#eval =
+	trait {
+		(Self).eval -> Int
+	}
 
 
-trait #eval for Literal
-fun (Literal).eval -> Int =
+Literal: #eval
+Addition[E]: #eval forall E: #eval
+
+
+(Literal).eval -> Int =
 	self.value
 
 
-fun Addition[#eval] as #eval
-fun (Addition[#eval]).eval -> Int =
+(Addition[E]).eval -> Int
+	forall E: #eval
+	=
     self.left.eval + self.right.eval
 
 
 module extended --- Extension -------------------------------------------------
-
-
-import basic (#eval, Literal, Addition)
+use basic (#eval, Literal, Addition)
 
 
 public
 
 
-struct Negation[E](subexpr: *E)
+Negation[E] = struct(subexpr: *E)
 
 
-trait #eval for Negation[#eval]
+Negation[E]: #eval forall E: #eval
 
 
-fun (Negation[#eval]).eval -> Int =
+(Negation[E]).eval -> Int
+	forall E: #eval
+	=
     - self.subexpr.eval
 
 
-trait #pretty {
-	(Self).pretty -> String
-}
+#pretty =
+	trait {
+		(Self).pretty -> String
+	}
 
 
-trait #pretty for Literal
-trait #pretty for Addition[#pretty]
-trait #pretty for Negation[#pretty]
+Literal: #pretty
+Addition[E]: #pretty forall E: #pretty
+Negation[E]: #pretty forall E: #pretty
 
 
-fun (Literal).pretty -> String =
+(Literal).pretty -> String =
     self.eval.to-string
 
 
-fun (Addition[#pretty]).pretty -> String =
+(Addition[E]).pretty -> String
+	forall E: #eval
+	=
 	l = self.left.pretty
 	r = self.right.pretty
 
 	case (self.left, self.right)
 	of (Literal(...), Literal(...)) then "{l} + {r}"
-	of (Literal(...), any) then "{l} + ({r})"
-	of (any, Literal(...)) then "({l}) + {r}"
-	of (any, any) then "({l}) + ({r})"
+	of (Literal(...), _) then "{l} + ({r})"
+	of (_, Literal(...)) then "({l}) + {r}"
+	of (_, _) then "({l}) + ({r})"
 	end
 
 
-fun (Negation[#pretty]).pretty -> String =
+(Negation[#pretty]).pretty -> String =
     "- ({self.subexpr.pretty})"
 
 
 module main --- Usage ---------------------------------------------------------
+use /std/io (&io)
+use basic (#eval, Literal, Addition)
+use extended (#pretty, Negation)
 
 
-import /std/io (&io)
-import basic (#eval, Literal, Addition)
-import extended (#pretty, Negation)
+Expr = Literal | Addition[Expr] | Negation[Expr]
 
 
-private
-
-
-type Expr = Literal | Addition[Expr] | Negation[Expr]
-
-
-fun main() -> Nil &io =
-	e1: Expr = Addition(Literal(77), Negation(Literal(12)))
-	io.print("{e1.pretty} = {e1.eval}")
+main() -> Nil &io =
+	do
+		e1: Expr = Addition(Literal(77), Negation(Literal(12)))
+		io.print("{e1.pretty} = {e1.eval}")
+	end

@@ -1,12 +1,8 @@
 module main
-
-
 use /std/io (&io)
 
 
-private
-
-
-fun main() -> Nil &io =
-	do io.print("Hello, World!")
-	Nil
+main() -> Nil &io =
+	do
+		io.print("Hello, World!")
+	end

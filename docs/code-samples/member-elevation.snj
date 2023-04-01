@@ -1,0 +1,36 @@
+Cat = struct { name: String }
+Dog = struct { name: String }
+Pet = Cat | Dog
+
+
+<< The fields that are common to all variants are automatically elevated: >>
+
+
+(Pet).name -> String = auto
+
+
+<<>>
+
+
+Wool-Ball = struct { color: Color }
+Stick = struct { length: Int }
+
+
+Cat.Typical-Toy = Wool-Ball
+Dog.Typical-Toy = Stick
+Pet.Typical-Toy = Wool-Ball | Stick
+
+
+<< The `greet` method is automatically elevated: >>
+
+
+(Cat).greet(human: String) -> String = "{self.name} ignores {human}"
+(Dog).greet(human: String) -> String = "{self.name} plays with {human}"
+(Pet).greet(human: String) -> String = auto
+
+
+<< But the `play` method cannot be elevated: >>
+
+
+(Cat).play(toy: Wool-Ball) -> String = "{self.name} plays with a ball of color {toy.color}"
+(Dog).play(toy: Stick) -> String = "{self.name} plays with a stick of length {toy.length}"

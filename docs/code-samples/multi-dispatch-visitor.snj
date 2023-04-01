@@ -1,259 +1,230 @@
-/*
-# Multiple dispatch emulated with the Visitor pattern
-*/
+<< Multiple dispatch emulated with the Visitor pattern >>
 
 
-/*
-## Non Extensible `encounter`
-*/
+--- Non Extensible `encounter` ------------------------------------------------
 
 
 module pets
+public
 
+Cat = struct { name: data String }
+Dog = struct { name: data String }
 
-def Cat = struct { data name: String }
-def Dog = struct { data name: String }
+#usual-pet =
+	trait {
+		(Self).name -> String
+		(Self).meets-usual(other: #usual-pet) -> String
+		(Self).visit-cat(other: Cat) -> String
+		(Self).visit-bird(other: Cat) -> String
+	}
 
+Cat: #usual-pet
+Dog: #usual-pet
 
-def #usual-pet = trait {
-    has (Self).name -> String
-    has (Self).meets-usual(other: #usual-pet) -> String
-    has (Self).visit-cat(other: Cat) -> String
-    has (Self).visit-bird(other: Cat) -> String
-}
-
-
-def #usual-pet for Cat, Dog
-
-
-def (Cat).meets-usual(other: #usual-pet) -> String {
+(Cat).meets-usual(other: #usual-pet) -> String =
     other.visit-cat(self)
-}
 
-
-def (Dog).meets-usual(other: #usual-pet) -> String {
+(Dog).meets-usual(other: #usual-pet) -> String =
     other.visit-dog(self)
-}
+
+(Cat).visit-cat(other: Cat) -> String = "slinks"
+(Cat).visit-dog(other: Dog) -> String = "hisses"
+(Dog).visit-cat(other: Cat) -> String = "chases"
+(Dog).visit-dog(other: Dog) -> String = "sniffs"
 
 
-def (Cat).visit-cat(other: Cat) -> String { "slinks" }
-def (Cat).visit-dog(other: Dog) -> String { "hisses" }
-def (Dog).visit-cat(other: Cat) -> String { "chases" }
-def (Dog).visit-dog(other: Dog) -> String { "sniffs" }
-
-
-forall A #usual-pet, B #usual-pet
-def encounter-usual(a: A, b: B) -> String {
-    let verb = a.meets-usual(b)
+encounter-usual(a: A, b: B) -> String
+	forall A: #usual-pet
+		and B: #usual-pet
+	=
+    verb = a.meets-usual(b)
     "{a.name} meets {b.name} and {verb}"
-}
 
 
--------------------------------------------------------------------------------
+module exotic-pets --- Extension
+use pets (#usual-pet, Cat, Dog)
+public
 
+Bird = struct { def name: String }
 
-module exotic-pets
+Bird: #usual-pet
 
+(Bird).visit-cat(other: Cat) -> String = "chirps"
+(Bird).visit-dog(other: Dog) -> String = "chirps"
 
-def Bird = struct { def name: String }
+#exotic-pet <: #usual-pet =
+	trait {
+		(Self).meets-exotic(other: #exotic-pet) -> String
+		(Self).visit-bird(other: Bird) -> String
+	}
 
+Cat: #exotic-pet
+Dog: #exotic-pet
+Bird: #exotic-pet
 
-def #usual-pet for Bird
-
-
-def (Bird).visit-cat(other: Cat) -> String { "chirps" }
-def (Bird).visit-dog(other: Dog) -> String { "chirps" }
-
-
-def #exotic-pet {
-    has #usual-pet
-    has (Self).meets-exotic(other: #exotic-pet) -> String
-    has (Self).visit-bird(other: Bird) -> String
-}
-
-def #exotic-pet for Cat, Dog, Bird
-
-def (Cat).meets-exotic(other: #exotic-pet) -> String {
+(Cat).meets-exotic(other: #exotic-pet) -> String =
     other.visit-cat(self)
-}
 
-def (Dog).meets-exotic(other: #exotic-pet) -> String {
+(Dog).meets-exotic(other: #exotic-pet) -> String =
     other.visit-dog(self)
-}
 
-def (Bird).meets-exotic(other: #exotic-pet) -> String {
+(Bird).meets-exotic(other: #exotic-pet) -> String =
     other.visit-bird(self)
-}
 
-def (Cat).visit-bird(other: Bird) -> String { "hunts" }
-def (Dog).visit-bird(other: Bird) -> String { "barks" }
-def (Bird).visit-bird(other: Bird) -> String { "chirps" }
+(Cat).visit-bird(other: Bird) -> String = "hunts"
+(Dog).visit-bird(other: Bird) -> String = "barks"
+(Bird).visit-bird(other: Bird) -> String = "chirps"
 
-
-forall A #exotic-pet, B #exotic-pet
-def encounter-exotic(a: A, b: B) -> String {
+encounter-exotic(a: A, b: B) -> String =
+	forall A: #exotic-pet
+		and B: #exotic-pet
+	=
     let verb = a.meets(b)
     "{a.name} meets {b.name} and {verb}"
-}
 
 
-/*
-## Extensible Encounter #######################################################
-*/
+-- Extensible Encounter -------------------------------------------------------
 
 
 module pets
+public
+
+Cat[V] = struct(name: data String)
+Dog[V] = struct(name: data String)
 
 
-def Cat[V](data name: String)
-def Dog[V](data name: String)
+#pet =
+	trait {
+		(Self[V]).name -> String
+
+		(Self[V]).meets(other: V.Pet) -> String
+			forall V: #visitor
+	}
 
 
-def #pet {
-    has (Self[V]).name -> String
-    has (Self[V]).meets(other: V.Pet) -> String
-        forall V #visitor
-}
+#visitor =
+	trait {
+		Self.Pet: Type <: #pet
+		Self.visit(a: Self.Pet, b: Self.Pet) -> String
+	}
 
 
-def #visitor {
-    has Self.Pet #pet
-    has Self.visit(a: Self.Pet, b: Self.Pet) -> String
-}
+Visitor = struct
+Visitor: #visitor
+Visitor.Pet = Cat[Visitor] | Dog[Visitor]
+Visitor.visit(a: Visitor.Pet, b: Visitor.Pet) -> String =
+    case (a, b)
+    of (Cat, Cat) then "slinks"
+    of (Cat, Dog) then "hisses"
+    of (Dog, Cat) then "chases"
+    of (Dog, Dog) then "sniffs"
+	end
 
 
-def Visitor
-def #visitor for Visitor
-def Visitor.Pet = Cat[Visitor] | Dog[Visitor]
-def Visitor.visit(a: Visitor.Pet, b: Visitor.Pet) -> String {
-    match a, b {
-        | Cat, Cat => "slinks"
-        | Cat, Dog => "hisses"
-        | Dog, Cat => "chases"
-        | Dog, Dog => "sniffs"
-    }
-}
-
-
-def encounter(a: P[V], b: P[V]) -> String
-    forall P #pet, V #visitor, V.Pet == P[V]
-{
-    let verb = a.meets(b)
+encounter(a: P[V], b: P[V]) -> String
+	forall P: #pet
+		and V: #visitor
+		and V.Pet == P[V]
+	=
+    verb = a.meets(b)
     "{a.name} meets {b.name} and {verb}"
-}
 
 
 -------------------------------------------------------------------------------
 
 
 module exotic-pets
+public
 
+Bird[V] = struct(def name: String)
 
-def Bird[V](def name: String)
+Bird: #pet
 
-
-def #pet for Bird
-
-
-def Exotic-Visitor
-def #visitor for Exotic-Visitor
-def Exotic-Visitor.Pet = Cat[Exotic-Visitor] | Dog[Exotic-Visitor] | Bird[Exotic-Visitor]
-def Exotic-Visitor.visit(a: Exotic-Visitor.Pet, b: Exotic-Visitor.Pet) -> String {
-    match a, b {
-        | Cat, Bird => "hunts"
-        | Dog, Bird => "barks"
-        | Bird, Cat => "chirps"
-        | Bird, Dog => "chirps"
-        | Bird, Bird => "chirps"
-        | a': Visitor.Pet, b': Visitor.Pet =>
+Exotic-Visitor = struct
+Exotic-Visitor: #visitor
+Exotic-Visitor.Pet = Cat[Exotic-Visitor] | Dog[Exotic-Visitor] | Bird[Exotic-Visitor]
+Exotic-Visitor.visit(a: Exotic-Visitor.Pet, b: Exotic-Visitor.Pet) -> String =
+    case (a, b)
+    of Cat, Bird then "hunts"
+    of Dog, Bird then "barks"
+    of Bird, Cat then "chirps"
+    of Bird, Dog then "chirps"
+    of Bird, Bird then "chirps"
+    of a': Visitor.Pet, b': Visitor.Pet then
             Visitor.visit(a', b')
-    }
-}
+	end
 
 
 ## With Single Dispatch and Open Unions #######################################
 
 
 module pets
+public
 
+Pet = Cat | Dog | ...
+Cat = struct { data name: String }
+Dog = struct { data name: String }
 
-def Pet = Cat | Dog | ...
-def Cat = struct { data name: String }
-def Dog = struct { data name: String }
+#meeter =
+	trait {
+		has (Self).meets(other: Pet) -> String
+	}
 
+#cat-visitor =
+	trait {
+		has (Self).visit-cat(other: Cat)
+	}
 
-def #meeter = trait {
-    has (Self).meets(other: Pet) -> String
-}
-def #cat-visitor = trait {
-    has (Self).visit-cat(other: Cat)
-}
-def #dog-visitor = trait {
-    has (Self).visit-dog(other: Dog)
-}
+#dog-visitor =
+	trait {
+		has (Self).visit-dog(other: Dog)
+	}
 
+Pet: #meeter
 
-def #meeter for Pet
-
-
-def (Cat).meets(other: Pet) -> String {
+(Cat).meets(other: Pet) -> String =
     other.visit-cat(self)
-}
 
-
-def (Dog).meets(other: Pet) -> String {
+(Dog).meets(other: Pet) -> String =
     other.visit-dog(self)
-}
 
+Pet: #cat-visitor
+Pet: #dog-visitor
 
-def #cat-visitor for Pet
-def #dog-visitor for Pet
+(Cat).visit-cat(other: Cat) -> String = "slinks"
+(Cat).visit-dog(other: Dog) -> String = "hisses"
+(Dog).visit-cat(other: Cat) -> String = "chases"
+(Dog).visit-dog(other: Dog) -> String = "sniffs"
 
-
-def (Cat).visit-cat(other: Cat) -> String { "slinks" }
-def (Cat).visit-dog(other: Dog) -> String { "hisses" }
-def (Dog).visit-cat(other: Cat) -> String { "chases" }
-def (Dog).visit-dog(other: Dog) -> String { "sniffs" }
-
-
-def encounter(a: Pet, b: Pet) -> String {
-    let verb = a.meets(b)
+encounter(a: Pet, b: Pet) -> String =
+    verb = a.meets(b)
     "{a.name} meets {b.name} and {verb}"
-}
 
 
 ------------------------------------------------------------------------------------
 
 
 module exotic-pets
-
 use pets (Pet, Cat, Dog)
+public
 
+Pet = ...pets::Pet | Bird
 
-def Pet = union {
-    ...pets::Pet
-    | Bird { def name: String }
-    | ...
-}
+Bird = struct { name: data String }
 
-
-def (Bird).meets(other: Pet) -> String {
+(Bird).meets(other: Pet) -> String =
     other.visit-bird(self)
-}
 
+(Bird).visit-cat(other: Cat) -> String = "chirps"
+(Bird).visit-dog(other: Dog) -> String = "chirps"
 
-def (Bird).visit-cat(other: Cat) -> String { "chirps" }
-def (Bird).visit-dog(other: Dog) -> String { "chirps" }
+#bird-visitor =
+	trait {
+		(Self).visit-bird(other: Bird) -> String
+	}
 
+Pet: #bird-visitor
 
-def #bird-visitor = trait {
-    has (Self).visit-bird(other: Bird) -> String
-}
-
-
-def #bird-visitor for Pet
-
-
-def (Cat).visit-bird(other: Bird) -> String { "hunts" }
-def (Dog).visit-bird(other: Bird) -> String { "barks" }
-def (Bird).visit-bird(other: Bird) -> String { "chirps" }
+(Cat).visit-bird(other: Bird) -> String = "hunts"
+(Dog).visit-bird(other: Bird) -> String = "barks"
+(Bird).visit-bird(other: Bird) -> String = "chirps"

@@ -1,35 +1,32 @@
-let foo(a: Int, b: Float) -> String {
-	"{a} and {b}"
-}
+foo(a: Int, b: Float) -> String = "{a} and {b}"
 
 
-let (Int).bar(b: Float) -> String {
-	"{a} and {b}"
-}
+(Int).bar(b: Float) -> String = "{a} and {b}"
 
 
-let example-partial-application() -> Io[] {
-	Io.print({ foo(___, 0.5) }.Type.name)
-	-- Int -> String
+example-partial-application() -> Nil &io =
+	do
+		io.print( (=> foo(___, 0.5)).Type )
+		-- Int -> String
 
-	Io.print({ foo(123, ___) }.Type.name)
-	-- Float -> String
+		io.print( (=> foo(123, ___)).Type )
+		-- Float -> String
 
-	Io.print({ foo(___, ___) }.Type.name)
-	-- (Int, Float) -> String
+		io.print( (=> foo(___, ___)).Type )
+		-- (Int, Float) -> String
 
-	Io.print({ ___.bar(0.5) }.Type.name)
-	-- Int -> String
+		io.print( (=> ___.bar(0.5)).Type )
+		-- Int -> String
 
-	Io.print({ 123.bar(___) }.Type.name)
-	-- Float -> String
+		io.print( (=> 123.bar(___)).Type )
+		-- Float -> String
 
-	Io.print({ ___.bar(___) }.Type.name)
-	-- (Int, Float) -> String
-}
+		io.print( (=> ___.bar(___)).Type )
+		-- (Int, Float) -> String
+	end
 
 
-def main() {
-	let ex2 = 123.pipe { x => foo("abc", x) }
-	let ex1 = 123.pipe { foo("abc", ___) }
-}
+main() =
+	ex1 = 123.pipe(=> foo("abc", ___))
+	ex2 = 123.pipe(x => foo("abc", x))
+	Nil

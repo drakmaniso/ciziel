@@ -5,80 +5,85 @@ module vec
 public --- Traits -------------------------------------------------------------
 
 
-trait #scalar {
-    type Self.Scalar #num
-}
+#scalar =
+	trait {
+		Self.Scalar: #num
+	}
 
 
-trait #vector {
-    trait #scalar
-    val Self.zero: Self
-    fun (Self).length -> Self.Scalar
-    fun (Self).normalized -> Self
-    fun (Self) + (other: Self) -> Self
-    fun (Self) - (other: Self) -> Self
-    fun (Self) * (other: Self.Scalar) -> Self
-    fun (Self.Scalar) * (other: Self) -> Self
-}
+#vector =
+	trait {
+		Self: #scalar
+		Self.zero: Self
+		(Self).length -> Self.Scalar
+		(Self).normalized -> Self
+		(Self).+ (other: Self) -> Self
+		(Self).- (other: Self) -> Self
+		(Self).* (other: Self.Scalar) -> Self
+		(Self.Scalar).* (other: Self) -> Self
+	}
 
 
-trait #vec2 {
-    trait #scalar
-    fun Self { x: Self.Scalar, y: Self.Scalar } -> Self
-}
+#vec2 =
+	trait {
+		Self: #scalar
+		Self { x: Self.Scalar, y: Self.Scalar } -> Self
+	}
 
 
-trait #vec3 {
-    trait #scalar
-    fun Self { x: Self.Scalar, y: Self.Scalar, z: Self.Scalar } -> Self
-}
+#vec3 =
+	trait {
+		Self: #scalar
+		Self { x: Self.Scalar, y: Self.Scalar, z: Self.Scalar } -> Self
+	}
 
 
 public --- Automatic Extensions -----------------------------------------------
 
 
-trait #vector for V #vec2
+V: #vector
+	forall V: #vec2
 
 
-val V.zero: V
-	forall V #vec2
+V.zero: V
+	forall V: #vec2
 	=
     V { x = V.Scalar.zero, y = V.Scalar.zero }
 
 
-fun (V).length -> V.Scalar
-	forall V #vec2
+(V).length -> V.Scalar
+	forall V: #vec2
 	=
     math.sqrt((self.x ^ 2) + (self.y ^ 2))
 
 
-fun (V).normalized -> V
-	forall V #vec2
+(V).normalized -> V
+	forall V: #vec2
 	=
     l = self.length
     V { x = self.x / l, y = self.y / l }
 
 
-fun (V) + (other: V) -> V
-	forall V #vec2
+(V).+ (other: V) -> V
+	forall V: #vec2
 	=
     V { x = self.x + other.x, y = self.y + other.y }
 
 
-fun (V) - (other: V) -> V
-	forall V #vec2
+(V).- (other: V) -> V
+	forall V: #vec2
 	=
     V { x = self.x - other.x, y = self.y - other.y }
 
 
-fun (V) * (other: V.Scalar) -> V
-	forall V #vec2
+(V).* (other: V.Scalar) -> V
+	forall V: #vec2
 	=
     V { x = self.x * scalar, y = self.y * scalar }
 
 
-fun (V.Scalar) * (other: V) -> V
-	forall V #vec2
+(V.Scalar) * (other: V) -> V
+	forall V: #vec2
 	=
     V { x = self.x * scalar, y = self.y * scalar }
 
@@ -89,49 +94,53 @@ public --- Concrete Types -----------------------------------------------------
 << Implement `#vector` for `Vec2` using the automatic extension: >>
 
 
-struct Vec2
-    x: Float32
-    y: Float32
+Vec2 =
+	struct {
+		x: Float32,
+		y: Float32,
+	}
 
 
-trait #scalar, #vec2, #vector for Vec2
+Vec2: #scalar #vec2 #vector
 
 
-type Vec2.Scalar = Float32
+Vec2.Scalar = Float32
 
 
 << Implement `#vector` for `Polar2` manually: >>
 
 
-struct Polar2
-    angle: Float32
-    length: Float32
+Polar2 =
+	struct {
+		angle: Float32,
+		length: Float32,
+	}
 
 
-trait #scalar, #vector for Polar2
+Polar2: #scalar #vector
 
 
-type Polar2.Scalar = Float32
+Polar2.Scalar = Float32
 
 
-val Polar2.zero = Polar2(0, 0)
+Polar2.zero = Polar2(0, 0)
 
 
-fun (Polar2).normalized -> Polar2 =
+(Polar2).normalized -> Polar2 =
     self.with { length = 1 }
 
 
-fun (Polar2) + (other: Polar2) -> Polar2 =
+(Polar2).+ (other: Polar2) -> Polar2 =
     ...
 
 
-fun (Polar2) - (other: Polar2) -> Polar2 =
+(Polar2).- (other: Polar2) -> Polar2 =
     ...
 
 
-fun (Polar2) * (other: Float32) -> Polar2 =
+(Polar2).* (other: Float32) -> Polar2 =
     ...
 
 
-fun (other: Float32) * (self: Polar2) -> Polar2 =
+(other: Float32).* (self: Polar2) -> Polar2 =
     ...

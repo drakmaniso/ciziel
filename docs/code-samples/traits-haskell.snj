@@ -61,7 +61,7 @@ def #monad = trait {
     }
 
     has (Self[M[A]]).join -> Self[A]
-        forall M #monad
+        forall M: #monad
     {
         self.chain(identity)
     }
@@ -112,7 +112,7 @@ has #monoid {
 
     has empty: Self
 
-    forall A[Self] #functor
+    forall A[Self]: #functor
     has concat(values: A[Self]) -> Self {
         values.fold(Self.append, Self.empty)
     }
@@ -139,10 +139,10 @@ def #monad-plus = trait {
 -------------------------------------------------------------------------------
 def #reduce = trait {
     has (Self[T]).reduce(operation: (T, T) -> T) -> T
-        forall T #monoid
+        forall T: #monoid
 
     has (Self[T]).fold-map(operation: T -> A) -> A
-        forall T #monoid
+        forall T: #monoid
 }
 
 

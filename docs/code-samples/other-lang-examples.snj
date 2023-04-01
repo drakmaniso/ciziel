@@ -23,7 +23,7 @@
 --    | _ , _ -> raise ParseError ;;
 
 
-fun stack-or-reduce(lex, stack) =
+stack-or-reduce(lex, stack) =
 	case (lex, stack)
 	of (Lint(n), _) then Ok(stack ++ Texp(ExpInt(n)))
 	of (Lident(v), _) then Ok(stack ++ Texp(ExpVar(v)))
@@ -40,28 +40,36 @@ fun stack-or-reduce(lex, stack) =
 			else
 				case stack
 				of Array(..., Texp(_)) then Tbin(minus)
-				else Tunr(uminus)
+				of _ then Tunr(uminus)
+				end
+			end
 		case symbol
 		of Tunr(op) then Ok(stack ++ Tunr(op))
 		of Tbin(op) then
 			stack-or-reduce(lex, reduce(priority-binop(op), stack))
 				.unwrap-or(stack ++ Tbin(op))
-		else Error(ParseError)
-	else Error(ParseError)
+		of _ then Error(ParseError)
+		end
+	of _ then Error(ParseError)
+	end
+
 
 
 -- Simplification:
 
 
-fun stack-or-reduce(lex, stack) =
+stack-or-reduce(lex, stack) =
 	case lex
 	of Lint(n) then Ok(stack ++ Texp(ExpInt(n)))
 	of Lident(v) then Ok(stack ++ Texp(ExpVar(v)))
 	of Lstring(s) then Ok(stack ++ Texp(ExpStr(s)))
 	of Lsymbol("(") then Ok(stack ++ Tlp)
 	of Lsymbol(")") then
-		if stack is Array(..., Tlp, Texp(e)) then Ok(stack ++ Texp(e)))
-		else stack-or-reduce(lex, reduce(0, stack))
+		if stack is Array(..., Tlp, Texp(e)) then
+			Ok(stack ++ Texp(e)))
+		else
+			stack-or-reduce(lex, reduce(0, stack))
+		end
 	of Lsymbol(s) then
 		-- remove the ambiguity of the `-` symbol
 		-- according to the last exp element put on the stack
@@ -69,12 +77,17 @@ fun stack-or-reduce(lex, stack) =
 			if s == "-" then
 				case stack
 				of Array(..., Texp(_)) then Tbin(minus)
-				else Tunr(uminus)
-			else tsymb(s)
+				of _ then Tunr(uminus)
+				end
+			else
+				tsymb(s)
+			end
 		case symbol
 		of Tunr(op) then Ok(stack ++ Tunr(op))
 		of Tbin(op) then
 			stack-or-reduce(lex, reduce(priority-binop(op), stack))
 				.unwrap-or(stack ++ Tbin(op))
-		else Error(ParseError)
-	else Error(ParseError)
+		of _ then Error(ParseError)
+		end
+	of _ then Error(ParseError)
+	end

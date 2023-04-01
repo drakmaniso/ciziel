@@ -1,64 +1,83 @@
 -- From https://www.informit.com/articles/printerfriendly/1407357
 
-trait #one-pass-range =
-    Self'Item
-    (Self).empty -> Bool
-    (Self).front -> Self'Item
-    (Self).pop-front -> Self
+
+#one-pass-range =
+	trait {
+		Self.Item: #type
+		(Self).front -> Self.Item?
+		(Self).pop-front -> Self
+	}
 
 
-forall R #one-pass-range
-func find(range: R, value: R.Item) -> R =
-    if range.empty or range.front == value then
-        range
+find(range: R, value: R.Item) -> R
+	forall R: #one-pass-range
+	=
+    if range.front is Ok(value) then
+		range
     else
-        find(range.pop-front, value)
+		find(range.pop-front, value)
+	end
 
 
-trait #writable-range =
-    Self'Item
-    (Self).replace-front(item: Self'Item) -> Self
-
-forall A #one-pass-range, B #one-pass-range #writable-range, A.Item == B.Item
-func copy(source: A, target: B) -> B =
-    if source.empty or target.empty then
-        target
-    else
-        src = source.pop-front
-        tgt = target.pop-front.replace-front(source.front)
-        copy(src, tgt)
+#writable-range =
+	trait {
+		Self.Item: #type
+		(Self).replace-front(item: Self.Item) -> Self?
+	}
 
 
-trait #forward-range =
-    #one-pass-range
-    (Self).save -> Self
+copy(source: A, target: B) -> (A, B)
+	forall A: #one-pass-range
+		and B: #one-pass-range #writable-range
+		and A.Item == B.Item
+	=
+	case source.front
+	of Ok(item) then
+		case target.replace-front(item)
+		of Ok(target') then
+			copy(source.pop-front, target'.pop-front)
+		else (source, target)
+	else (source, target)
 
 
-trait #double-ended-range =
-    #forward-range
-    (Self).back -> Self.Item
-    (Self).pop-back -> Self
+copy(source: A, target: B) -> (A, B)
+	forall A: #one-pass-range
+		and B: #one-pass-range #writable-range
+		and A.Item == B.Item
+	=
+	try
+		item ?= source.front
+		target' ?= target.replace-front(item)
+		copy(source.pop-front, target.pop-front)
+	else
+		_ => (source, target)
 
 
-trait #random-access-range =
-    #forward-range
-    (Self).at(index: Size) -> Self.Item
-    (Self).slice(from: Size, to: Size) -> Self
+trait #forward-range {
+    trait #one-pass-range
+    fun (Self).save -> Self
+}
 
 
-trait #length =
-    (Self).length -> Size
+trait #double-ended-range {
+    trait #forward-range
+    fun (Self).back -> Self.Item?
+    fun (Self).pop-back -> Self
+}
 
 
-trait #is-infinite =
-    Self.is-infinite: Bool
+trait #random-access-range {
+    trait #forward-range
+    fun (Self).at(index: Size) -> Self.Item?
+    fun (Self).slice(from: Size, to: Size) -> Self
+}
 
 
-trait #infinite =
-    #is-infinite
-    Self.is-infinite: True
+trait #length {
+    fun (Self).length -> Size
+}
 
 
-trait #finite =
-    #is-infinite
-    Self.is-infinite: False
+trait #is-infinite {
+    val Self.is-infinite: Bool
+}

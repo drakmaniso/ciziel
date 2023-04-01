@@ -1,56 +1,57 @@
-let Polygon = struct {
-    let vertices: Array[Vec2]
+Polygon = struct {
+    vertices: Array[Vec2]
 }
 
 
 << `offset` is an updater: a method where the return type is the same as the
 receiver type. >>
-let (Polygon).offset(delta: Vec2) -> Polygon {
-    self.vertices.map { ___ + delta }
-}
+(Polygon).offset(delta: Vec2) -> Polygon =
+    self.vertices.map(=> ___ + delta)
 
 
-let main() -> Nil +io {
-    let shape = Polygon(vertices = [...])
-    let shape' = shape.offset(Vec2(1, 0)) -- `offset` should *mutate* the array
-    print(shape')
-}
+main() -> Nil &io =
+	do
+		shape = Polygon(vertices = [...])
+		shape' = shape.offset(Vec2(1, 0)) -- `offset` should *mutate* the array
+		io.print(shape')
+	end
 
 
-let main() -> Nil +io {
-    let shape = Polygon(vertices = [...])
-    print(shape.offset(Vec2(1, 0))) -- `offset` should *allocate* a new array
-    print(shape)
-}
+main() -> Nil &io =
+	do
+		shape = Polygon(vertices = [...])
+		print(shape.offset(Vec2(1, 0))) -- `offset` should *allocate* a new array
+		print(shape)
+	end
 
 
-let main() -> Nil +io {
-    let shape = Polygon(vertices = [...])
-    print(shape.offset(Vec2(1, 0))) -- `offset` should *mutate* the array
-}
+main() -> Nil &io =
+	do
+		shape = Polygon(vertices = [...])
+		io.print(shape.offset(Vec2(1, 0))) -- `offset` should *mutate* the array
+	end
 
 
 -- Computed Properties --------------------------------------------------------
 
 
-let Angle = struct {
-    let radians: Float64
+Angle = struct {
+    radians: Float64
 }
 
 
-let (Angle).degrees -> Float64 {
+(Angle).degrees -> Float64 =
     (self.radians * 180) / (2 * math::pi)
-}
 
 
-let (Angle).with-degrees(degrees: Float64) -> Angle {
+(Angle).with-degrees(degrees: Float64) -> Angle =
     Angle(radians = (degrees * 2 * math::pi) / 180)
-}
 
 
-let main() -> Nil +io {
-    let theta = Angle(radians = 0.12)
-    let x = theta.degrees
-    let theta' = theta.with-degrees(x + 90) -- mutates `theta`
-    print(theta')
-}
+main() -> Nil &io =
+	do
+		theta = Angle(radians = 0.12)
+		x = theta.degrees
+		theta' = theta.with-degrees(x + 90) -- mutates `theta`
+		print(theta')
+	end

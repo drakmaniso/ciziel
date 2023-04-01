@@ -106,7 +106,7 @@ def #traversable = trait {
 	has #functor
 	has #foldable
 	has (Self[A]).traverse(operation: A -> F[B]) -> F[Self[B]]
-		forall F #applicative
+		forall F: #applicative
 }
 
 

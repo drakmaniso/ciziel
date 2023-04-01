@@ -1,84 +1,89 @@
-module main --- Some Simple Examples ------------------------------------------
-
-
-import /std/io(&io)
+<< Some Simple Examples >>
+module main
+use /std/io(&io)
 
 
 public ------------------------------------------------------------------------
 
 
-fun main() -> Nil &io =
-	fun get-number() =
-		do io.put-string("Please enter a number: ")
-		answer = io.input()
+main() -> Nil &io =
+	do
+		get-number() =
+			do
+				io.put-string("Please enter a number: ")
+				answer = io.input()
 
-		case answer.to-int
-		of Some(n) then
-			Io(n)
-		of None then
-			get-number()
-		end
+				case answer.to-int
+				of Some(number) then
+					number
+				of None then
+					get-number()
+				end
+			end
 
-	number = get-number()
-	naive = naive-factorial(number)
-	tail = tail-factorial(number)
-	folded = folded-factorial(number)
+		number = get-number()
+		naive = naive-factorial(number)
+		tail = tail-factorial(number)
+		folded = folded-factorial(number)
 
-	do io.print("naive factorial: {naive}")
-	do io.print("tail recursive factorial: {tail}")
-	do io.print("fold-based factorial: {folded}")
-
-	Nil
+		io.print("naive factorial: {naive}")
+		io.print("tail recursive factorial: {tail}")
+		io.print("fold-based factorial: {folded}")
+	end
 
 
 private --- Various Implementations of Factorial ------------------------------
 
 
-fun naive-factorial(n) =
+naive-factorial(n) =
 	if n <= 1 then
 		1
 	else
 		n * naive-factorial(n - 1)
+	end
 
 
-fun tail-factorial(n: Int) -> Int =
-	fun step(n, accum) =
+tail-factorial(n: Int) -> Int =
+	step(n, accum) =
 		if n <= 1 then
 			accum
 		else
 			step(n - 1, n * accum)
+		end
 
 	step(n, 1)
 
 
-fun fold-factorial(n: Int) -> Int =
+fold-factorial(n: Int) -> Int =
 	(2 <upto> n).fold(1, Int.*)
 
 
-forall N #num
-fun generic-tail-factorial(number: N) -> N =
-	fun step(num, accum) =
+generic-tail-factorial(number: N) -> N
+	forall N: #num
+	=
+	step(num, accum) =
 		if num <= N.one then
 			accum
 		else
 			step(num - N.one, num * accum)
+		end
 
 	step(number, N.one)
 
 
-forall N #num #range
-fun generic-fold-factorial(number: N) -> N =
+generic-fold-factorial(number: N) -> N
+	forall N: #num #range
+	=
 	(N.one <upto> number).fold(N.one, N.*)
 
 
 private --- A few Other Algorithms --------------------------------------------
 
 
-fun gcd(a: Int, b: Int) -> Int =
-	require a > 0
-	require b > 0
+gcd(a: Int, b: Int) -> Int
+	require a > 0 and b > 0
 	ensure result > 0
-
+	=
 	a' = (a, b).max
 	b' = (a, b).min
 
@@ -86,17 +91,19 @@ fun gcd(a: Int, b: Int) -> Int =
 		a'
 	else
 		gcd(b', a' <mod> b')
+	end
 
 
-fun fibonacci(n: Int) -> Int =
+fibonacci(n: Int) -> Int
 	require n > 0
 	ensure result > 0
-
-	fun step(n, previous, current) =
+	=
+	step(n, previous, current) =
 		if n == 0 then
 			current
 		else
 			step(n - 1, current, previous + current)
+		end
 
 	step(n, 1, 1)
 
@@ -104,7 +111,7 @@ fun fibonacci(n: Int) -> Int =
 private --- An Example of Method-Chaining -------------------------------------
 
 
-fun pipeline-example-1() =
+pipeline-example-1() =
 	my-array = Array(1, 2, 3, 4, 5, 6, 7)
 
 	my-array
@@ -112,17 +119,20 @@ fun pipeline-example-1() =
 		.filter(=> ___.is-even)
 		.map(=> ___ * 2)
 		.fold("", (s, n) => "{s}, {n <to> String}")
-		.map(char =>
+		.map(
+			char =>
 				next-char = (char.code + 1) <to> Char
 
 				if next-char.is-letter then
 					next-char.to-uppercase
 				else
-					Rune "?" )
+					Rune "?"
+				end
+		)
 		<collect> Array
 
 
-fun pipeline-example-2() =
+pipeline-example-2() =
 	names = Array("Judy", "Mary", "Jane", "", "Bop")
 
 	names
@@ -130,14 +140,23 @@ fun pipeline-example-2() =
 		.map(=> ___.to-lowercase)
 		.filter(=> ___.length > 0)
 		.filter(=> ___.test-all(=> ___.is-alpha))
-		.map(=>
-			case ___
-			of "Bop" then "Betty"
-			of n and n.length > 100 then "(too long)"
-			of n then n
-			end )
-		.fold("", (string, name) =>
-			if string.length > 0 then
-				string ++ ", " ++ name
-			else
-				string ++ name )
+		.map(
+			name =>
+				case
+				of name == "Bop" then
+					"Betty"
+				of name.length > 100 then
+					"(too long)"
+				else
+					name
+				end
+		)
+		.fold(
+			"",
+			(string, name) =>
+				if string.length > 0 then
+					string ++ ", " ++ name
+				else
+					string ++ name
+				end
+		)

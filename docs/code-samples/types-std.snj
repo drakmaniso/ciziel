@@ -24,21 +24,21 @@ type A? = Ok[A] | None -- A ? Nil
 type None = Error[Nil]
 
 
-trait #functor[A] for A ? E
+A ? E: #functor[A]
 
 
-auto (A ? E).map(transform: A -> B) -> B ? E
+auto fun (A ? E).map(transform: A -> B) -> B ? E
 fun (Ok[A]).map(transform: A -> B) -> Ok[B] = Ok(transform(self.item))
 fun (Error[E]).map(transform: A -> B) -> Error[E] = self
 
 
-trait #monad[A] for A ? E
+A ? E:  #monad[A]
 
 
 fun A ? E.wrap(value: A) -> Result[A, E] = Ok(value)
 
 
-auto (A ? E).and-then(operation: A -> B ? E) -> B ? E
+auto fun (A ? E).and-then(operation: A -> B ? E) -> B ? E
 fun (Ok[A]).and-then(operation: A -> B ? E) -> B ? E = operation(self.value)
 fun (Error[E]).and-then(operation: A -> B ? E) -> Error[E] = self
 
@@ -53,15 +53,16 @@ struct Map[I, A] {
 
 
 
-forall I #iterator
-trait #iterator for Map[I, A]
+Map[I, A]: #iterator
+	forall I: #iterator
 
 
 type Map[I, A].Item = A
 
 
-forall I #iterator
-fun (Map[I, A]).next -> (Map[I, A], Option[A]) =
+fun (Map[I, A]).next -> (Map[I, A], Option[A])
+	forall I: #iterator
+	=
     case self.iterator.next
 	of (_, None) then (self, None)
 	of (i, Ok(item)) then

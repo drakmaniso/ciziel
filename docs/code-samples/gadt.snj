@@ -12,56 +12,57 @@ module gadt1 --- First GADT Example -------------------------------------------
 public
 
 
-type Expr = EBool | EInt | EEqual
-struct EBool(value: Bool)
-struct EInt(value: Int)
-struct EEqual(left: *EInt, right: *EInt)
+Expr = EBool | EInt | EEqual
+EBool = struct(value: Bool)
+EInt = struct(value: Int)
+EEqual = struct(left: *EInt, right: *EInt)
 
 
-trait #expr {
-	type Self.Output
-	fun (Self).eval -> Self.Output
-}
+#expr =
+	trait {
+		Self.Output: Type
+		(Self).eval -> Self.Output
+	}
 
 
-trait #expr for Expr
-type Expr.Output = Int | Bool
-auto (Expr).eval -> Int | Bool
+Expr: #expr
+Expr.Output = Int | Bool
+(Expr).eval -> Int | Bool = auto
 
 
-trait #expr for EBool
-type EBool.Output = Bool
-fun (EBool).eval -> Bool = self.value
+EBool: #expr
+EBool.Output = Bool
+(EBool).eval -> Bool = self.value
 
 
-trait #expr for EInt
-type EInt.Output = Int
-fun (EInt).eval -> Int = self.value
+EInt: #expr
+EInt.Output = Int
+(EInt).eval -> Int = self.value
 
 
-trait #expr for EEqual
-type EEqual.Output = Bool
-fun (EEqual).eval -> Bool = (self.left.eval == self.right.eval)
+EEqual: #expr
+EEqual.Output = Bool
+(EEqual).eval -> Bool = (self.left.eval == self.right.eval)
 
 
-fun main() -> Nil &io =
-	let expr1 = EEqual(EInt 2, EInt 3)
-	do io.print("{expr1.Type.name}")
-	--> EEqual
+main() -> Nil &io =
+	do
+		expr1 = EEqual(EInt 2, EInt 3)
+		io.print("{expr1.Type.name}")
+		--> EEqual
 
-	let eval1 = expr1.eval
-	do io.print("{eval1.Type.name}")
-	--> Bool
+		eval1 = expr1.eval
+		io.print("{eval1.Type.name}")
+		--> Bool
 
-	let exprs = Array(EInt 2, EBool True, EEqual(EInt 2, EInt 3))
-	do io.print("{expr2.Type.name}")
-	--> Array[Expr]
+		exprs = Array(EInt 2, EBool True, EEqual(EInt 2, EInt 3))
+		io.print("{expr2.Type.name}")
+		--> Array[Expr]
 
-	let evals = exprs.map(___.eval)
-	do io.print("{evals.Type.name}")
-	--> Array[Bool | Int]
-
-	Nil
+		evals = exprs.map(___.eval)
+		io.print("{evals.Type.name}")
+		--> Array[Bool | Int]
+	end
 
 
 module gadt2 --- Second GADT Example: Phantom Types ---------------------------
@@ -78,45 +79,48 @@ https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
 public
 
 
-type Term = ITerm | BTerm
-type ITerm = Zero | Succ | Pred | If[Term]
-type BTerm = Is-Zero | If[Bool]
+Term = ITerm | BTerm
+ITerm = Zero | Succ | Pred | If[Term]
+BTerm = Is-Zero | If[Bool]
 
 
-struct Zero
-struct Succ(arg: ITerm)
-struct Pred(arg: ITerm)
-struct Is-Zero(arg: ITerm)
-struct If[T] {
-	condition: BTerm,
-	then-branch: T,
-	else-branch: T,
-}
+Zero = struct
+Succ = struct(arg: ITerm)
+Pred = struct(arg: ITerm)
+Is-Zero = struct(arg: ITerm)
+If =
+	struct[T] {
+		condition: BTerm,
+		then-branch: T,
+		else-branch: T,
+	}
 
 
-auto Term.Output = Int | Bool
-auto ITerm.Output = Int
-auto BTerm.Output = Bool
-type Zero.Output = Int
-type Succ.Output = Int
-type Pred.Output = Int
-type Is-Zero.Output = Bool
-type If[T].Output = T
+Term.Output = Int | Bool
+ITerm.Output = Int
+BTerm.Output = Bool
+Zero.Output = Int
+Succ.Output = Int
+Pred.Output = Int
+Is-Zero.Output = Bool
+If[T].Output = T
 
 
-auto (Term).eval -> Int | Bool
-auto (ITerm).eval -> Int
-auto (BTerm).eval -> Bool
+(Term).eval -> Int | Bool = auto
+(ITerm).eval -> Int = auto
+(BTerm).eval -> Bool = auto
 
 
-fun (Zero).eval -> Int = 0
-fun (Succ).eval -> Int = self.arg.eval + 1
-fun (Pred).eval -> Int = self.arg.eval - 1
-fun (Is-Zero).eval -> Bool = self.arg.eval == 0
-fun (If[T]).eval -> T =
-	if self.condition.eval
-	then self.then-branch.eval
-	else self.else-branch.eval
+(Zero).eval -> Int = 0
+(Succ).eval -> Int = self.arg.eval + 1
+(Pred).eval -> Int = self.arg.eval - 1
+(Is-Zero).eval -> Bool = self.arg.eval == 0
+(If[T]).eval -> T =
+	if self.condition.eval then
+		self.then-branch.eval
+	else
+		self.else-branch.eval
+	end
 
 
 module gadt3 --- Third GADT Example: Higher-Order Abstract Syntax -------------
@@ -130,80 +134,97 @@ From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#H
 public
 
 
-type Lift[T](value: T)
+#expr =
+	trait {
+		Self.Output: Type
+		(Self).eval -> Self.Output
+	}
 
 
-forall T #expr, U #expr
-struct Pair[T, U](first: T, second: U)
+Lift[T]: #expr =
+	struct(value: T)
 
 
-forall T #expr, U #expr
-struct Lambda[T, U](value: T -> U)
+Pair[T, U]: #expr
+	forall T: #expr
+		and U: #expr
+	=
+	struct(
+		first: T,
+		second: U,
+	)
 
 
-forall T #expr, U #expr
-struct Apply[T, U](function: Lambda[T, U], argument: U)
+Lambda[T, U]: #expr
+	forall T: #expr
+		and U: #expr
+	=
+	struct(value: T -> U)
 
 
-forall T #expr
-struct Fix[T](function: Lambda[T, T])
+Apply[T, U]: #expr
+	forall T: #expr
+		and U: #expr
+	=
+	struct(
+		function: Lambda[T, U],
+		argument: U,
+	)
 
 
-trait #expr {
-	type Self.Output
-	fun (Self).eval -> Self.Output
-}
+Fix[T]: #expr
+	forall T: #expr
+	=
+	struct(function: Lambda[T, T])
 
 
-trait #expr for Lift[T]
-trait #expr for Pair[T, U]
-trait #expr for Lambda[T, U]
-trait #expr for Apply[T, U]
-trait #expr for Fix[T]
+Lift[T].Output = T
+Pair[T, U].Output = (T, U)
+Lambda[T, U].Output = T -> U
+Apply[T, U].Output = U
+Fix[T].Output = T
 
 
-type Lift[T].Output = T
-type Pair[T, U].Output = (T, U)
-type Lambda[T, U].Output = T -> U
-type Apply[T, U].Output = U
-type Fix[T].Output = T
-
-
-fun (Lift[T]).eval -> T =
+(Lift[T]).eval -> T =
 	self.first.value
 
 
-fun (Pair[T, U]).eval -> (T, U) =
+(Pair[T, U]).eval -> (T, U) =
 	(self.first.eval, self.second.eval)
 
 
-fun (Lambda[T, U]).eval -> (T -> U) =
+(Lambda[T, U]).eval -> (T -> U) =
 	x => self.function(Lift(x)).eval
 
 
-fun (Apply[T, U]).eval -> U =
+(Apply[T, U]).eval -> U =
 	self.function.eval(self.argument.eval)
 
 
-fun (Fix[T]).eval -> T =
+(Fix[T]).eval -> T =
 	self.function.eval(Fix(self.function).eval)
 
 
-fun example() -> Nil &io =
-	factorial =
-		Fix(
-			Lambda(f =>
-				Lambda(y =>
-					y' = y.eval
-					f' = f.eval
-					if y' == 0
-					then Lift(1)
-					else Lift(y' * f'(y' - 1))
+example() -> Nil &io =
+	do
+		factorial =
+			Fix(
+				Lambda(
+					f =>
+						Lambda(
+							y =>
+								y' = y.eval
+								f' = f.eval
+
+								if y' == 0 then
+									Lift(1)
+								else
+									Lift(y' * f'(y' - 1))
+								end
+						)
 				)
 			)
-		)
 
-	factorial-of-ten = Apply(factorial, Lift(10))
-	do io.print(factorial-of-ten.eval)
-
-	Nil
+		factorial-of-ten = Apply(factorial, Lift(10))
+		io.print(factorial-of-ten.eval)
+	end

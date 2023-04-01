@@ -1,204 +1,160 @@
 << Multiple dispatch using custom binary operators >>
 
 
--- Simple Version: Non-generic `encounter` ------------------------------------
+--- Simple Version: Non-generic `encounter` -----------------------------------
 
 
 module cats-and-dogs
 
+public
 
-def Cat = struct { def name: String }
-def Dog = struct { def name: String }
+Cat = struct { name: data String }
+Dog = struct { name: data String }
 
-
-def (Cat) <meets> (other: Cat) -> String { "slinks" }
-def (Cat) <meets> (other: Dog) -> String { "hisses" }
-def (Dog) <meets> (other: Dog) -> String { "sniffs" }
-def (Cat) <meets> (other: Cat) -> String { "chases" }
-
-
--------------------------------------------------------------------------------
+(Cat).<meets> (other: Cat) -> String = "slinks"
+(Cat).<meets> (other: Dog) -> String = "hisses"
+(Dog).<meets> (other: Dog) -> String = "sniffs"
+(Cat).<meets> (other: Cat) -> String = "chases"
 
 
 module birds
-
-
 use cats-and-birds (Cat, Dog)
 
+public
 
-def Bird = struct { def name: String }
+Bird = struct { name: data String }
 
-
-def (Bird) <meets> (other: Bird) -> String { "chirps" }
-def (Bird) <meets> (other: Cat) -> String { "chirps" }
-def (Bird) <meets> (other: Dog) -> String { "chirps" }
-def (Cat) <meets> (other: Bird) -> String { "hunts" }
-def (Dog) <meets> (other: Bird) -> String { "barks" }
-
-
--------------------------------------------------------------------------------
+(Bird).<meets> (other: Bird) -> String = "chirps"
+(Bird).<meets> (other: Cat) -> String = "chirps"
+(Bird).<meets> (other: Dog) -> String = "chirps"
+(Cat).<meets> (other: Bird) -> String = "hunts"
+(Dog).<meets> (other: Bird) -> String = "barks"
 
 
 module usage
-
-
 use cats-and-dogs (Cat, Dog)
 use birds (Bird)
 
+public
 
-let Pet = Cat | Dog | Bird
+Pet = Cat | Dog | Bird
 
-
-let encounter(a: Pet, b: Pet) -> String {
-    let verb = a <meets> b
+encounter(a: Pet, b: Pet) -> String =
+    verb = a <meets> b
     "{a.name} meets {b.name} and {verb}"
-}
 
 
-let example-encounter() -> Io[] {
-    let pets =
-        Array(
-            Cat("Spot"),
-            Dog("Fido"),
-            Bird("Coco"),
-        )
+example-encounter() -> Nil &io =
+	do
+		pets =
+			Array(
+				Cat("Spot"),
+				Dog("Fido"),
+				Bird("Coco"),
+			)
 
-    Io.traverse(pets) {
-        a => Io.traverse(pets) {
-            b => Io.print(encounter(a, b))
-        }
-    }
-    -- Spot meets Spot and slinks
-    -- Spot meets Fido and hisses
-    -- Spot meets Coco and hunts
-    -- Fido meets Spot and chases
-    -- Fido meets Fido and sniffs
-    -- Fido meets Coco and barks
-    -- Coco meets Spot and chirps
-    -- Coco meets Fido and chirps
-    -- Coco meets Coco and chirps
-}
-
-
-let example-encounter() -> Nil +io {
-    let pets =
-        Array(
-            Cat("Spot"),
-            Dog("Fido"),
-            Bird("Coco"),
-        )
-
-    pets.map {
-        a => pets.map {
-            b => print(encounter(a, b))
-        }
-    }
-    -- Spot meets Spot and slinks
-    -- Spot meets Fido and hisses
-    -- Spot meets Coco and hunts
-    -- Fido meets Spot and chases
-    -- Fido meets Fido and sniffs
-    -- Fido meets Coco and barks
-    -- Coco meets Spot and chirps
-    -- Coco meets Fido and chirps
-    -- Coco meets Coco and chirps
-}
+		pets.foreach(a =>
+			pets.foreach(b =>
+				io.print(encounter(a, b))
+			)
+		)
+		--> Spot meets Spot and slinks
+		--> Spot meets Fido and hisses
+		--> Spot meets Coco and hunts
+		--> Fido meets Spot and chases
+		--> Fido meets Fido and sniffs
+		--> Fido meets Coco and barks
+		--> Coco meets Spot and chirps
+		--> Coco meets Fido and chirps
+		--> Coco meets Coco and chirps
+	end
 
 
--- Using Traits: Generic `encounter` ------------------------------------------
+--- Using Traits: Generic `encounter` -----------------------------------------
 
 
 module pets
 
+public
 
-def #pet {
-    has (Self).name: String
-    has (Self) <meets> (other: Self) -> String
+trait #pet {
+    (Self).name -> String
+    (Self).<meets> (other: Self) -> String
 }
 
-
-def encounter(a: P, b: P) -> String
-    forall P #pet
-{
+encounter(a: P, b: P) -> String
+	forall P: #pet
+	=
     verb = a <meets> b
     "{a.name} meets {b.name} and {verb}"
-}
-
-
--------------------------------------------------------------------------------
 
 
 module cats-and-dogs
-
-
 use pets (#pet)
 
+public
 
-def Usual-Pet = Cat | Dog
-def Cat(data name: String)
-def Dog(data name: String)
+Usual-Pet = Cat | Dog
+Cat = struct { name: data String }
+Dog = struct { name: data String }
 
+Usual-Pet: #pet
+Cat: #pet
+Dog: #pet
 
-def #pet for Usual-Pet, Cat, Dog
-def (Cat) <meets> (other: Cat) -> String { "slinks" }
-def (Cat) <meets> (other: Dog) -> String { "hisses" }
-def (Dog) <meets> (other: Cat) -> String { "chases" }
-def (Dog) <meets> (other: Dog) -> String { "sniffs" }
-
-
--------------------------------------------------------------------------------
+(Cat).<meets> (other: Cat) -> String = "slinks"
+(Cat).<meets> (other: Dog) -> String = "hisses"
+(Dog).<meets> (other: Cat) -> String = "chases"
+(Dog).<meets> (other: Dog) -> String = "sniffs"
 
 
 module birds
-
-
 use pets (#pet)
 use cats-and-dogs (Cat, Dog)
 
+public
 
-def Exotic-Pet = Cat | Dog | Bird
-def Bird(data name: String)
+Exotic-Pet = Cat | Dog | Bird
+Bird = struct { name: data String }
 
+Exotic-Pet: #pet
+Bird: #pet
 
-def #pet for Exotic-Pet, Bird
-def (Bird) <meets> (other: Cat) -> String { "chirps" }
-def (Bird) <meets> (other: Dog) -> String { "chirps" }
-def (Bird) <meets> (other: Bird) -> String { "chirps" }
-def (Cat) <meets> (other: Bird) -> String { "hunts" }
-def (Dog) <meets> (other: Bird) -> String { "barks" }
-
-
--------------------------------------------------------------------------------
-
-
-module main
+(Bird).<meets> (other: Cat) -> String { "chirps" }
+(Bird).<meets> (other: Dog) -> String { "chirps" }
+(Bird).<meets> (other: Bird) -> String { "chirps" }
+(Cat).<meets> (other: Bird) -> String { "hunts" }
+(Dog).<meets> (other: Bird) -> String { "barks" }
 
 
+module usage
 use pets (#pet)
 use cats-and-dogs (Cat, Dog)
 use exotic-pets (Bird)
 
+public
 
-def main() -> Io[] {
-    let pets =
-        Array(
-            Cat("Spot"),
-            Dog("Fido"),
-            Bird("Coco"),
-        )
+main() -> Nil &io =
+	do
+		pets =
+			Array(
+				Cat("Spot"),
+				Dog("Fido"),
+				Bird("Coco"),
+			)
 
-    Io.traverse(pets) {
-        a => Io.traverse(pets) {
-            b => Io.print(encounter(a, b))
-        }
-    }
-    -- Spot meets Spot and slinks
-    -- Spot meets Fido and hisses
-    -- Spot meets Coco and hunts
-    -- Fido meets Spot and chases
-    -- Fido meets Fido and sniffs
-    -- Fido meets Coco and barks
-    -- Coco meets Spot and chirps
-    -- Coco meets Fido and chirps
-    -- Coco meets Coco and chirps
-}
+		pets.foreach(a =>
+			pets.foreach(b =>
+				io.print(encounter(a, b))
+			)
+		)
+		--> Spot meets Spot and slinks
+		--> Spot meets Fido and hisses
+		--> Spot meets Coco and hunts
+		--> Fido meets Spot and chases
+		--> Fido meets Fido and sniffs
+		--> Fido meets Coco and barks
+		--> Coco meets Spot and chirps
+		--> Coco meets Fido and chirps
+		--> Coco meets Coco and chirps
+	end

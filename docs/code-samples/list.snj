@@ -1,21 +1,20 @@
 module /std/lists --- Linked Lists --------------------------------------------
-
-
-import /std (#iterator, #iterable)
+use /std (#iterator, #iterable)
 
 
 public
 
 
-type List[A] = Empty[A] | *Link[A]
-struct Empty[A]
-struct Link[A] {
-	head: data A
-	tail: data List[A]
-}
+List[A] = Empty[A] | *Link[A]
+Empty[A] = struct
+Link[A] =
+	struct {
+		head: data A
+		tail: data List[A]
+	}
 
 
-fun List[A].new(...items: Array[A]) -> List[A] =
+List[A].new(...items: Array[A]) -> List[A] =
     items.rev-fold(
 		Empty,
         (item, list) =>
@@ -26,13 +25,14 @@ fun List[A].new(...items: Array[A]) -> List[A] =
 public --- Equality -----------------------------------------------------------
 
 
-trait #eq for List[#eq]
-trait #eq for Empty
-trait #eq for Link[#eq]
+List[#eq]: #eq
+Empty: #eq
+Link[#eq]: #eq
 
 
-forall A #eq
-fun (List[A]) == (other: List[A]) -> Bool =
+(List[A]) == (other: List[A]) -> Bool
+	forall A: #eq
+	=
 	case (self, other)
 	of (Empty, Empty) then True
 	of (a: Link, b: Link) then (a.head == b.item) and (a.tail == b.tail)
@@ -43,34 +43,35 @@ fun (List[A]) == (other: List[A]) -> Bool =
 public --- Pushing and Poping -------------------------------------------------
 
 
-fun (List[A]).push(item: A) -> *Link[A] =
+(List[A]).push(item: A) -> *Link[A] =
     Link { head = item, tail = self }
 
 
-auto (List[A]).head -> A?
-fun (Empty[A]).head -> None = None
+(List[A]).head -> A? = auto
+(Empty[A]).head -> None = None
 
 
-auto (List[A]).tail -> List[A]
-fun (Empty[A]).tail -> Empty[A] = Empty
+(List[A]).tail -> List[A] = auto
+(Empty[A]).tail -> Empty[A] = Empty
 
 
 public --- Functor Implementation ---------------------------------------------
 
 
-tag List[A] as #functor
-tag Empty[A] as #functor
-tag Link[A] as #functor
+List[A]: #functor
+Empty[A]: #functor
+Link[A]: #functor
 
 
-auto (List[A]).map(transform: A -> B) -> List[B]
+(List[A]).map(transform: A -> B) -> List[B] =
+	auto
 
 
-fun (Empty[A]).map(transform: A -> B) -> Empty[B] =
+(Empty[A]).map(transform: A -> B) -> Empty[B] =
     Empty
 
 
-fun (*Link[A]).map(transform: A -> B) -> *Link[B] =
+(*Link[A]).map(transform: A -> B) -> *Link[B] =
     Link {
         head = transform(self.head),
         tail = self.tail.map(transform),
@@ -80,29 +81,30 @@ fun (*Link[A]).map(transform: A -> B) -> *Link[B] =
 public --- Iterator Implementation --------------------------------------------
 
 
-trait #iterable for List[A]
+List[A]: #iterable
 
 
-struct List[A].Iterator {
-	current: List[A]
-}
+List[A].Iterator =
+	struct {
+		current: List[A]
+	}
 
 
-fun (List[A]).iterator -> List[A].Iterator =
+(List[A]).iterator -> List[A].Iterator =
     List.Iterator { current = self }
 
 
-trait #iterator for List[A].Iterator
+List[A].Iterator: #iterator
 
 
-type List[A].Iterator.Item = A
+List[A].Iterator.Item = A
 
 
-fun (List[A].Iterator).item -> A? =
+(List[A].Iterator).item -> A? =
     self.current.head
 
 
-fun (List[A].Iterator).next -> List[A].Iterator =
+(List[A].Iterator).next -> List[A].Iterator =
     case self.current
 	of Empty then self
 	of Link { tail, ... } then
@@ -110,7 +112,7 @@ fun (List[A].Iterator).next -> List[A].Iterator =
     end
 
 
-fun (List[A].Iterator).item-next -> (List[A].Iterator, A?) =
+(List[A].Iterator).item-next -> (List[A].Iterator, A?) =
     case self.current
 	of Empty then (self, None)
 	of Link { head, tail } then
@@ -129,21 +131,21 @@ use /std/list (List, Link, Empty)
 private
 
 
-fun double(list: List[Int]) -> List[Int] =
-    list.map(___ * 2)
+double(list: List[Int]) -> List[Int] =
+    list.map(=> ___ * 2)
 
 
-fun main() -> Nil &io =
-	a = Link(1, Link(2, Link(3, Empty)))
-	b = List.new(1, 2, 3)
+main() -> Nil &io =
+	do
+		a = Link(1, Link(2, Link(3, Empty)))
+		b = List.new(1, 2, 3)
 
-	do io.print(a.type)
-	--> Link[Int]
+		io.print(a.type)
+		--> Link[Int]
 
-	do io.print(b.type)
-	--> List[Int]
+		io.print(b.type)
+		--> List[Int]
 
-	do io.print(a.map.type))
-	--> (Link[Int], Int -> A) -> Link[A]
-
-	Nil
+		io.print(a.map.type))
+		--> (Link[Int], Int -> A) -> Link[A]
+	end

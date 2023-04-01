@@ -44,8 +44,8 @@ Foo.bar(a: Int, b: Bool) -> String =
 << desugars to an associated constant: >>
 
 
-Foo.bar: (Int, Bool) -> String =
-    (a, b) =>
+Foo.Type.bar: (Foo.Type, Int, Bool) -> String =
+    (_, a, b) =>
 		"foobar"
 
 
@@ -71,29 +71,16 @@ Foo.baz: (Foo, Int, Bool) -> String =
 		"foobaz"
 
 
--- Property Calls -------------------------------------------------------------
-
-
-foo.a
-
-
-<< desugars to: >>
-
-
-Foo.a(foo)
-
-
-
 -- Method Calls ---------------------------------------------------------------
 
 
-foo.baz(1, True)
+foo.baz(___, 1, True)
 
 
 << desugars to: (assuming `Foo` is the type of `foo`) >>
 
 
-Foo.baz(foo, 1, True)
+(foo.Type)::baz(foo, 1, True)
 
 
 -- Operator Calls -------------------------------------------------------------

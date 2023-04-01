@@ -1,103 +1,103 @@
--- Standard traits for iterators ----------------------------------------------
+module /std --- Standard traits for iterators ---------------------------------
 
 
-module std::iter
+public
 
 
-def #iterable = trait {
-    has Self.Iterator: #iterator
-    has (Self).iterator -> Self.Iterator
+trait #iterable {
+    type Self.Iterator #iterator
+    fun (Self).iterator -> Self.Iterator
 }
 
 
-def #iterator = trait {
-    has Self.Item
-    has (Self).next -> (Self, Maybe[Self.Item])
+trait #iterator {
+    type Self.Item
+	fun (Self).peek -> Self.Item?
+	fun (Self).next -> Self
+    fun (Self).peek-next -> (Self, Self.Item?)
 }
 
 
--- Simple iterator example ----------------------------------------------------
+module counter --- Simple iterator example ------------------------------------
 
 
-module counter
+use /std (#iterator)
+use /std/io (&io)
 
 
-use std::iter (#iterator)
+public
 
 
-def Counter = struct {
-    let count: Int
-    def limit: Int
+struct Counter {
+    count: Int
+    limit: public Int
 }
 
 
-def Counter.new(limit: Int) -> Counter {
-    Counter(count: 0, limit: limit)
-}
+fun Counter.new(limit: Int) -> Counter =
+    Counter { count = 0, limit = limit }
 
 
-def Counter as #iterator
-def Counter.Item = Int
-def (Counter).next -> (Counter, Maybe[Int]) {
-    if self.count >= self.limit {
+Counter: #iterator
+
+
+type Counter.Item = Int
+
+
+fun (Counter).peek -> Int? =
+	if self.count >= self.limit then None
+	else Ok(self.count)
+
+
+fun (Counter).next -> Counter =
+	if self.count >= self.limit then self
+	else self.with { count = count + 1 }
+
+
+fun (Counter).next -> (Counter, Int?) =
+    if self.count >= self.limit then
         (self, None)
-    } else {
-        let count = self.count
-        let new-counter = self.with(count: count + 1)
-        (new-counter, Some(count))
-    }
-}
+    else
+        count = self.count
+        new-counter = self.with(count: count + 1)
+        (new-counter, Ok(count))
 
 
-let example() -> Io[] {
-    let step(c) {
-        match c.next() {
-            | (_, None) =>
-                Io.print("Done!")
-            | (rest, Some(number)) =>
-                Io.print("{number}, ")
-                step(rest)
-        }
-    }
+fun example() -> Nil &io =
+    fun step(c) =
+        case c.next()
+		of (_, None) =>
+			io.print("Done!")
+		of (rest, Ok(number)) =>
+			io.print("{number}, ")
+			step(rest)
 
     counter = Counter.new(7)
     step(counter)
-}
 
 
--------------------------------------------------------------------------------
+module main --- Usage ---------------------------------------------------------
 
 
-module main
+use /std/iter (#iterator)
 
 
-use std::iter (#iterator)
+private
 
 
-forall I: #iterator
-let foo(iterator: I, f: fun(I::Item) -> Int) -> Array[Int] {
-    iterator.fold([], Array::push)
-}
+fun foo(iterator: I, f: I.Item -> Int) -> Array[Int]
+	forall I: #iterator
+	=
+    iterator.fold(Array(), Array.push)
 
 
-forall
-    I #iterator,
-    J #iterator,
-    I.Item == J.Item,
-    I.Item #eq
-let compare(i: I, j: J) -> Bool {
-    match (i.next(), j.next()) {
-        | ((_, None), (_, None)):
-            True
-
-        | ((i-next, Some(a)), (j-next, Some(b))):
-            if a == b {
-                compare(i-next, j-next)
-            } else {
-                False
-            }
-
-        | _:
-            False
-    }
-}
+fun compare(i: I, j: J) -> Bool =
+	forall I: #iterator
+		and J: #iterator
+		and I.Item == J.Item
+		and I.Item #eq
+	=
+    case (i.peek, j.peek)
+	of (None, None) then True
+	of (Ok(a), Ok(b)) and (a == b) then compare(i-next, j-next)
+	else False
