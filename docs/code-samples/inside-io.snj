@@ -78,17 +78,17 @@ fun get-char() -> Io[Char] =
 
 
 fun get-2-chars() -> Io[String] =
-    a ?= get-char()
-    b ?= get-char()
+    let? a = get-char()
+    let? b = get-char()
     Io("{a} {b}")
 
 
 fun get-4-chars() -> Io[String] =
-    a ?= get-2-chars()
-    b ?= get-2-chars()
+    let? a = get-2-chars()
+    let? b = get-2-chars()
     Io("{a} {b}")
 
 
 fun get-confirmation() -> Io[Bool] =
-    a ?= get-char()
+    let? a = get-char()
     Io(a == Char "y")

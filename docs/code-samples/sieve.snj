@@ -5,21 +5,21 @@ use /std/io (&io)
 private
 
 
-main() -> Nil &io =
+fun main() -> Void &io =
 	do
 		all-numbers = Array(False, False, True, ..., [1001] = True)
 		primes = sieve(all-numbers, 2)
 
 		primes.foreach-indexed((i, is-prime) =>
 			if is-prime then
-				io.print("{i} ")
+				print("{i} ")
 			end
 		)
 	end
 
 
-sieve(flags: Array[Bool], start: Int) -> Array[Bool] =
-	cross-multiples(flags, n, i) =
+fun sieve(flags: Array[Bool], start: Int) -> Array[Bool] =
+	fun cross-multiples(flags, n, i) =
 		if n * i >= flags.size then
 			flags
 		else
@@ -27,7 +27,7 @@ sieve(flags: Array[Bool], start: Int) -> Array[Bool] =
 			cross-multiples(flags', n, i + 1)
 		end
 
-	first-not-crossed(flags, n) =
+	fun first-not-crossed(flags, n) =
 		if flags[n] then
 			n
 		else

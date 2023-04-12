@@ -1,4 +1,4 @@
---- The Expression Problem ----------------------------------------------------
+<< The Expression Problem >>
 
 
 module basic
@@ -7,79 +7,79 @@ module basic
 public
 
 
-Literal = struct(value: data Int)
-Addition[E] = struct(left: data *E, right: data *E)
+struct Literal(value: data Int)
+struct Addition[E](left: data *E, right: data *E)
 
 
-#eval =
-	trait {
-		(Self).eval -> Int
-	}
+trait #eval {
+	fun (Self).eval -> Int
+}
 
 
-Literal: #eval
-Addition[E]: #eval forall E: #eval
+tag Literal #eval
+forall E #eval
+tag Addition[E] #eval
 
 
-(Literal).eval -> Int =
+fun (Literal).eval -> Int =
 	self.value
 
 
-(Addition[E]).eval -> Int
-	forall E: #eval
-	=
+forall E #eval
+fun (Addition[E]).eval -> Int =
     self.left.eval + self.right.eval
 
 
-module extended --- Extension -------------------------------------------------
+-------------------------------------------------------------------------------
+
+
+module extended
 use basic (#eval, Literal, Addition)
-
-
 public
 
 
-Negation[E] = struct(subexpr: *E)
+struct Negation[E](subexpr: *E)
 
 
-Negation[E]: #eval forall E: #eval
+forall E #eval
+tag Negation[E] #eval
 
 
-(Negation[E]).eval -> Int
-	forall E: #eval
-	=
+forall E #eval
+fun (Negation[E]).eval -> Int =
     - self.subexpr.eval
 
 
-#pretty =
-	trait {
-		(Self).pretty -> String
-	}
+trait #pretty {
+	fun (Self).pretty -> String
+}
 
 
-Literal: #pretty
-Addition[E]: #pretty forall E: #pretty
-Negation[E]: #pretty forall E: #pretty
+tag Literal #pretty
+forall E #pretty
+tag Addition[E] #pretty
+forall E #pretty
+tag Negation[E] #pretty
 
 
-(Literal).pretty -> String =
-    self.eval.to-string
+fun (Literal).pretty -> String =
+    self.value.to-string
 
 
-(Addition[E]).pretty -> String
-	forall E: #eval
-	=
+forall E #eval
+fun (Addition[E]).pretty -> String =
 	l = self.left.pretty
 	r = self.right.pretty
 
 	case (self.left, self.right)
-	of (Literal(...), Literal(...)) then "{l} + {r}"
-	of (Literal(...), _) then "{l} + ({r})"
-	of (_, Literal(...)) then "({l}) + {r}"
-	of (_, _) then "({l}) + ({r})"
+		of (Literal(...), Literal(...)) then "{l} + {r}"
+		of (Literal(...), _) then "{l} + ({r})"
+		of (_, Literal(...)) then "({l}) + {r}"
+		of (_, _) then "({l}) + ({r})"
 	end
 
 
-(Negation[#pretty]).pretty -> String =
+fun (Negation[#pretty]).pretty -> String =
     "- ({self.subexpr.pretty})"
 
 
@@ -89,11 +89,11 @@ use basic (#eval, Literal, Addition)
 use extended (#pretty, Negation)
 
 
-Expr = Literal | Addition[Expr] | Negation[Expr]
+type Expr = Literal | Addition[Expr] | Negation[Expr]
 
 
-main() -> Nil &io =
+fun main() -> Void &io =
 	do
 		e1: Expr = Addition(Literal(77), Negation(Literal(12)))
-		io.print("{e1.pretty} = {e1.eval}")
+		print("{e1.pretty} = {e1.eval}")
 	end

@@ -1,23 +1,24 @@
-<< Some Simple Examples >>
 module main
-use /std/io(&io)
+
+
+use &io from /std/io
 
 
 public ------------------------------------------------------------------------
 
 
-main() -> Nil &io =
+fun main() -> Void &io =
 	do
-		get-number() =
+		fun get-number() =
 			do
 				io.put-string("Please enter a number: ")
-				answer = io.input()
+				answer = io::input()
 
 				case answer.to-int
-				of Some(number) then
-					number
-				of None then
-					get-number()
+					of Some(number) then
+						number
+					of None then
+						get-number()
 				end
 			end
 
@@ -26,16 +27,16 @@ main() -> Nil &io =
 		tail = tail-factorial(number)
 		folded = folded-factorial(number)
 
-		io.print("naive factorial: {naive}")
-		io.print("tail recursive factorial: {tail}")
-		io.print("fold-based factorial: {folded}")
+		print("naive factorial: {naive}")
+		print("tail recursive factorial: {tail}")
+		print("fold-based factorial: {folded}")
 	end
 
 
-private --- Various Implementations of Factorial ------------------------------
+local -------------------------------------------------------------------------
 
 
-naive-factorial(n) =
+fun naive-factorial(n) =
 	if n <= 1 then
 		1
 	else
@@ -43,8 +44,8 @@ naive-factorial(n) =
 	end
 
 
-tail-factorial(n: Int) -> Int =
-	step(n, accum) =
+fun tail-factorial(n: Int) -> Int =
+	fun step(n, accum) =
 		if n <= 1 then
 			accum
 		else
@@ -54,14 +55,13 @@ tail-factorial(n: Int) -> Int =
 	step(n, 1)
 
 
-fold-factorial(n: Int) -> Int =
+fun fold-factorial(n: Int) -> Int =
 	(2 <upto> n).fold(1, Int.*)
 
 
-generic-tail-factorial(number: N) -> N
-	forall N: #num
-	=
-	step(num, accum) =
+forall N #num
+fun generic-tail-factorial(number: N) -> N =
+	fun step(num, accum) =
 		if num <= N.one then
 			accum
 		else
@@ -71,19 +71,18 @@ generic-tail-factorial(number: N) -> N
 	step(number, N.one)
 
 
-generic-fold-factorial(number: N) -> N
-	forall N: #num #range
-	=
+forall N #num #range
+fun generic-fold-factorial(number: N) -> N =
 	(N.one <upto> number).fold(N.one, N.*)
 
 
-private --- A few Other Algorithms --------------------------------------------
+local -------------------------------------------------------------------------
 
 
-gcd(a: Int, b: Int) -> Int
+fun gcd(a: Int, b: Int) -> Int =
 	require a > 0 and b > 0
 	ensure result > 0
-	=
+
 	a' = (a, b).max
 	b' = (a, b).min
 
@@ -94,11 +93,11 @@ gcd(a: Int, b: Int) -> Int
 	end
 
 
-fibonacci(n: Int) -> Int
+fun fibonacci(n: Int) -> Int =
 	require n > 0
 	ensure result > 0
-	=
-	step(n, previous, current) =
+
+	fun step(n, previous, current) =
 		if n == 0 then
 			current
 		else
@@ -108,10 +107,10 @@ fibonacci(n: Int) -> Int
 	step(n, 1, 1)
 
 
-private --- An Example of Method-Chaining -------------------------------------
+local -------------------------------------------------------------------------
 
 
-pipeline-example-1() =
+fun pipeline-example-1() =
 	my-array = Array(1, 2, 3, 4, 5, 6, 7)
 
 	my-array
@@ -132,7 +131,7 @@ pipeline-example-1() =
 		<collect> Array
 
 
-pipeline-example-2() =
+fun pipeline-example-2() =
 	names = Array("Judy", "Mary", "Jane", "", "Bop")
 
 	names
@@ -143,12 +142,12 @@ pipeline-example-2() =
 		.map(
 			name =>
 				case
-				of name == "Bop" then
-					"Betty"
-				of name.length > 100 then
-					"(too long)"
-				else
-					name
+					of name == "Bop" then
+						"Betty"
+					of name.length > 100 then
+						"(too long)"
+					of _ then
+						name
 				end
 		)
 		.fold(

@@ -1,25 +1,24 @@
 -- Constructors ---------------------------------------------------------------
 
 
-Foo =
-	struct {
-		a: data Int,
-		b: data Bool,
-	}
+struct Foo {
+	a: data Int,
+	b: data Bool,
+}
 
 
 << automatically defines: >>
 
 
-Foo { a: Int, b: Bool } -> Foo = auto
+auto Foo { a: Int, b: Bool } -> Foo
 
 
-(Foo).a -> Int = auto
-(Foo).b -> Bool = auto
+auto (Foo).a -> Int
+auto (Foo).b -> Bool
 
 
-(Foo).with { a: Int } -> Foo = auto
-(Foo).with { b: Bool } -> Foo = auto
+auto (Foo).with { a: Int } -> Foo
+auto (Foo).with { b: Bool } -> Foo
 
 
 -- Functional Update ----------------------------------------------------------
@@ -37,14 +36,14 @@ foo.with { a = 33 }.with { b = False }
 -- Associated Functions -------------------------------------------------------
 
 
-Foo.bar(a: Int, b: Bool) -> String =
+fun Foo.bar(a: Int, b: Bool) -> String =
     "foobar"
 
 
 << desugars to an associated constant: >>
 
 
-Foo.bar: (Int, Bool) -> String =
+val Foo.bar: (Int, Bool) -> String =
     (a, b) =>
 		"foobar"
 
@@ -52,21 +51,21 @@ Foo.bar: (Int, Bool) -> String =
 -- Methods --------------------------------------------------------------------
 
 
-(Foo).baz(a: Int, b: Bool) -> String =
+fun (Foo).baz(a: Int, b: Bool) -> String =
     "foobaz"
 
 
 << desugars to an associated function: >>
 
 
-Foo.baz(self: Foo, a: Int, b: Bool) -> String =
+fun Foo.baz(self: Foo, a: Int, b: Bool) -> String =
     "foobaz"
 
 
 << which desugars to an associated constant: >>
 
 
-Foo.baz: (Foo, Int, Bool) -> String =
+val Foo.baz: (Foo, Int, Bool) -> String =
     (self, a, b) =>
 		"foobaz"
 

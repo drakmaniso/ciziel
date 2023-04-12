@@ -1,43 +1,49 @@
-fun main() -> Nil &io =
-	velocity = Vec2(3, 4)
-	new-velocity = velocity.with { x = 33 }
-		-- mutates the shared storage of `velocity` and `new-velocity`
-	do io.print("{new-velocity}")
-	Nil
+fun main() -> Void &io =
+	do
+		velocity = Vec2(3, 4)
+		new-velocity = velocity.with { x = 33 }
+			-- mutates the shared storage of `velocity` and `new-velocity`
+		print("{new-velocity}")
+	end
 
 
-fun main() -> Nil &io =
-	velocity = Vec2(3, 4)
-	new-velocity = velocity.with { x = 33 }
-		-- clones `velocity`
-	do io.print("{velocity} and {new-velocity}")
-	Nil
+fun main() -> Void &io =
+	do
+		velocity = Vec2(3, 4)
+		new-velocity = velocity.with { x = 33 }
+			-- clones `velocity`
+		print("{velocity} and {new-velocity}")
+	end
 
 
 -------------------------------------------------------------------------------
 
 
-fun main() -> Nil &io =
-	velocity = Vec2(3, 4)
-	x = velocity.x
-	do io.print(x)
-	velocity' = velocity.with { x = velocity.x + 1 } -- mutates `velocity`
-	do io.print(velocity')
-	Nil
+fun main() -> Void &io =
+	do
+		velocity = Vec2(3, 4)
+		x = velocity.x
+		print(x)
+		velocity' = velocity.with { x = velocity.x + 1 } -- mutates `velocity`
+		print(velocity')
+	end
 
 
-fun main() -> Nil &io =
-	velocity = Vec2(3, 4)
-	x = velocity.x
-	velocity' = velocity.with { x = velocity.x + 1 } -- creates a copy
-	do io.print(x)
-	do io.print(velocity')
-	Nil
+fun main() -> Void &io =
+	do
+		velocity = Vec2(3, 4)
+		x = velocity.x
+		velocity' = velocity.with { x = velocity.x + 1 } -- creates a copy
+		print(x)
+		print(velocity')
+	end
 
 
-fun main() -> Nil +io =
-	velocity = Vec2(3, 4)
-	x = velocity.x.copy
-	velocity' = velocity.with { x = velocity.x + 1 } -- mutates `velocity`
-	do io.print(x)
-	do io.print(velocity')
+fun main() -> Void +io =
+	do
+		velocity = Vec2(3, 4)
+		x = velocity.x.copy
+		velocity' = velocity.with { x = velocity.x + 1 } -- mutates `velocity`
+		print(x)
+		print(velocity')
+	end

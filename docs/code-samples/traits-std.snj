@@ -39,7 +39,7 @@ def #format {
 
 
 def #iterable {
-    has ::Iterator: #iterator
+    has ::Iterator #iterator
     has .iter -> Self::Iterator
 }
 

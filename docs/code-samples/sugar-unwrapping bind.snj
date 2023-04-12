@@ -1,0 +1,154 @@
+---- Unwrapping Bind ----------------------------------------------------------
+
+
+fun example-1(numbers: Array[Int]) -> Ok[Int] | None =
+	first ?= numbers.at(0)
+	second ?= numbers.at(1)
+	Some(first + second)
+
+
+fun example-1-desugared(numbers: Array[Int]) -> Ok[Int] | None =
+	case numbers.at(0)
+	of Ok(first) then
+		case numbers.at(1)
+		of Ok(second) then
+			Some(first + second)
+		of e then e
+		end
+	of e then e
+	end
+
+
+fun example-2(numbers: Array[String]) -> Ok[Int] | None | Int.Parse-Error =
+	first ?= numbers.at(0)
+	a ?= Int.parse(first)
+	second ?= numbers.at(1)
+	b ?= Int.parse(second)
+	Ok(a + b)
+
+
+fun example-2-desugared(numbers: Array[String]) -> Ok[Int] | None | Int.Parse-Error =
+	case numbers.at(0)
+	of Ok(first) then
+		case Int.parse(first)
+		of Ok(a) then
+			case numbers.at(1)
+			of Ok(second) then
+				case Int.parse(second)
+				of Ok(b) then
+					Ok(a + b)
+				of e then e
+				end
+			of e then e
+			end
+		of e then e
+		end
+	of e then e
+	end
+
+
+fun example-3(numbers: Array[String]) -> Result[Int, String] =
+	first ?= numbers.at(0) !! => "array is empty"
+	a ?= Int.parse(first) !! e => "parse error: {e}"
+	second ?= numbers.at(1) !! => "array is too small"
+	b ?= Int.parse(second) !! e => "parse error: {e}"
+	Ok(a + b)
+
+
+fun example-3-desugard(numbers: Array[String]) -> Result[Int, String] =
+	case numbers.at(0) !! => "array is empty"
+	of Ok(first) then
+		case Int.parse(first) !! e => "parse error: {e}"
+		of Ok(a) then
+			case numbers.at(1) !! => "array is too small"
+			of Ok(second) then
+				case Int.parse(second) !! e => "parse error: {e}"
+				of Ok(b) then
+					Ok(a + b)
+				of e then e
+				end
+			of e then e
+			end
+		of e then e
+		end
+	of e then e
+	end
+
+
+---- Chaining Operator --------------------------------------------------------
+
+
+fun example-3(numbers: Array[String]) -> Int | None =
+	numbers.at(0)?.to-Int?.abs
+
+
+fun example-3-desugared(numbers: Array[String]) -> Int | None =
+	case numbers.at(0)
+	of Ok(s) then
+		case s.to-Int
+		of Ok(n) then n.abs
+		of e then e
+		end
+	of e then e
+	end
+
+
+---- Short-Circuit Operator --------------------------------------------------------
+
+
+fun example-3(numbers: Array[String]) -> Int | None =
+	math::abs(Int.parse(numbers[0]?)?)
+
+
+fun example-3-desugared(numbers: Array[String]) -> Int | None =
+	case numbers[0]
+	of Ok(s) then
+		case Int.parse(s)
+		of Ok(n) then math::abs(n)
+		of e then e
+		end
+	of e then e
+	end
+
+
+---- Refutable Bind with failure wrapping -------------------------------------
+
+
+<<
+From a Rust RFC:
+	fn get_count_item(s: &str) -> (u64, &str) {
+		let mut it = s.split(' ');
+		let (Some(count_str), Some(item)) = (it.next(), it.next()) else {
+			panic!("Can't segment count item pair: '{s}'");
+		};
+		let Ok(count) = u64::from_str(count_str) else {
+			panic!("Can't parse integer: '{count_str}'");
+		};
+		(count, item)
+	}
+>>
+
+
+fun get-count-item(s: String) -> Result[(Int, String), as None | as Int.Parse-Error] =
+	it = s.split(Char " ")
+	count-str ?= it.peek
+	it' = it.next
+	item ?= it'.peek
+	count ?= Int.parse(count-str)
+
+	(count, item)
+
+
+type My-Error =
+	| Segment-Error
+	| Parse-Error(cause: Int.Parse-Error)
+
+
+fun get-count-item(s: String) -> Result[(Int, String), My-Error] =
+	it = s.split(Char " ")
+	count-str ?= it.item !! Segment-Error
+	it' = it.next
+	item ?= it'.item !! Segment-Error
+	count ?= Int.parse(count-str) !!! e => Parse-Error(e)
+
+	(count, item)

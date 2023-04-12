@@ -1,0 +1,183 @@
+module /std
+
+
+public ------------------------------------------------------------------------
+
+
+type Void = __Unconstructible__
+
+
+public ------------------------------------------------------------------------
+
+
+union Bool =
+	| False
+	| True
+
+
+type False = Bool.False
+type True = Bool.True
+
+
+public ------------------------------------------------------------------------
+
+
+trait #functor[A] {
+	type Self[A]
+	fun (Self[A]).map(transform: A -> B) -> Self[B]
+}
+
+
+trait #monad[A] {
+	type Self[A]
+	fun Self[A].wrap(item: A) -> Self[A]
+	fun (Self[A]).and-then(operation: A -> Self[B]) -> Self[B]
+}
+
+
+trait #faillible[A, E] {
+	type Self[A, E]
+	extend Self[A, E] as #monad[A]
+	fun (Self[A]) <fail> (make-error: E -> F) -> Result[A, F]
+}
+
+
+public ------------------------------------------------------------------------
+
+
+union Option[A] =
+	| Some(item: data A)
+	| None
+
+
+type Some[A] = Option[A].Some
+type None = Option[_].None
+
+
+extend Option[A] as #functor[A]
+
+
+fun (Option[A]).map(transform: A -> B) -> Option[B] =
+	case self
+		of Some(item) then Some(transform(item))
+		of None then None
+	end
+
+
+extend Option[A] as #monad[A]
+
+
+fun Option[A].wrap(item: A) -> Option[A] =
+	Some(item)
+
+
+fun (Option[A]).and-then(operation: A -> Option[B]) -> Option[B] =
+	case self
+		of Some(item) then operation(item)
+		of None then None
+	end
+
+
+fun (Option[A]) as Result[A, None] =
+	case self
+		of Some(item) then Ok(item)
+		of None then Err(None)
+	end
+
+
+fun (Result[A, None]) as Option[A] =
+	case self
+		of Ok(item) then Some(item)
+		of Err(None) then None
+	end
+
+
+extend Option[A] as #unwrap[A, None]
+
+
+fun (Option[A]).unwrapped -> Result[A, None] =
+	case self
+		of Some(item) then Ok(item)
+		of None then Err(None)
+	end
+
+
+extend Option[A] as #else[A, Void]
+
+
+fun (Option[A]) <else> (make-error: Void -> E) -> Result[A, E] =
+	case self
+		of Some(item) then Ok(item)
+		of None then Err(make-error())
+	end
+
+
+fun (Option[A]).ok-or(error: E) -> Result[A, E] =
+	case self
+		of Some(item) then Ok(item)
+		of None then Err(error)
+	end
+
+
+forall N[B, F]
+fun (Option[A]).shortcut(
+	else-op: Void -> N[B, F],
+	then-op: A -> N[B, F],
+) -> N[B, F] =
+	case self
+		of None then else-op()
+		of Some(item) then then-op(item)
+	end
+
+
+public ------------------------------------------------------------------------
+
+
+union Result[A, E #error] =
+	| Ok(item: data A)
+	| Err(error: data E)
+
+
+type Ok[A] = alias Result[A, _].Ok
+type Err[E] = alias Result[_, E].Err
+
+
+extend Result[A, E] as #functor[A]
+
+
+fun (Result[A, E]).map(transform: A -> B) -> Result[B, E] =
+	case self
+		of Ok(item) then Ok(transform(item))
+		of Err(e) then Err(e)
+	end
+
+
+extend Result[A, E] as #monad[A]
+
+
+fun Result[A, E].ok(item: A) -> Result[A, E] =
+	Ok(item)
+
+
+fun (Result[A, E]).and-then(operation: A -> Result[B, E]) -> Result[B, E] =
+	case self
+		of Ok(item) then operation(item)
+		of Err(e) then Err(e)
+	end
+
+
+extend Result[A, E] as #unwrap[A]
+
+
+fun (Result[A, E]).unwrapped -> Result[A, E] =
+	self
+
+
+extend Result[A, E] as #else[A, E]
+
+
+fun (Result[A, E]) <else> (transform: E -> F) -> Result[A, F] =
+	case self
+		of Ok(item) then Ok(item)
+		of Err(e) then Err(transform(e))
+	end

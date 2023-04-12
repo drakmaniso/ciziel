@@ -1,17 +1,15 @@
 -- From https://www.informit.com/articles/printerfriendly/1407357
 
 
-#one-pass-range =
-	trait {
-		Self.Item: #type
-		(Self).front -> Self.Item?
-		(Self).pop-front -> Self
-	}
+trait #one-pass-range {
+	type Self.Item #type
+	fun (Self).front -> Self.Item?
+	fun (Self).pop-front -> Self
+}
 
 
-find(range: R, value: R.Item) -> R
-	forall R: #one-pass-range
-	=
+forall R #one-pass-range
+fun find(range: R, value: R.Item) -> R =
     if range.front is Ok(value) then
 		range
     else
@@ -19,55 +17,55 @@ find(range: R, value: R.Item) -> R
 	end
 
 
-#writable-range =
-	trait {
-		Self.Item: #type
-		(Self).replace-front(item: Self.Item) -> Self?
-	}
+trait #writable-range {
+	type Self.Item #type
+	fun (Self).replace-front(item: Self.Item) -> Self?
+}
 
 
-copy(source: A, target: B) -> (A, B)
-	forall A: #one-pass-range
-		and B: #one-pass-range #writable-range
-		and A.Item == B.Item
-	=
+forall A #one-pass-range,
+	B #one-pass-range #writable-range,
+	A.Item == B.Item
+fun copy(source: A, target: B) -> (A, B) =
 	case source.front
-	of Ok(item) then
-		case target.replace-front(item)
-		of Ok(target') then
-			copy(source.pop-front, target'.pop-front)
-		else (source, target)
-	else (source, target)
+		of Ok(item) then
+			case target.replace-front(item)
+				of Ok(target') then
+					copy(source.pop-front, target'.pop-front)
+				of _ then
+					(source, target)
+			end
+		of _ then
+			(source, target)
+	end
 
 
-copy(source: A, target: B) -> (A, B)
-	forall A: #one-pass-range
-		and B: #one-pass-range #writable-range
-		and A.Item == B.Item
-	=
-	try
-		item ?= source.front
-		target' ?= target.replace-front(item)
-		copy(source.pop-front, target.pop-front)
-	else
-		_ => (source, target)
+forall A #one-pass-range,
+	B #one-pass-range #writable-range,
+	A.Item == B.Item
+fun copy(source: A, target: B) -> (A, B) =
+	item ?= source.front
+		?? _ => (source, target)
+	target' ?= target.replace-front(item)
+		?? _ => (source, target)
+	copy(source.pop-front, target.pop-front)
 
 
 trait #forward-range {
-    trait #one-pass-range
+    tag Self #one-pass-range
     fun (Self).save -> Self
 }
 
 
 trait #double-ended-range {
-    trait #forward-range
+    tag Self #forward-range
     fun (Self).back -> Self.Item?
     fun (Self).pop-back -> Self
 }
 
 
 trait #random-access-range {
-    trait #forward-range
+    tag Self #forward-range
     fun (Self).at(index: Size) -> Self.Item?
     fun (Self).slice(from: Size, to: Size) -> Self
 }

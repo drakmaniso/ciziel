@@ -1,0 +1,167 @@
+module /std/vectors
+
+
+use /std/math (#num, #add)
+
+
+public ------------------------------------------------------------------------
+
+
+trait #scalar {
+	type Self.Scalar #num
+}
+
+
+trait #vector {
+	trait #scalar
+	trait #add
+	fun (Self).length -> Self.Scalar
+	fun (Self).normalized -> Self
+	fun (Self) * (other: Self.Scalar) -> Self
+}
+
+
+trait #vec2 {
+	trait #scalar
+
+	type Self { x: Self.Scalar, y: Self.Scalar }
+	-- or:
+	fun Self { x: Self.Scalar, y: Self.Scalar } -> Self
+	fun (Self).x -> Self.Scalar
+	fun (Self).y -> Self.Scalar
+	fun (Self).with { x: Self.Scalar } -> Self
+	fun (Self).with { y: Self.Scalar } -> Self
+
+	extend Self as #add
+
+	val Self.zero =
+		Self {
+			x = Self.Scalar.zero,
+			y = Self.Scalar.zero,
+		}
+
+	fun (Self) + (other: Self) -> Self =
+		Self {
+			x = self.x + other.x,
+			y = self.y + other.y,
+		}
+
+	fun (Self) - (other: Self) -> Self =
+		Self {
+			x = self.x - other.x,
+			y = self.y - other.y,
+		}
+
+	extend Self as #vector
+
+	fun (Self).length -> Self.Scalar =
+		((self.x * self.x) + (self.y * self.y)).sqrt
+
+	fun (Self).normalized -> Self =
+		l = self.length
+		self.with { x /= l, y /= l }
+
+	fun (Self) * (other: Self) -> Self =
+		Self {
+			x = self.x * other.x,
+			y = self.y * other.y,
+		}
+}
+
+
+trait #vec3 {
+	trait #scalar
+	type Self { x: Self.Scalar, y: Self.Scalar, z: Self.Scalar }
+	...
+}
+
+
+public ------------------------------------------------------------------------
+
+
+-- Implement `#vector` for `Vec2` using the automatic extension:
+
+
+struct Vec2(
+	x: data Float32,
+	y: data Float32,
+)
+
+
+type Vec2.Scalar = Float32
+extend Vec2 as #scalar #vec2
+
+
+public ------------------------------------------------------------------------
+
+
+-- Implement `#vector` for `Polar2` manually:
+
+
+struct Polar2(
+	angle: data Float32,
+	length: data Float32,
+)
+
+
+extend Polar2 as #scalar #vector
+
+
+type Polar2.Scalar = Float32
+
+
+val Polar2.zero =
+	Polar2(0, 0)
+
+
+fun (Polar2).normalized -> Polar2 =
+    self.with { length = 1 }
+
+
+fun (Polar2) + (other: Polar2) -> Polar2 =
+    ...
+
+
+fun (Polar2) - (other: Polar2) -> Polar2 =
+    ...
+
+
+fun (Polar2) * (other: Float32) -> Polar2 =
+    ...
+
+
+fun (other: Float32) * (self: Polar2) -> Polar2 =
+    ...
+
+
+public ------------------------------------------------------------------------
+
+
+struct Point(
+	x: data Float32,
+	y: data Float32,
+)
+
+
+type Point.Scalar = Float32
+
+
+val Point.origin = Point(0, 0)
+
+
+fun (Point) + (other: Vec2) -> Point =
+	Point(self.x + other.x, self.y + other.y)
+
+
+fun (Point).distance(other: Point) -> Float32 =
+	self' = self as Vec2
+	other' = other as Vec2
+	(self' - other').length
+
+
+fun (Point) as Vec2 -> Vec2 =
+	Vec2(self.x, self.y)
+
+
+fun (Vec2) as Point -> Point =
+	Point(self.x, self.y)

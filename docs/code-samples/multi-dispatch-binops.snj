@@ -8,13 +8,13 @@ module cats-and-dogs
 
 public
 
-Cat = struct { name: data String }
-Dog = struct { name: data String }
+struct Cat { name: data String }
+struct Dog { name: data String }
 
-(Cat).<meets> (other: Cat) -> String = "slinks"
-(Cat).<meets> (other: Dog) -> String = "hisses"
-(Dog).<meets> (other: Dog) -> String = "sniffs"
-(Cat).<meets> (other: Cat) -> String = "chases"
+fun (Cat).<meets> (other: Cat) -> String = "slinks"
+fun (Cat).<meets> (other: Dog) -> String = "hisses"
+fun (Dog).<meets> (other: Dog) -> String = "sniffs"
+fun (Cat).<meets> (other: Cat) -> String = "chases"
 
 
 module birds
@@ -22,13 +22,13 @@ use cats-and-birds (Cat, Dog)
 
 public
 
-Bird = struct { name: data String }
+struct Bird { name: data String }
 
-(Bird).<meets> (other: Bird) -> String = "chirps"
-(Bird).<meets> (other: Cat) -> String = "chirps"
-(Bird).<meets> (other: Dog) -> String = "chirps"
-(Cat).<meets> (other: Bird) -> String = "hunts"
-(Dog).<meets> (other: Bird) -> String = "barks"
+fun (Bird).<meets> (other: Bird) -> String = "chirps"
+fun (Bird).<meets> (other: Cat) -> String = "chirps"
+fun (Bird).<meets> (other: Dog) -> String = "chirps"
+fun (Cat).<meets> (other: Bird) -> String = "hunts"
+fun (Dog).<meets> (other: Bird) -> String = "barks"
 
 
 module usage
@@ -37,14 +37,14 @@ use birds (Bird)
 
 public
 
-Pet = Cat | Dog | Bird
+type Pet = Cat | Dog | Bird
 
-encounter(a: Pet, b: Pet) -> String =
+fun encounter(a: Pet, b: Pet) -> String =
     verb = a <meets> b
     "{a.name} meets {b.name} and {verb}"
 
 
-example-encounter() -> Nil &io =
+fun example-encounter() -> Void &io =
 	do
 		pets =
 			Array(
@@ -55,18 +55,18 @@ example-encounter() -> Nil &io =
 
 		pets.foreach(a =>
 			pets.foreach(b =>
-				io.print(encounter(a, b))
+				print(encounter(a, b))
 			)
 		)
-		--> Spot meets Spot and slinks
-		--> Spot meets Fido and hisses
-		--> Spot meets Coco and hunts
-		--> Fido meets Spot and chases
-		--> Fido meets Fido and sniffs
-		--> Fido meets Coco and barks
-		--> Coco meets Spot and chirps
-		--> Coco meets Fido and chirps
-		--> Coco meets Coco and chirps
+		--- Spot meets Spot and slinks
+		--- Spot meets Fido and hisses
+		--- Spot meets Coco and hunts
+		--- Fido meets Spot and chases
+		--- Fido meets Fido and sniffs
+		--- Fido meets Coco and barks
+		--- Coco meets Spot and chirps
+		--- Coco meets Fido and chirps
+		--- Coco meets Coco and chirps
 	end
 
 
@@ -82,9 +82,8 @@ trait #pet {
     (Self).<meets> (other: Self) -> String
 }
 
-encounter(a: P, b: P) -> String
-	forall P: #pet
-	=
+forall P #pet
+fun encounter(a: P, b: P) -> String =
     verb = a <meets> b
     "{a.name} meets {b.name} and {verb}"
 
@@ -94,18 +93,18 @@ use pets (#pet)
 
 public
 
-Usual-Pet = Cat | Dog
-Cat = struct { name: data String }
-Dog = struct { name: data String }
+type Usual-Pet = Cat | Dog
+struct Cat { name: data String }
+struct Dog { name: data String }
 
-Usual-Pet: #pet
-Cat: #pet
-Dog: #pet
+tag Usual-Pet #pet
+tag Cat #pet
+tag Dog #pet
 
-(Cat).<meets> (other: Cat) -> String = "slinks"
-(Cat).<meets> (other: Dog) -> String = "hisses"
-(Dog).<meets> (other: Cat) -> String = "chases"
-(Dog).<meets> (other: Dog) -> String = "sniffs"
+fun (Cat).<meets> (other: Cat) -> String = "slinks"
+fun (Cat).<meets> (other: Dog) -> String = "hisses"
+fun (Dog).<meets> (other: Cat) -> String = "chases"
+fun (Dog).<meets> (other: Dog) -> String = "sniffs"
 
 
 module birds
@@ -114,17 +113,17 @@ use cats-and-dogs (Cat, Dog)
 
 public
 
-Exotic-Pet = Cat | Dog | Bird
-Bird = struct { name: data String }
+type Exotic-Pet = Cat | Dog | Bird
+struct Bird { name: data String }
 
-Exotic-Pet: #pet
-Bird: #pet
+tag Exotic-Pet #pet
+tag Bird #pet
 
-(Bird).<meets> (other: Cat) -> String { "chirps" }
-(Bird).<meets> (other: Dog) -> String { "chirps" }
-(Bird).<meets> (other: Bird) -> String { "chirps" }
-(Cat).<meets> (other: Bird) -> String { "hunts" }
-(Dog).<meets> (other: Bird) -> String { "barks" }
+fun (Bird).<meets> (other: Cat) -> String { "chirps" }
+fun (Bird).<meets> (other: Dog) -> String { "chirps" }
+fun (Bird).<meets> (other: Bird) -> String { "chirps" }
+fun (Cat).<meets> (other: Bird) -> String { "hunts" }
+fun (Dog).<meets> (other: Bird) -> String { "barks" }
 
 
 module usage
@@ -134,7 +133,7 @@ use exotic-pets (Bird)
 
 public
 
-main() -> Nil &io =
+fun main() -> Void &io =
 	do
 		pets =
 			Array(
@@ -145,16 +144,16 @@ main() -> Nil &io =
 
 		pets.foreach(a =>
 			pets.foreach(b =>
-				io.print(encounter(a, b))
+				print(encounter(a, b))
 			)
 		)
-		--> Spot meets Spot and slinks
-		--> Spot meets Fido and hisses
-		--> Spot meets Coco and hunts
-		--> Fido meets Spot and chases
-		--> Fido meets Fido and sniffs
-		--> Fido meets Coco and barks
-		--> Coco meets Spot and chirps
-		--> Coco meets Fido and chirps
-		--> Coco meets Coco and chirps
+		--- Spot meets Spot and slinks
+		--- Spot meets Fido and hisses
+		--- Spot meets Coco and hunts
+		--- Fido meets Spot and chases
+		--- Fido meets Fido and sniffs
+		--- Fido meets Coco and barks
+		--- Coco meets Spot and chirps
+		--- Coco meets Fido and chirps
+		--- Coco meets Coco and chirps
 	end

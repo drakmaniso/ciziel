@@ -1,0 +1,177 @@
+module /std/lists
+
+
+use #iterator, #iterable from /std
+
+
+public ------------------------------------------------------------------------
+
+
+union List[A] =
+	| Empty[A]
+	| ref Link[A] {
+		head: data A
+		tail: data List[A]
+	}
+
+
+type Empty = List[_].Empty
+type Link[A] = List[A].Link
+
+
+fun List[A].new(...items: Array[A]) -> List[A] =
+    items.fold-reverse(
+		List.Empty,
+        (item, list) =>
+            List.Link { head = item, tail = list }
+	)
+
+
+public --- Equality -----------------------------------------------------------
+
+
+extend List[#eq] as #eq
+
+
+forall A #eq
+fun (List[A]) == (other: List[A]) -> Bool =
+	case (self, other)
+		of (Empty, Empty) then True
+		of (a: Link, b: Link) then (a.head == b.item) and (a.tail == b.tail)
+		of (_, _) then False
+	end
+
+
+public --- Pushing and Poping -------------------------------------------------
+
+
+fun (List[A]).push(item: A) -> List[A].Link =
+    List.Link { head = item, tail = self }
+
+
+auto fun (List[A]).head -> Option[A]
+fun (List[A].Empty).head -> None =
+	None
+
+
+auto fun (List[A]).tail -> List[A]
+fun (List[A].Empty).tail -> List[A].Empty =
+	List.Empty
+
+
+public --- Functor Implementation ---------------------------------------------
+
+
+extend List[A] as #functor
+extend List[A].Empty as #functor
+extend List[A].Link as #functor
+
+
+auto fun (List[A]).map(transform: A -> B) -> List[B]
+
+
+fun (List[A].Empty).map(transform: A -> B) -> List[B].Empty =
+    List.Empty
+
+
+fun (List[A].Link).map(transform: A -> B) -> List[B].Link =
+    List.Link {
+        head = transform(self.head),
+        tail = self.tail.map(transform),
+	}
+
+
+public ------------------------------------------------------------------------
+
+
+extend List[A] as #concat
+
+
+fun (List[A]) ++ (other: List[A]) -> List[A] =
+	case self
+		of List.Empty then
+			other
+		of List.Link { head, tail } then
+			List.Link {
+				head = head,
+				tail = tail ++ list-2
+			}
+	end
+
+
+extend List[A] as #flatten
+
+
+fun (List[List[A]]).flatten -> List[A] =
+	case self
+		of List.Empty then List.Empty
+		of List.Link { head, tail } then
+			head ++ tail.flatten
+	end
+
+
+extend List[A] as #monad[A]
+
+
+fun (List[A]).and-then(operation: A -> List[B]) -> List[B] =
+	self.map(operation).flatten
+
+
+public --- Iterator Implementation --------------------------------------------
+
+
+extend List[A] as #iterable
+
+
+struct List[A].Iterator {
+	current: List[A]
+}
+
+
+fun (List[A]).iterator -> List[A].Iterator =
+    List.Iterator { current = self }
+
+
+extend List[A].Iterator as #iterator
+
+
+type List[A].Iterator.Item = A
+
+
+fun (List[A].Iterator).peek -> Option[A] =
+    self.current.head
+
+
+fun (List[A].Iterator).next -> List[A].Iterator =
+    case self.current
+		of List.Empty then self
+		of List.Link { tail, ... } then
+			self.with { current = tail }
+    end
+
+
+local ["test"] ----------------------------------------------------------------
+
+
+use &io from /std/io
+use List from /std/list
+
+
+fun double(list: List[Int]) -> List[Int] =
+    list.map(=> ___ * 2)
+
+
+fun example() -> Void &io =
+	do
+		a = List.Link(1, List.Link(2, List.Link(3, List.Empty)))
+		b = List.new(1, 2, 3)
+
+		print(a.type)
+		-- Link[Int]
+
+		print(b.type)
+		-- List[Int]
+
+		print(a.map.type))
+		-- (Link[Int], Int -> A) -> Link[A]
+	end

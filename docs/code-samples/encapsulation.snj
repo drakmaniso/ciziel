@@ -1,126 +1,89 @@
 << Encapsulation >>
 
 
---- Structs -------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-private --- Private Struct
+local
 
 
-Private =
-	struct {
-		foo: Int,
-		bar: Bool,
-	}
+struct Private {
+	foo: Int,
+	bar: Bool,
+}
 
 
-public --- Opaque Struct
+public
 
 
-Opaque =
-	struct {
-		foo: Int,
-		bar: Bool,
-	}
+struct Opaque {
+	foo: Int,
+	bar: Bool,
+}
 
 
-public --- Read-Only Struct
+struct Read-Only {
+	foo: public Int,
+	bar: public Bool,
+}
 
 
-Read-Only =
-	struct {
-		foo: public Int,
-		bar: public Bool,
-	}
+struct Transparent {
+	foo: data Int,
+	bar: data Bool,
+}
 
 
-public --- Transparent Struct
+struct Translucent {
+	hidden: Int,
+	read-only: public Bool,
+	read-and-write: data String,
+}
 
 
-Transparent =
-	struct {
-		foo: data Int,
-		bar: data Bool,
-	}
+-------------------------------------------------------------------------------
 
 
-public --- Translucent Struct
+local
 
 
-Translucent =
-	struct {
-		hidden: Int,
-		read-only: public Bool,
-		read-write: data String,
-	}
+union Private =
+    | Foo
+    | Bar
 
 
---- Unions --------------------------------------------------------------------
+public
 
 
-private --- Private Union
+type Opaque = Private
 
 
-Private =
-    | Private-Foo
-    | Private-Bar
+union Transparent =
+    | Foo
+    | Bar
 
 
-public --- Opaque Union
+-------------------------------------------------------------------------------
 
 
-Opaque =
-    | Private-Foo
-    | Private-Bar
+local
 
 
-public --- Transparent Union
+trait #private {
+	fun (Self).foo -> Int
+	fun (Self).bar(arg: Bool) -> String
+}
 
 
-Transparent =
-    | Public-Foo
-    | Public-Bar
+public
 
 
-public --- Translucent Union
+trait #opaque {
+	trait #private
+}
 
 
-Translucent =
-    | Public-Foo
-    | Private-Bar
-
-
-<< NOTE: Because unions are structural, it's impossible to create an opaque union of
-public types. >>
-
-
---- Traits --------------------------------------------------------------------
-
-
-private --- Private Traits
-
-
-#private =
-	trait {
-		(Self).foo -> Int
-		(Self).bar(arg: Bool) -> String
-	}
-
-
-public --- Public Traits
-
-
-#transparent =
-	trait {
-		(Self).foo -> Int
-		(Self).bar(arg: Bool) -> String
-	}
-
-
-public --- Opaque Traits
-
-
-#opaque =
-	trait {
-		Self #private
-	}
+trait #transparent {
+	fun (Self).foo -> Int
+	fun (Self).bar(arg: Bool) -> String
+}

@@ -1,0 +1,67 @@
+module /std/math
+
+
+public
+
+
+trait #num {
+	trait #eq
+	trait #add
+	trait #mul
+	...
+}
+
+
+trait #add {
+	trait #zero
+	trait #plus[Self, Self]
+	trait #minus[Self, Self]
+}
+
+
+trait #mul {
+	trait #one
+	trait #times[Self, Self]
+	trait #slash[Self, Self]
+	trait #rem[Self, Self]
+}
+
+
+trait #eq {
+	fun (Self) == (other: Self) -> Bool
+}
+
+
+trait #zero {
+	val Self.zero: Self
+}
+
+
+trait #plus[A, B] {
+	fun (Self) + (other: A) -> B
+}
+
+
+trait #minus[A, B] {
+	fun (Self) - (other: A) -> B
+}
+
+
+trait #one {
+	val Self.one: Self
+}
+
+
+trait #times[A, B] {
+	fun (Self) * (other: A) -> B
+}
+
+
+trait #slash[A, B] {
+	fun (Self) / (other: A) -> B
+}
+
+
+trait #rem[A, B] {
+	fun (Self) <rem> (other: A) -> B
+}

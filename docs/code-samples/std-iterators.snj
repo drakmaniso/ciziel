@@ -1,0 +1,118 @@
+module /std/iterators
+
+
+public ------------------------------------------------------------------------
+
+
+trait #iterable {
+    type Self.Iterator #iterator
+    fun (Self).iterator -> Self.Iterator
+}
+
+
+trait #iterator {
+    type Self.Item
+	fun (Self).peek -> Option[Self.Item]
+	fun (Self).next -> Self
+}
+
+
+public ------------------------------------------------------------------------
+
+
+struct Map[I #iterator, A] {
+	iterator: I
+	transform: I.Item -> A
+}
+
+
+extend Map[I, A] as #iterator
+
+
+type Map[I, A].Item = A
+
+
+fun (Map[I, A]).peek -> Option[A] =
+	item ?= self.iterator.peek
+	Ok(self.transform(item))
+
+
+fun (Map[I, A]).next -> Map[I, A] =
+	self.with {
+		iterator = self.iterator.next
+	}
+
+
+local ["test"] ----------------------------------------------------------------
+
+
+use /std/io (&io)
+
+
+struct Counter {
+    count: Int
+    limit: public Int
+}
+
+
+fun Counter.new(limit: Int) -> Counter =
+    Counter { count = 0, limit = limit }
+
+
+Counter #iterator
+
+
+type Counter.Item = Int
+
+
+fun (Counter).peek -> Option[Int] =
+	if self.count >= self.limit then
+		None
+	else
+		Ok(self.count)
+	end
+
+
+fun (Counter).next -> Counter =
+	if self.count >= self.limit then
+		self
+	else
+		self.with { count = count + 1 }
+	end
+
+
+fun example() -> Void &io =
+	do
+		fun step(c) =
+			case c.peek
+				of None then
+					print("Done!")
+				of Ok(number) then
+					print("{number}, ")
+					step(c.next)
+			end
+
+		counter = Counter.new(7)
+
+		step(counter)
+	end
+
+
+local ["test"] ----------------------------------------------------------------
+
+
+forall I #iterator
+fun foo(iterator: I, f: I.Item -> Int) -> Array[Int] =
+    iterator.fold(Array(), Array.push)
+
+
+forall I #iterator,
+	J #iterator,
+	I.Item == J.Item,
+	I.Item #eq
+fun compare(i: I, j: J) -> Bool =
+    case (i.peek, j.peek)
+		of (None, None) then True
+		of (Ok(a), Ok(b)) and (a == b) then compare(i-next, j-next)
+		of _ then False
+	end

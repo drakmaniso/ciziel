@@ -12,10 +12,10 @@ module gadt1 ---- First GADT Example ------------------------------------------
 public
 
 
-type Expr = EBool | EInt | EEqual
-struct EBool(value: Bool)
-struct EInt(value: Int)
-struct EEqual(left: *EInt, right: *EInt)
+type Expr =
+	| EBool(value: Bool)
+	| EInt(value: Int)
+	| EEqual(left: *EInt, right: *EInt)
 
 
 trait #expr {
@@ -24,22 +24,21 @@ trait #expr {
 }
 
 
-tag Expr #expr
-type Expr.Output = Int | Bool
-auto (Expr).eval -> Int | Bool
+auto implement #expr for Expr
+auto fun (Expr).eval -> Expr.Output
 
 
-tag EBool #expr
+implement #expr for EBool
 type EBool.Output = Bool
 fun (EBool).eval -> Bool = self.value
 
 
-tag EInt #expr
+implement #expr for EInt
 type EInt.Output = Int
 fun (EInt).eval -> Int = self.value
 
 
-tag EEqual #expr
+implement #expr for EEqual
 type EEqual.Output = Bool
 fun (EEqual).eval -> Bool = (self.left.eval == self.right.eval)
 
@@ -159,11 +158,11 @@ struct Apply[T #expr, U #expr](
 struct Fix[T #expr](function: Lambda[T, T])
 
 
-tag Lift[T] #expr
-tag Pair[T, U] #expr
-tag Lambda[T, U] #expr
-tag Apply[T, U] #expr
-tag Fix[T] #expr
+implement #expr for Lift[T]
+implement #expr for Pair[T, U]
+implement #expr for Lambda[T, U]
+implement #expr for Apply[T, U]
+implement #expr for Fix[T]
 
 
 type Lift[T].Output = T

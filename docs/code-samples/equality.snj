@@ -5,29 +5,30 @@ module /std/ops
 public
 
 
-#eq =
-	trait {
-		Self.Eq-Right-Hand: Type = Self
-		(Self) == (other: Self.Eq-Right-Hand) -> Bool
-	}
+trait #eq {
+	type Self.Eq-RHS = Self
+	fun (Self) == (other: Self.Eq-RHS) -> Bool
+}
 
 
 module basic
 public
 
 
-Basic = Foo | Bar
-Foo = struct
-Bar = struct
+type Basic = Foo | Bar
+struct Foo
+struct Bar
 
 
-Basic: #eq
-(Basic) == (other: Basic) -> Bool =
+implement #eq for Basic
+
+
+fun (Basic) == (other: Basic) -> Bool =
 	case (self, other)
-	of (Foo, Foo) then True
-	of (Bar, Bar) then True
-	of (Foo, Bar) then False
-	of (Bar, Foo) then False
+		of (Foo, Foo) then True
+		of (Bar, Bar) then True
+		of (Foo, Bar) then False
+		of (Bar, Foo) then False
 	end
 
 
@@ -45,14 +46,13 @@ module /std
 public
 
 
-#eq =
-	trait {
-		Self.Eq-Right-Hand: Type = Self
-		(Self) == (other: Self.Eq-Right-Hand) -> Bool
-	}
+trait #eq {
+	type Self.Eq-RHS = Self
+	fun (Self) == (other: Self.Eq-RHS) -> Bool
+}
 
 
-Unknown =
+type Unknown =
 	__core__ -- (union of all types)
 
 
@@ -61,29 +61,29 @@ use /std (#eq, Unknown)
 public
 
 
-Basic = Foo | Bar
-Foo = struct
-Bar = struct
+type Basic = Foo | Bar
+struct Foo
+struct Bar
 
 
-Basic: #eq
+tag Basic #eq
 
 
-Foo: #eq
-Foo.Eq-Right-Hand = Unknown
-(Foo) == (other: Unknown) -> Bool =
+tag Foo #eq
+type Foo.Eq-RHS = Unknown
+fun (Foo) == (other: Unknown) -> Bool =
 	case (self, other)
-	of (Foo, Foo) then True
-	else False
+		of (Foo, Foo) then True
+		else False
 	end
 
 
-Bar: #eq
-Bar.Eq-Right-Hand = Unknown
-(Bar) == (other: Unknown) -> Bool =
+tag Bar #eq
+type Bar.Eq-RHS = Unknown
+fun (Bar) == (other: Unknown) -> Bool =
 	case (self, other)
-	of (Bar, Bar) then True
-	else False
+		of (Bar, Bar) then True
+		else False
 	end
 
 
@@ -93,19 +93,19 @@ use basic (Basic, Foo, Bar)
 public
 
 
-Extended = Basic | Baz
-Baz = struct
+type Extended = Basic | Baz
+struct Baz
 
 
-Extended: #eq
+tag Extended #eq
 
 
-Baz: #eq
-Baz.Eq-Right-Hand = Unknown
-(Baz) == (other: Unknown) -> Bool =
-	case (self, other)
-	of (Baz, Baz) then True
-	else False
+tag Baz #eq
+type Baz.Eq-RHS = Unknown
+fun (Baz) == (other: Unknown) -> Bool =
+		case (self, other)
+		of (Baz, Baz) then True
+		else False
 	end
 
 
@@ -116,26 +116,25 @@ module std
 public
 
 
-#eq =
-	trait {
-		(Self) == (other: Self) -> Bool
-	}
+trait #eq {
+	fun (Self) == (other: Self) -> Bool
+}
 
 
 module basic
 public
 
 
-Basic = First | Second
-First = struct
-Second = struct
+type Basic = First | Second
+struct First
+struct Second
 
 
-Basic: #eq
-First: #eq
-Second: #eq
-(First) == (other: Basic) -> Bool = other is First
-(First) == (other: Basic) -> Bool = other is Basic
+tag Basic #eq
+tag First #eq
+tag Second #eq
+fun (First) == (other: Basic) -> Bool = other is First
+fun (First) == (other: Basic) -> Bool = other is Basic
 
 
 -- Extension --
@@ -146,14 +145,14 @@ use basic (Basic, First, Second)
 public
 
 
-Extended = Basic | Third
-Third = struct
+type Extended = Basic | Third
+struct Third
 
 
-Extended: #eq
-Third: #eq
-(Basic) == (other: Third) -> Bool = False
-(Third) == (other: Extended) -> Bool = other is Third
+tag Extended #eq
+tag Third #eq
+fun (Basic) == (other: Third) -> Bool = False
+fun (Third) == (other: Extended) -> Bool = other is Third
 
 
 -- Single Dispatch ------------------------------------------------------------
@@ -162,42 +161,41 @@ Third: #eq
 module basic
 
 
-Basic = Foo | Bar
-Foo = struct
-Bar = struct
+type Basic = Foo | Bar
+struct Foo
+struct Bar
 
 
-#basic =
-	trait {
-		(Self).as-basic -> Option[Basic]
-	}
+trait #basic {
+	fun (Self).as-basic -> Option[Basic]
+}
 
 
-Basic: #basic
-(Foo).as-basic = Some(self)
-(Bar).as-basic = Some(self)
+tag Basic #basic
+fun (Foo).as-basic = Some(self)
+fun (Bar).as-basic = Some(self)
 
 
-Basic: #eq
+tag Basic #eq
 
 
-(Foo) == (other: A) -> Bool
-	forall A: #basic
-	=
+type Foo.Eq-RHS = A #basic
+forall A #basic
+fun (Foo) == (other: A) -> Bool =
     case other.as-basic
-	of Some(Foo) then True
-	of Some(Bar) then False
-	of None then False
+		of Some(Foo) then True
+		of Some(Bar) then False
+		of None then False
 	end
 
 
-(Bar) == (other: A) -> Bool
-	forall A: #basic
-	=
+type Bar.Eq-RHS = A #basic
+forall A #basic
+fun (Bar) == (other: A) -> Bool =
     case other.as-basic
-	of Some(Foo) then False
-	of Some(Bar) then True
-	of None then False
+		of Some(Foo) then False
+		of Some(Bar) then True
+		of None then False
 	end
 
 
@@ -209,34 +207,33 @@ use basic (Basic, Foo, Bar, #basic)
 public
 
 
-Extended = Basic | Baz
-Baz = struct
+type Extended = Basic | Baz
+struct Baz
 
 
-Extended: #basic
-(Baz).as-basic = None
+tag Extended #basic
+type Extended.Eq-RHS = A #basic
+fun (Baz).as-basic = None
 
 
-#extended =
-	trait {
-		(Self).as-extended -> Option[Extended]
-	}
+tag #extended {
+	fun (Self).as-extended -> Option[Extended]
+}
 
 
-Extended: #extended
-(Foo).as-extended = Some(self)
-(Bar).as-extended = Some(self)
-(Baz).as-extended = Some(self)
+tag Extended #extended
+fun (Foo).as-extended = Some(self)
+fun (Bar).as-extended = Some(self)
+fun (Baz).as-extended = Some(self)
 
 
-Extended: #eq
+tag Extended #eq
 
 
-(Baz) == (other: A) -> Bool
-	forall A: #extended
-	=
+forall A #extended
+fun (Baz) == (other: A) -> Bool =
     case other.as-extended
-	of Foo then False
-	of Bar then False
-	of Baz then True
+		of Foo then False
+		of Bar then False
+		of Baz then True
 	end

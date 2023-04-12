@@ -12,30 +12,45 @@ struct Baz(v: String)
 
 fun example-1(value: Foo) =
 	case value
-	of Foo(33) then "First Case"
-	of Foo(x) and (x <= 0) then "Second Case: {x}"
-	of Foo(x) then "Third Case: {x}"
+		of Foo(33) then "First Case"
+		of Foo(x) and (x <= 0) then "Second Case: {x}"
+		of Foo(x) then "Third Case: {x}"
 	end
 
 
 fun example-1-desugared(value: Foo) =
-	if value is Foo(33) then "First Case"
-	else if (value is Foo(x)) and (x <= 0) then "Second Case: {x}"
-	else if value is Foo(x) then "Third Case: {x}"
-	else std.unreachable()
+	if value is Foo(33) then
+		"First Case"
+	else
+		if (value is Foo(x)) and (x <= 0) then
+			"Second Case: {x}"
+		else
+			if value is Foo(x) then
+				"Third Case: {x}"
+			else
+				std.unreachable()
+			end
+		end
+	end
 
 
 fun example-2(value: Foo-Bar-Baz) =
 	case value
-	of Foo(x)
-	of Bar(x) then "First Case {x}"
+		of Foo(x)
+		of Bar(x) then "First Case {x}"
 
-	of Foo(33)
-	of Baz("33") then "Second Case"
+		of Foo(33)
+		of Baz("33") then "Second Case"
 	end
 
 
 fun example-2-desugared(value: Foo-Bar-Baz) =
-	if (value is Foo(x)) or (value is Bar(x)) then "First Case {x}"
-	else if (value is Foo(33)) or (value is Baz("33")) then "Second Case"
-	else std.unreachable()
+	if (value is Foo(x)) or (value is Bar(x)) then
+		"First Case {x}"
+	else
+		if (value is Foo(33)) or (value is Baz("33")) then
+			"Second Case"
+		else
+			std.unreachable()
+		end
+	end

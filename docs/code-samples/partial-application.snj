@@ -1,32 +1,32 @@
-foo(a: Int, b: Float) -> String = "{a} and {b}"
+fun foo(a: Int, b: Float) -> String = "{a} and {b}"
 
 
-(Int).bar(b: Float) -> String = "{a} and {b}"
+fun (Int).bar(b: Float) -> String = "{a} and {b}"
 
 
-example-partial-application() -> Nil &io =
+fun example-partial-application() -> Void &io =
 	do
-		io.print( (=> foo(___, 0.5)).Type )
+		print( (=> foo(___, 0.5)).Type )
 		-- Int -> String
 
-		io.print( (=> foo(123, ___)).Type )
+		print( (=> foo(123, ___)).Type )
 		-- Float -> String
 
-		io.print( (=> foo(___, ___)).Type )
+		print( (=> foo(___, ___)).Type )
 		-- (Int, Float) -> String
 
-		io.print( (=> ___.bar(0.5)).Type )
+		print( (=> ___.bar(0.5)).Type )
 		-- Int -> String
 
-		io.print( (=> 123.bar(___)).Type )
+		print( (=> 123.bar(___)).Type )
 		-- Float -> String
 
-		io.print( (=> ___.bar(___)).Type )
+		print( (=> ___.bar(___)).Type )
 		-- (Int, Float) -> String
 	end
 
 
-main() =
+fun main() =
 	ex1 = 123.pipe(=> foo("abc", ___))
 	ex2 = 123.pipe(x => foo("abc", x))
-	Nil
+	Void

@@ -1,9 +1,18 @@
 << Different approaches for proxy structs >>
 
 
-struct Date {
-	repr: UInt32
-}
+type Date =
+	Date {
+		repr: UInt32
+	}
+
+
+fun (Date) <view> Full-Date -> Option[Full-Date] =
+	Some(Full-Date {
+		day = self.day,
+		month = self.month,
+		year = self.year,
+	})
 
 
 fun Date.new(day: Int, month: Int, year: Int) -> Date

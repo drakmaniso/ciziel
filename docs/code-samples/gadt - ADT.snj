@@ -4,63 +4,89 @@
 module gadt1 ---- First GADT Example ------------------------------------------
 
 
-<<
+/*
 [from wikipedia]: https://en.wikipedia.org/wiki/Generalized_algebraic_data_type
->>
+*/
 
 
 public
 
 
-type Expr = EBool | EInt | EEqual
-struct EBool(value: Bool)
-struct EInt(value: Int)
-struct EEqual(left: *EInt, right: *EInt)
-
-
-trait #expr {
-	Self.Output: Type
-	(Self).eval -> Self.Output
+union Expr[A] {
+	Bool(value: Bool) -> Expr[Bool]
+	Int(value: Int) -> Expr[Int]
+	Equal(left: ref Expr[Int], right: ref Expr[Int]) -> Expr[Bool]
 }
 
 
-tag Expr #expr
-type Expr.Output = Int | Bool
-auto (Expr).eval -> Int | Bool
+trait #expr[A] {
+	type Self[A]
+	fun (Self[A]).eval -> A
+}
 
 
-tag EBool #expr
-type EBool.Output = Bool
-fun (EBool).eval -> Bool = self.value
+implement #expr for Expr[A]
 
 
-tag EInt #expr
-type EInt.Output = Int
-fun (EInt).eval -> Int = self.value
+fun (Expr[A]).eval -> A =
+	case self
+		of Expr.Bool(value) then value
+		of Expr.Int(value) then value
+		of Expr.Equal(left, right) then left.equal == right.equal
+	end
 
 
-tag EEqual #expr
-type EEqual.Output = Bool
+fun main() -> Void &io =
+	do
+		expr1 = Expr.Equal(Expr.Int(2), Expr.Int(3))
+		print("{expr1.Type}")
+		-- Expr[Bool]
+
+		eval1 = expr1.eval
+		print("{eval1.Type}")
+		-- Bool
+	end
+
+
+public -- Without GADTs:
+
+
+type Expr =
+	| Bool(value: Bool)
+	| Int(value: Int)
+	| Equal(left: ref Expr[Output == Int], right: ref Expr[Output ==Int])
+
+
+trait #expr {
+	type Self.Output
+	fun (Self).eval -> Self.Output
+}
+
+
+implement #expr for Expr.Bool
+type Expr.Bool.Output = Bool
+fun (Expr.Bool).eval -> Bool = self.value
+
+
+implement #expr for Expr.Int
+type Expr.Int.Output = Int
+fun (Expr.Int).eval -> Int = self.value
+
+
+implement #expr for Expr.Equal
+type Expr.Equal.Output = Bool
 fun (EEqual).eval -> Bool = (self.left.eval == self.right.eval)
 
 
 fun main() -> Void &io =
 	do
-		expr1 = EEqual(EInt 2, EInt 3)
-		print("{expr1.Type.name}")
-		-- EEqual
+		expr1 = Expr.Equal(Expr.Int(2), Expr.Int(3))
+		print("{expr1.Type}")
+		-- Expr.Equal
 
 		eval1 = expr1.eval
-		print("{eval1.Type.name}")
+		print("{eval1.Type}")
 		-- Bool
-
-		exprs = Array(EInt 2, EBool True, EEqual(EInt 2, EInt 3))
-		print("{expr2.Type.name}")
-		-- Array[Expr]
-
-		evals = exprs.map(___.eval)
-		print("{evals.Type.name}")
-		-- Array[Bool | Int]
 	end
 
 
@@ -83,15 +109,16 @@ type ITerm = Zero | Succ | Pred | If[Term]
 type BTerm = Is-Zero | If[Bool]
 
 
-struct Zero
-struct Succ(arg: ITerm)
-struct Pred(arg: ITerm)
-struct Is-Zero(arg: ITerm)
-struct If[T] {
-	condition: BTerm,
-	then-branch: T,
-	else-branch: T,
-}
+type Term[T] =
+	| Zero -> Term[Int]
+	| Succ(arg: ITerm) -> Term[]
+	| Pred(arg: ITerm)
+	| Is-Zero(arg: ITerm)
+	| If[T] {
+		condition: BTerm,
+		then-branch: T,
+		else-branch: T,
+	}
 
 
 type Term.Output = Int | Bool
@@ -159,11 +186,11 @@ struct Apply[T #expr, U #expr](
 struct Fix[T #expr](function: Lambda[T, T])
 
 
-tag Lift[T] #expr
-tag Pair[T, U] #expr
-tag Lambda[T, U] #expr
-tag Apply[T, U] #expr
-tag Fix[T] #expr
+implement #expr for Lift[T]
+implement #expr for Pair[T, U]
+implement #expr for Lambda[T, U]
+implement #expr for Apply[T, U]
+implement #expr for Fix[T]
 
 
 type Lift[T].Output = T

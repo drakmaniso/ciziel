@@ -1,0 +1,8 @@
+module main
+
+use &io from /std/io
+
+fun main() -> Void &io =
+	do
+		print("Hello, World!")
+	end
