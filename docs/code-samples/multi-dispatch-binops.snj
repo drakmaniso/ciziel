@@ -44,7 +44,7 @@ fun encounter(a: Pet, b: Pet) -> String =
     "{a.name} meets {b.name} and {verb}"
 
 
-fun example-encounter() -> Void &io =
+fun example-encounter() -> () &io =
 	do
 		pets =
 			Array(
@@ -133,7 +133,7 @@ use exotic-pets (Bird)
 
 public
 
-fun main() -> Void &io =
+fun main() -> () &io =
 	do
 		pets =
 			Array(

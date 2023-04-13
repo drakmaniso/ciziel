@@ -2,5 +2,5 @@ module main
 
 use &io from /std/io
 
-fun main() -> Void &io =
+fun main() -> () &io =
 	print("Hello, World!")

@@ -41,16 +41,17 @@ fun stack-or-reduce(lex, stack) =
 					match stack
 						| Array(..., Texp(_)) -> Tbin(minus)
 						| _ -> Tunr(uminus)
-						|;
+						;
 			match symbol
 				| Tunr(op) -> Ok(stack ++ Tunr(op))
 				| Tbin(op) ->
 					stack-or-reduce(lex, reduce(priority-binop(op), stack))
 						.unwrap-or(stack ++ Tbin(op))
 				| _ -> Err(ParseError)
-				|;
+				;
 		| _ -> Err(ParseError)
-		|;
+		;
+
 
 
 
@@ -69,7 +70,7 @@ fun stack-or-reduce(lex, stack) =
 					Ok(stack ++ Term.Exp(e)))
 				| _ ->
 					stack-or-reduce(lex, reduce(0, stack))
-				|;
+				;
 
 		| Lex.Symbol(s) ->
 			-- remove the ambiguity case the `-` symbol
@@ -79,7 +80,7 @@ fun stack-or-reduce(lex, stack) =
 					match stack
 						| Array(..., Term.Exp(_)) -> Term.Bin(minus)
 						| _ -> Term.Unr(uminus)
-						|;
+						;
 				else
 					tsymb(s)
 
@@ -89,7 +90,7 @@ fun stack-or-reduce(lex, stack) =
 					stack-or-reduce(lex, reduce(priority-binop(op), stack))
 						.unwrap-or(stack ++ Term.Bin(op))
 				| _ -> Err(Parse-Error)
-				|;
+				;
 
 		| _ -> Err(Parse-Error)
-		|;
+		;

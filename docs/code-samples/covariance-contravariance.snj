@@ -12,16 +12,16 @@ Adapted from a [blog article]
 type Animal =
 	| Cat
 	| Horse
-	|;
+	;
 
 
-fun (Animal).make-noise -> Void &io =
+fun (Animal).make-noise -> () &io =
 	match self
 		| Animal.Cat ->
 			print("meow!")
 		| Animal.Horse ->
 			print("neigh!")
-		|;
+		;
 
 
 /* Breeders: covariance of return types */
@@ -30,7 +30,7 @@ fun (Animal).make-noise -> Void &io =
 type Breeder =
 	| For-Cats
 	| For-Horses
-	|;
+	;
 
 
 dispatch (Animal-Breeder).produce -> Animal
@@ -50,14 +50,14 @@ fun (Breeder.Of-Horses).produce -> Animal.Horse =
 type Doctor =
 	| For-Cats
 	| For-Horses
-	|;
+	;
 
 
-fun (Doctor.For-Cats).treat(patient: Animal.Cat) -> Void &io =
+fun (Doctor.For-Cats).treat(patient: Animal.Cat) -> () &io =
     print("All done.")
 
 
-fun (Doctor.For-Horses).treat(patient: Animal.Horse) -> Void &io =
+fun (Doctor.For-Horses).treat(patient: Animal.Horse) -> () &io =
     print("All done.")
 
 
@@ -67,12 +67,12 @@ With unions, only covariance works: `Doctor` has no `treat` method, because it
 cannot be dispatched!
 
     ```
-    dispatch (Doctor).treat(patient: ???) -> Void &io
+    dispatch (Doctor).treat(patient: ???) -> () &io
     ```
 */
 
 
-fun produce-and-treat(breeder: Breeder, doctor: Doctor) -> Void &io =
+fun produce-and-treat(breeder: Breeder, doctor: Doctor) -> () &io =
 	animal = breeder.produce
 	!animal.make-noise
 
@@ -81,13 +81,13 @@ fun produce-and-treat(breeder: Breeder, doctor: Doctor) -> Void &io =
 			match doctor
 				| d: Doctor.For-Cats -> d.treat(c)
 				| _ -> panic("This doctor cannot treat a cat!")
-				|;
+				;
 		| h: Animal.Horse ->
 			match doctor
 				| d: Doctor.For-Horses -> d.treat(h)
 				| _ -> panic("This doctor cannot treat a horse!")
-				|;
-		|;
+				;
+		;
 
 
 
@@ -100,22 +100,20 @@ fun produce-and-treat(breeder: Breeder, doctor: Doctor) -> Void &io =
 type Animal =
 	| Cat
 	| Horse
-	|;
+	;
 
 
 trait #animal {
-	fun (Self).make-noise -> Void &io
+	fun (Self).make-noise -> () &io
 }
 
 
 extend Animal as #animal
-fun (Animal).make-noise -> Void &io =
+fun (Animal).make-noise -> () &io =
 	match self
-		| Animal.Cat ->
-			print("meow!")
-		| Animal.Horse ->
-			print("neigh!")
-		|;
+		| Animal.Cat -> print("meow!")
+		| Animal.Horse -> print("neigh!")
+		;
 
 
 /* Breeders: covariance */
@@ -124,7 +122,7 @@ fun (Animal).make-noise -> Void &io =
 type Breeder =
 	| Of-Cats
 	| Of-Horses
-	|;
+	;
 
 
 trait #breeder {
@@ -150,27 +148,27 @@ fun (Breeder.Of-Horses).produce -> Animal.Horse =
 
 trait #doctor {
 	type Self.Patient
-	fun (Self).treat(patient: Self.Patient) -> Void &io
+	fun (Self).treat(patient: Self.Patient) -> () &io
 }
 
 
 extend Doctor.Of-Cats as #doctor
 type Doctor.Of-Cats.Patient = Animal.Cat
-fun (Doctor.Of-Cats).treat(patient: Animal.Cat) -> Void &io =
+fun (Doctor.Of-Cats).treat(patient: Animal.Cat) -> () &io =
     print("All done.")
 
 
 tag Doctor.Of-Horses as #doctor
 type Doctor.Of-Horses.Patient = Animal.Horse
-fun (Doctor.Of-Horses).treat(patient: Animal.Horse) -> Void &io =
+fun (Doctor.Of-Horses).treat(patient: Animal.Horse) -> () &io =
     print("All done.")
 
 
 forall B #breeder,
 	D #doctor,
 	B.Patient == D.Patient
-fun produce-and-treat(breeder: B, doctor: D) -> Void &io =
+fun produce-and-treat(breeder: B, doctor: D) -> () &io =
 	animal = breeder.produce
 	!animal.make-noise
 	!doctor.treat(animal)
-	Void
+	()

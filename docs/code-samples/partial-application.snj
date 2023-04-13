@@ -4,7 +4,7 @@ fun foo(a: Int, b: Float) -> String = "{a} and {b}"
 fun (Int).bar(b: Float) -> String = "{a} and {b}"
 
 
-fun example-partial-application() -> Void &io =
+fun example-partial-application() -> () &io =
 	do
 		print( (=> foo(___, 0.5)).Type )
 		-- Int -> String
@@ -29,4 +29,4 @@ fun example-partial-application() -> Void &io =
 fun main() =
 	ex1 = 123.pipe(=> foo("abc", ___))
 	ex2 = 123.pipe(x => foo("abc", x))
-	Void
+	()

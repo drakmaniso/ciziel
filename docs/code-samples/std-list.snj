@@ -13,7 +13,7 @@ type List[A] =
 		head: data A
 		tail: data List[A]
 	}
-	|;
+	;
 
 
 type alias Empty = List[_].Empty
@@ -45,7 +45,7 @@ fun (List[A]) == (other: List[A]) -> Bool =
 
 		| (_, _) ->
 			False
-		|;
+		;
 
 
 public --- Pushing and Poping -------------------------------------------------
@@ -55,12 +55,12 @@ fun (List[A]).push(item: A) -> List[A].Link =
     List.Link { head = item, tail = self }
 
 
-auto fun (List[A]).head -> Option[A]
+dispatch (List[A]).head -> Option[A]
 fun (List[A].Empty).head -> None =
 	None
 
 
-auto fun (List[A]).tail -> List[A]
+dispatch (List[A]).tail -> List[A]
 fun (List[A].Empty).tail -> List[A].Empty =
 	List.Empty
 
@@ -73,7 +73,7 @@ extend List[A].Empty as #functor
 extend List[A].Link as #functor
 
 
-auto fun (List[A]).map(transform: A -> B) -> List[B]
+dispatch (List[A]).map(transform: A -> B) -> List[B]
 
 
 fun (List[A].Empty).map(transform: A -> B) -> List[B].Empty =
@@ -102,7 +102,7 @@ fun (List[A]) ++ (other: List[A]) -> List[A] =
 				head = head,
 				tail = tail ++ list-2
 			}
-		|;
+		;
 
 
 extend List[A] as #flatten
@@ -113,7 +113,7 @@ fun (List[List[A]]).flatten -> List[A] =
 		| List.Empty -> List.Empty
 		| List.Link { head, tail } ->
 			head ++ tail.flatten
-		|;
+		;
 
 
 extend List[A] as #monad[A]
@@ -153,7 +153,7 @@ fun (List[A].Iterator).next -> List[A].Iterator =
 		| List.Empty -> self
 		| List.Link { tail, ... } ->
 			self.with { current = tail }
-		|;
+		;
 
 
 local ["test"] ----------------------------------------------------------------
@@ -167,7 +167,7 @@ fun double(list: List[Int]) -> List[Int] =
     list.map(-> ___ * 2)
 
 
-fun example() -> Void &io =
+fun example() -> () &io =
 	a = List.Link(1, List.Link(2, List.Link(3, List.Empty)))
 	b = List.new(1, 2, 3)
 
@@ -180,4 +180,4 @@ fun example() -> Void &io =
 	!print(a.map.Type))
 	-- (Link[Int], Int -> A) -> Link[A]
 
-	Void
+	()

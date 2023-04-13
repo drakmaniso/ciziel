@@ -49,7 +49,7 @@ use reader
 public
 
 
-fun main() -> Void &io =
+fun main() -> () &io =
 	!print(greeting("Elm").run(France))
 	-- Bonjour, Elm !
 
@@ -59,7 +59,7 @@ fun main() -> Void &io =
 	!print(greeting("Elm").run(USA))
 	-- Hello, Elm!
 
-	Void
+	()
 
 
 local
@@ -73,7 +73,7 @@ fun hello-text(country: Country) -> String =
 		| France -> "Bonjour"
 		| Spain -> "Buenos dìas"
 		| USA -> "Hello"
-		|;
+		;
 
 
 fun greet(name: String) -> Reader[Country, String] =
@@ -91,7 +91,7 @@ fun exclamation(input: String) -> Reader[Country, String] =
 					| France -> "{input} !"
 					| Spain -> "¡{input}!"
 					| USA -> "{input}!"
-					|;
+					;
 			)
 	)
 
@@ -115,7 +115,7 @@ fun exclamation'(input: String) -> Reader[Country, String] =
 			| France -> "{input} !"
 			| Spain -> "¡{input}!"
 			| USA -> "{input}!"
-			|;
+			;
 	)
 
 

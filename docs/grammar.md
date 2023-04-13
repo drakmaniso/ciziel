@@ -6,23 +6,22 @@ core language).
 ## Keywords
 
     module use
-    forall def let var
+    forall
+    val fun type alias dispatch
     require ensure
-    match case if then else
-    and or not
-    ___ _
+    match if then else
+    not and or
 
 ## Delimiters
 
     ( ) { } [ ]
     . ...
     : ::
-    , ;
-    \
+    ,
+    | ;
 
 ## Operators
 
-    |
     ->
     =
     == != < <= > >=
@@ -37,11 +36,11 @@ core language).
 
     OPERATOR-ID <- [<][a-z][A-Za-z0-9_-]*[']*[>]
 
-## PEG Grammar (for the currently implemented part of the language)
+## PEG Grammar
 
     program <- declaration*
 
-    declaration <- "let" ID ":" type "=" expr
+    declaration <- "val" ID ":" type "=" expr
 
     type <- "Int" / "Bool" / "\" "(" type ("," type)* ")" "->" type
 

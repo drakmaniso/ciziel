@@ -4,6 +4,9 @@ module /std/math
 public
 
 
+--( from Rust crate num_traits )--
+
+
 trait #num {
 	trait #eq
 	trait #add

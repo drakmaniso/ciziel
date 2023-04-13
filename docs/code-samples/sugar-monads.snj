@@ -25,7 +25,7 @@ fun example-1-desugared'(numbers: Array[Int]) -> Option[Int] =
 type My-Error =
 	| as None
 	| as Int.Parse-Error
-	|;
+	;
 
 
 fun example-2(numbers: Array[String]) -> Result[Int, My-Error] =
@@ -161,7 +161,7 @@ fun get-count-item(s: String) -> Result[(Int, String), String] =
 type My-Error =
 	| Segment
 	| Parse(cause: Int.Parse-Error)
-	|;
+	;
 
 
 fun get-count-item(s: String) -> Result[(Int, String), My-Error] =

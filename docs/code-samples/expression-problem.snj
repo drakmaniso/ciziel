@@ -8,7 +8,7 @@ public
 type Expr[E] =
 	| Literal(value: data Int)
 	| Addition(left: data ref E, right: data ref E)
-	|;
+	;
 
 
 trait #eval {
@@ -25,7 +25,7 @@ fun (Expr[E]).eval -> Int =
 	match self
 		| Expr.Literal(value) -> value
 		| Expr.Addition(left, right) -> left.eval + right.eval
-		|;
+		;
 
 
 -------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ type Expr[E] =
 	| as basic::Expr[E].Literal
 	| as basic::Expr[E].Addition
 	| Negation(subexpr: data *E)
-	|;
+	;
 
 
 forall E #eval
@@ -50,7 +50,7 @@ fun (Expr[E]).eval -> Int =
 	match self
 		| Expr.Negation(subexpr) -> - subexpr.eval
 		| e: basic::Expr[E] -> e.eval
-		|;
+		;
 
 
 trait #pretty {
@@ -75,8 +75,8 @@ fun (basic::Expr[E]).pretty -> String =
 				| (Expr.Literal(...), _) -> "{l} + ({r})"
 				| (_, Literal(...)) -> "({l}) + {r}"
 				| (_, _) -> "({l}) + ({r})"
-				|;
-		|;
+				;
+		;
 
 
 forall E #pretty
@@ -88,24 +88,55 @@ fun (Expr[E]).pretty -> String =
 	match self
 		| Expr.Negation(subexpr) -> "- ({subexpr.pretty})"
 		| e: basic::Expr[E] -> e.pretty
-		|;
+		;
 
 
 -------------------------------------------------------------------------------
 module main
-use /std/io (&io)
-use basic (#eval)
-use extended (#pretty)
+use &io from /std/io
+use #eval from basic
+use #pretty from extended
+public
+
+
+type My-Expr(expr: Expr[My-Expr])
+extend My-Expr as #eval
+extend My-Expr as #pretty
+
+
+fun main() -> () &io =
+	e1 = My-Expr(
+		Expr.Addition( Expr.Literal(77), Expr.Negation( Expr.Literal(12) ) )
+	)
+	print("{e1.pretty} = {e1.eval}")
+
+
+-------------------------------------------------------------------------------
+module main
+use &io from /std/io
+use #eval from basic
+use #pretty from extended
+public
+
+
+type Expr =
+	| as extended::Expr[Expr]
+	;
+extend Expr as #eval
+extend Expr as #pretty
+
+
+-------------------------------------------------------------------------------
+module main
+use &io from /std/io
+use #eval from basic
+use #pretty from extended
 public
 
 
 alias Expr = extended::Expr[Expr]
--- Or:
-type Expr = as extended::Expr[Expr]
-auto extend Expr as #eval
-auto extend Expr as #pretty
 
 
-fun main() -> Void &io =
+fun main() -> () &io =
 	e1 = Expr.Addition(Expr.Literal(77), Expr.Negation(Expr.Literal(12)))
 	print("{e1.pretty} = {e1.eval}")

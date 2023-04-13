@@ -46,7 +46,7 @@ type Shape =
 		require points.length >= 3
 	}
 
-	|;
+	;
 
 
 alias Circle = Shape.Circle
@@ -64,7 +64,7 @@ trait #shape {
 }
 
 
-auto extend Shape as #shape
+extend Shape as #shape
 
 
 public ------------------------------------------------------------------------
@@ -83,7 +83,7 @@ fun Circle.around(points: Array[Point]) -> Circle =
 					c
 				else
 					welzl(rest, boundary.push(p))
-			|;
+			;
 
 	welzl(points, Array())
 

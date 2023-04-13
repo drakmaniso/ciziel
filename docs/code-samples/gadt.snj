@@ -15,7 +15,7 @@ type Expr[_] =
 	| Expr[Bool].Bool(value: Bool)
 	| Expr[Int].Int(value: Int)
 	| Expr[Bool].Equal(left: ref Expr[Int], right: ref Expr[Int])
-	|;
+	;
 
 
 dispatch (Expr[T]).eval -> T
@@ -24,7 +24,7 @@ fun (Expr.Int).eval -> Int = self.value
 fun (Expr.Equal).eval -> Bool = left.equal == right.equal
 
 
-fun first-example() -> Void &io =
+fun first-example() -> () &io =
 	expr1 = Expr.Equal(Expr.Int(2), Expr.Int(3))
 	!print("{expr1.Type}")
 	-- Expr[Bool]
@@ -33,7 +33,7 @@ fun first-example() -> Void &io =
 	!print("{eval1.Type}")
 	-- Bool
 
-	Void
+	()
 
 
 public ------------------------------------------------------------------------
@@ -56,7 +56,7 @@ type Term[_] =
 		then-branch: T,
 		else-branch: T,
 	}
-	|;
+	;
 
 
 dispatch (Term[T]).eval -> T
@@ -87,7 +87,7 @@ type Expr[_] =
 	| Expr[A -> B].Lambda(value: A -> B)
 	| Expr[B].Apply(function: Expr[_ -> B].Lambda, argument: B)
 	| Expr[A].Fix(function: Expr[A -> A].Lambda)
-	|;
+	;
 
 
 dispatch (Expr[A]).eval -> A
@@ -113,7 +113,7 @@ fun (Expr[A].Fix).eval -> A =
 	self.function.eval(Expr.Fix(self.function).eval)
 
 
-fun example() -> Void &io =
+fun example() -> () &io =
 	factorial =
 		Expr.Fix(
 			Expr.Lambda(
@@ -135,4 +135,4 @@ fun example() -> Void &io =
 
 	!print(factorial-of-ten.eval)
 
-	Void
+	()

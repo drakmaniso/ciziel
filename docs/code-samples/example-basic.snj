@@ -7,18 +7,15 @@ use &io from /std/io
 public ------------------------------------------------------------------------
 
 
-fun main() -> Void &io =
+fun main() -> () &io =
 	fun get-number() =
 		!io.put-string("Please enter a number: ")
 		answer = io::input()
 
 		match answer.to-int
-			| Some(number) ->
-				number
-			| None ->
-				get-number()
-			|;
-
+			| Some(number) -> number
+			| None -> get-number()
+			;
 
 	number = get-number()
 	naive = naive-factorial(number)
@@ -29,31 +26,7 @@ fun main() -> Void &io =
 	!print("tail recursive factorial: {tail}")
 	!print("fold-based factorial: {folded}")
 
-	Void
-
-
-fun main() -> Void &io =
-	fun get-number() =
-		!io.put-string("Please enter a number: ")
-		answer = io::input()
-
-		match answer.to-int
-			| Some(number) ->
-				number
-			| None ->
-				get-number()
-			|;
-
-	number = get-number()
-	naive = naive-factorial(number)
-	tail = tail-factorial(number)
-	folded = folded-factorial(number)
-
-	!print("naive factorial: {naive}")
-	!print("tail recursive factorial: {tail}")
-	!print("fold-based factorial: {folded}")
-
-	Void
+	()
 
 
 local -------------------------------------------------------------------------
@@ -136,13 +109,15 @@ fun pipeline-example-1() =
 		.filter(-> ___.is-even)
 		.map(-> ___ * 2)
 		.fold("", (s, n) -> "{s}, {n <to> String}")
-		.map(char ->
-			next-char = (char.code + 1) <to> Char
+		.map(
+			char ->
+				next-char = (char.code + 1) <to> Char
 
-			if next-char.is-letter then
-				next-char.to-uppercase
-			else
-				Rune "?")
+				if next-char.is-letter then
+					next-char.to-uppercase
+				else
+					Rune("?")
+		)
 		<collect> Array
 
 
@@ -157,13 +132,10 @@ fun pipeline-example-2() =
 		.map(
 			name ->
 				match
-					| name == "Bop" ->
-						"Betty"
-					| name.length > 100 ->
-						"(too long)"
-					| _ ->
-						name
-					|;
+					| name == "Bop" -> "Betty"
+					| name.length > 100 -> "(too long)"
+					| _ -> name
+					;
 		)
 		.fold(
 			"",

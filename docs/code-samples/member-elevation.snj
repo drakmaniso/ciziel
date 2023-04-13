@@ -6,7 +6,7 @@ type Pet = Cat | Dog
 /* The fields that are common to all variants are automatically elevated: */
 
 
-auto fun (Pet).name -> String
+dispatch (Pet).name -> String
 
 
 /**/
@@ -18,7 +18,7 @@ struct Stick { length: Int }
 
 type Cat.Typical-Toy = Wool-Ball
 type Dog.Typical-Toy = Stick
-auto type Pet.Typical-Toy = Wool-Ball | Stick
+dispatch Pet.Typical-Toy -- Wool-Ball | Stick
 
 
 /* The `greet` method is automatically elevated: */
@@ -26,7 +26,7 @@ auto type Pet.Typical-Toy = Wool-Ball | Stick
 
 fun (Cat).greet(human: String) -> String = "{self.name} ignores {human}"
 fun (Dog).greet(human: String) -> String = "{self.name} plays with {human}"
-auto fun (Pet).greet(human: String) -> String
+dispatch (Pet).greet(human: String) -> String
 
 
 /* But the `play` method cannot be elevated: */

@@ -14,7 +14,7 @@ fun main() -> Io[]  =
 		match answer.to-int
 			| Some(n) -> Io(n)
 			| None -> get-number()
-			|;
+			;
 
 	number ?= get-number()
 	naive = naive-factorial(number)

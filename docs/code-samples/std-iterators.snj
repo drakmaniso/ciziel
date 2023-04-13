@@ -79,7 +79,7 @@ fun (Counter).next -> Counter =
 		self.with { count = count + 1 }
 
 
-fun example() -> Void &io =
+fun example() -> () &io =
 	fun step(c) =
 		match c.peek
 			| None ->
@@ -87,7 +87,7 @@ fun example() -> Void &io =
 			| Ok(number) ->
 				!print("{number}, ")
 				step(c.next)
-			|;
+			;
 
 	counter = Counter.new(7)
 
@@ -111,4 +111,4 @@ fun compare(i: I, j: J) -> Bool =
 		| (None, None) -> True
 		| (Ok(a), Ok(b)) and (a == b) -> compare(i-next, j-next)
 		| _ -> False
-		|;
+		;

@@ -18,7 +18,7 @@ type Expr[T] =
 		left: ref Expr[Int],
 		right: ref Expr[Int],
 	)
-	|;
+	;
 
 
 fun (Expr[Bool].EBool).eval -> Bool = self.value
@@ -31,7 +31,7 @@ alias EInt = Expr[Bool].EInt
 alias Equal = Expr[Bool].Equal
 
 
-fun first-example() -> Void &io =
+fun first-example() -> () &io =
 	expr1 = Equal(EInt(2), EInt(3))
 	!print("{expr1.Type}")
 	-- Expr[Bool].Equal
@@ -40,7 +40,7 @@ fun first-example() -> Void &io =
 	!print("{eval1.Type}")
 	-- Bool
 
-	Void
+	()
 
 
 public ------------------------------------------------------------------------
@@ -63,7 +63,7 @@ type Term[T] =
 		then-branch: T,
 		else-branch: T,
 	}
-	|;
+	;
 
 
 fun (Term[Int].Zero).eval -> Int = 0
@@ -94,7 +94,7 @@ public
 type Term =
 	| as ITerm
 	| as BTerm
-	|;
+	;
 
 
 type ITerm =
@@ -102,13 +102,13 @@ type ITerm =
 	| as Succ
 	| as Pred
 	| as If[Term]
-	|;
+	;
 
 
 type BTerm =
 	| as Is-Zero
 	| as If[Bool]
-	|;
+	;
 
 
 type Zero
@@ -163,7 +163,7 @@ type Expr[_] =
 	| Lambda(value: A -> B) -> Expr[A -> B]
 	| Apply(function: Expr[A -> B].Lambda, argument: B) -> Expr[B]
 	| Fix(function: Expr[A -> A].Lambda) -> Expr[A]
-	|;
+	;
 
 
 fun (Expr[A].Lift).eval -> A =
@@ -186,13 +186,13 @@ fun (Expr[A].Fix).eval -> A =
 	self.function.eval(Expr.Fix(self.function).eval)
 
 
-fun example() -> Void &io =
+fun example() -> () &io =
 	factorial =
 		Expr.Fix(
 			Expr.Lambda(
-				f =>
+				f ->
 					Expr.Lambda(
-						y =>
+						y ->
 							y' = y.eval
 							f' = f.eval
 
@@ -209,7 +209,7 @@ fun example() -> Void &io =
 
 	!print(factorial-of-ten.eval)
 
-	Void
+	()
 
 
 public ---- Third GADT Example: Higher-Order Abstract Syntax ------------------
@@ -272,7 +272,7 @@ fun (Pair[T, U]).eval -> (T, U) =
 
 
 fun (Lambda[T, U]).eval -> (T -> U) =
-	x => self.function(Lift(x)).eval
+	x -> self.function(Lift(x)).eval
 
 
 fun (Apply[T, U]).eval -> U =
@@ -283,13 +283,13 @@ fun (Fix[T]).eval -> T =
 	self.function.eval(Fix(self.function).eval)
 
 
-fun example() -> Void &io =
+fun example() -> () &io =
 	factorial =
 		Fix(
 			Lambda(
-				f =>
+				f ->
 					Lambda(
-						y =>
+						y ->
 							y' = y.eval
 							f' = f.eval
 

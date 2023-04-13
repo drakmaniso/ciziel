@@ -5,7 +5,7 @@ use /std/io (&io)
 private
 
 
-fun main() -> Void &io =
+fun main() -> () &io =
 	do
 		all-numbers = Array(False, False, True, ..., [1001] = True)
 		primes = sieve(all-numbers, 2)

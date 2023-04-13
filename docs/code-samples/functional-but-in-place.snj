@@ -9,27 +9,24 @@ fun (Polygon).offset(delta: Vec2) -> Polygon =
     self.vertices.map(=> ___ + delta)
 
 
-fun main() -> Void &io =
-	do
-		shape = Polygon(vertices = [...])
-		shape' = shape.offset(Vec2(1, 0)) -- `offset` should *mutate* the array
-		print(shape')
-	end
+fun main() -> () &io =
+	shape = Polygon(vertices = [...])
+	shape' = shape.offset(Vec2(1, 0)) -- `offset` should *mutate* the array
+	!print(shape')
+	()
 
 
-fun main() -> Void &io =
-	do
-		shape = Polygon(vertices = [...])
-		print(shape.offset(Vec2(1, 0))) -- `offset` should *allocate* a new array
-		print(shape)
-	end
+fun main() -> () &io =
+	shape = Polygon(vertices = [...])
+	!print(shape.offset(Vec2(1, 0))) -- `offset` should *allocate* a new array
+	!print(shape)
+	()
 
 
-fun main() -> Void &io =
-	do
-		shape = Polygon(vertices = [...])
-		print(shape.offset(Vec2(1, 0))) -- `offset` should *mutate* the array
-	end
+fun main() -> () &io =
+	shape = Polygon(vertices = [...])
+	!print(shape.offset(Vec2(1, 0))) -- `offset` should *mutate* the array
+	()
 
 
 -- Computed Properties --------------------------------------------------------
@@ -48,10 +45,9 @@ fun (Angle).with-degrees(degrees: Float64) -> Angle =
     Angle { radians = (degrees * 2 * math::pi) / 180 }
 
 
-fun main() -> Void &io =
-	do
-		theta = Angle { radians = 0.12 }
-		x = theta.degrees
-		theta' = theta.with-degrees(x + 90) -- mutates `theta`
-		print(theta')
-	end
+fun main() -> () &io =
+	theta = Angle { radians = 0.12 }
+	x = theta.degrees
+	theta' = theta.with-degrees(x + 90) -- mutates `theta`
+	!print(theta')
+	()
