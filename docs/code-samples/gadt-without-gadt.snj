@@ -1,0 +1,306 @@
+module gadt
+
+
+public ------------------------------------------------------------------------
+
+
+/*
+First example, from [wikipedia][1].
+
+[1]: <https://en.wikipedia.org/wiki/Generalized_algebraic_data_type>
+*/
+
+
+type Expr[T] =
+	| EBool(value: Bool)
+	| EInt(value: Int)
+	| Equal(
+		left: ref Expr[Int],
+		right: ref Expr[Int],
+	)
+	|;
+
+
+fun (Expr[Bool].EBool).eval -> Bool = self.value
+fun (Expr[Int].EInt).eval -> Int = self.value
+fun (Expr[Bool].Equal).eval -> Bool = (self.left.eval == self.right.eval)
+
+
+alias EBool = Expr[Bool].EBool
+alias EInt = Expr[Bool].EInt
+alias Equal = Expr[Bool].Equal
+
+
+fun first-example() -> Void &io =
+	expr1 = Equal(EInt(2), EInt(3))
+	!print("{expr1.Type}")
+	-- Expr[Bool].Equal
+
+	eval1 = expr1.eval
+	!print("{eval1.Type}")
+	-- Bool
+
+	Void
+
+
+public ------------------------------------------------------------------------
+
+
+/*
+Second example, from ["Fun with phantom types"][2] by R. Hinze.
+
+[2]: <https://www.researchgate.net/publication/228707929_Fun_with_phantom_types>
+*/
+
+
+type Term[T] =
+	| Zero
+	| Succ(arg: Term[Int])
+	| Pred(arg: Term[Int])
+	| Is-Zero(arg: Term[Int])
+	| If {
+		condition: Term[Bool],
+		then-branch: T,
+		else-branch: T,
+	}
+	|;
+
+
+fun (Term[Int].Zero).eval -> Int = 0
+fun (Term[Int].Succ).eval -> Int = self.arg.eval + 1
+fun (Term[Int].Pred).eval -> Int = self.arg.eval - 1
+fun (Term[Bool].Is-Zero).eval -> Bool = self.arg.eval == 0
+fun (Term[T].If).eval -> T =
+	if self.condition.eval then
+		self.then-branch.eval
+	else
+		self.else-branch.eval
+
+
+module gadt2 ---- Second GADT Example: Phantom Types --------------------------
+
+
+/*
+From ["Fun with phantom types"] by R. Hinze
+
+["Fun with phantom types"]:
+https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
+*/
+
+
+public
+
+
+type Term =
+	| as ITerm
+	| as BTerm
+	|;
+
+
+type ITerm =
+	| as Zero
+	| as Succ
+	| as Pred
+	| as If[Term]
+	|;
+
+
+type BTerm =
+	| as Is-Zero
+	| as If[Bool]
+	|;
+
+
+type Zero
+type Succ(arg: ITerm)
+type Pred(arg: ITerm)
+type Is-Zero(arg: ITerm)
+type If[T] {
+	condition: BTerm,
+	then-branch: T,
+	else-branch: T,
+}
+
+
+dispatch ITerm.Output = Int
+dispatch BTerm.Output = Bool
+alias Zero.Output = Int
+alias Succ.Output = Int
+alias Pred.Output = Int
+alias Is-Zero.Output = Bool
+alias If[T].Output = T
+
+
+dispatch (ITerm).eval -> Int
+dispatch (BTerm).eval -> Bool
+
+
+fun (Zero).eval -> Int = 0
+fun (Succ).eval -> Int = self.arg.eval + 1
+fun (Pred).eval -> Int = self.arg.eval - 1
+fun (Is-Zero).eval -> Bool = self.arg.eval == 0
+fun (If[T]).eval -> T =
+	if self.condition.eval then
+		self.then-branch.eval
+	else
+		self.else-branch.eval
+
+
+module gadt3 ---- Third GADT Example: Higher-Order Abstract Syntax ------------
+
+
+/*
+From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
+*/
+
+
+public
+
+
+type Expr[_] =
+	| Lift(value: A) -> Expr[A]
+	| Pair(first: A, second: B) -> Expr[(A, B)]
+	| Lambda(value: A -> B) -> Expr[A -> B]
+	| Apply(function: Expr[A -> B].Lambda, argument: B) -> Expr[B]
+	| Fix(function: Expr[A -> A].Lambda) -> Expr[A]
+	|;
+
+
+fun (Expr[A].Lift).eval -> A =
+	self.first.value
+
+
+fun (Expr[(A, B)].Pair).eval -> (A, B) =
+	(self.first.eval, self.second.eval)
+
+
+fun (Expr[A -> B].Lambda).eval -> (A -> B) =
+	x -> self.function(Expr.Lift(x)).eval
+
+
+fun (Expr[B].Apply).eval -> B =
+	self.function.eval(self.argument.eval)
+
+
+fun (Expr[A].Fix).eval -> A =
+	self.function.eval(Expr.Fix(self.function).eval)
+
+
+fun example() -> Void &io =
+	factorial =
+		Expr.Fix(
+			Expr.Lambda(
+				f =>
+					Expr.Lambda(
+						y =>
+							y' = y.eval
+							f' = f.eval
+
+							if y' == 0 then
+								Lift(1)
+							else
+								Lift(y' * f'(y' - 1))
+							end
+					)
+			)
+		)
+
+	factorial-of-ten = Expr.Apply(factorial, Expr.Lift(10))
+
+	!print(factorial-of-ten.eval)
+
+	Void
+
+
+public ---- Third GADT Example: Higher-Order Abstract Syntax ------------------
+
+
+/*
+Third example, also from [wikipedia][3].
+
+[3]: <https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax>
+*/
+
+
+trait #expr {
+	Self.Output: Type
+	(Self).eval -> Self.Output
+}
+
+
+struct Lift[T](value: T)
+
+
+struct Pair[T #expr, U #expr](
+	first: T,
+	second: U,
+)
+
+
+struct Lambda[T #expr, U #expr](value: T -> U)
+
+
+struct Apply[T #expr, U #expr](
+	function: Lambda[T, U],
+	argument: U,
+)
+
+
+struct Fix[T #expr](function: Lambda[T, T])
+
+
+implement #expr for Lift[T]
+implement #expr for Pair[T, U]
+implement #expr for Lambda[T, U]
+implement #expr for Apply[T, U]
+implement #expr for Fix[T]
+
+
+type Lift[T].Output = T
+type Pair[T, U].Output = (T, U)
+type Lambda[T, U].Output = T -> U
+type Apply[T, U].Output = U
+type Fix[T].Output = T
+
+
+fun (Lift[T]).eval -> T =
+	self.first.value
+
+
+fun (Pair[T, U]).eval -> (T, U) =
+	(self.first.eval, self.second.eval)
+
+
+fun (Lambda[T, U]).eval -> (T -> U) =
+	x => self.function(Lift(x)).eval
+
+
+fun (Apply[T, U]).eval -> U =
+	self.function.eval(self.argument.eval)
+
+
+fun (Fix[T]).eval -> T =
+	self.function.eval(Fix(self.function).eval)
+
+
+fun example() -> Void &io =
+	factorial =
+		Fix(
+			Lambda(
+				f =>
+					Lambda(
+						y =>
+							y' = y.eval
+							f' = f.eval
+
+							if y' == 0 then
+								Lift(1)
+							else
+								Lift(y' * f'(y' - 1))
+					)
+			)
+		)
+
+	factorial-of-ten = Apply(factorial, Lift(10))
+
+	print(factorial-of-ten.eval)

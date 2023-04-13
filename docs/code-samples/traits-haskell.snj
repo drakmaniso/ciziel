@@ -54,10 +54,10 @@ def #monad = trait {
     has #applicative
 
     -- aka `chain`, `flat-map`, `bind`...
-    has (Self[A]) >>= (operation: A -> Self[B]) -> Self[B]
+    has (Self[A]) */= (operation: A -> Self[B]) -> Self[B]
 
-    has (Self[A]) >> (other: Self[B]) -> Self[B] {
-        self >>= { any => other }
+    has (Self[A]) */ (other: Self[B]) -> Self[B] {
+        self */= { any => other }
     }
 
     has (Self[M[A]]).join -> Self[A]

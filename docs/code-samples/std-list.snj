@@ -7,22 +7,23 @@ use #iterator, #iterable from /std
 public ------------------------------------------------------------------------
 
 
-union List[A] =
+type List[A] =
 	| Empty[A]
 	| ref Link[A] {
 		head: data A
 		tail: data List[A]
 	}
+	|;
 
 
-type Empty = List[_].Empty
-type Link[A] = List[A].Link
+type alias Empty = List[_].Empty
+type alias Link[A] = List[A].Link
 
 
 fun List[A].new(...items: Array[A]) -> List[A] =
     items.fold-reverse(
 		List.Empty,
-        (item, list) =>
+        (item, list) ->
             List.Link { head = item, tail = list }
 	)
 
@@ -35,11 +36,16 @@ extend List[#eq] as #eq
 
 forall A #eq
 fun (List[A]) == (other: List[A]) -> Bool =
-	case (self, other)
-		of (Empty, Empty) then True
-		of (a: Link, b: Link) then (a.head == b.item) and (a.tail == b.tail)
-		of (_, _) then False
-	end
+	match (self, other)
+		| (List.Empty, List.Empty) ->
+			True
+
+		| (a: List.Link, b: List.Link) ->
+			(a.head == b.item) and (a.tail == b.tail)
+
+		| (_, _) ->
+			False
+		|;
 
 
 public --- Pushing and Poping -------------------------------------------------
@@ -88,26 +94,26 @@ extend List[A] as #concat
 
 
 fun (List[A]) ++ (other: List[A]) -> List[A] =
-	case self
-		of List.Empty then
+	match self
+		| List.Empty ->
 			other
-		of List.Link { head, tail } then
+		| List.Link { head, tail } ->
 			List.Link {
 				head = head,
 				tail = tail ++ list-2
 			}
-	end
+		|;
 
 
 extend List[A] as #flatten
 
 
 fun (List[List[A]]).flatten -> List[A] =
-	case self
-		of List.Empty then List.Empty
-		of List.Link { head, tail } then
+	match self
+		| List.Empty -> List.Empty
+		| List.Link { head, tail } ->
 			head ++ tail.flatten
-	end
+		|;
 
 
 extend List[A] as #monad[A]
@@ -123,7 +129,7 @@ public --- Iterator Implementation --------------------------------------------
 extend List[A] as #iterable
 
 
-struct List[A].Iterator {
+type List[A].Iterator {
 	current: List[A]
 }
 
@@ -143,11 +149,11 @@ fun (List[A].Iterator).peek -> Option[A] =
 
 
 fun (List[A].Iterator).next -> List[A].Iterator =
-    case self.current
-		of List.Empty then self
-		of List.Link { tail, ... } then
+    match self.current
+		| List.Empty -> self
+		| List.Link { tail, ... } ->
 			self.with { current = tail }
-    end
+		|;
 
 
 local ["test"] ----------------------------------------------------------------
@@ -158,20 +164,20 @@ use List from /std/list
 
 
 fun double(list: List[Int]) -> List[Int] =
-    list.map(=> ___ * 2)
+    list.map(-> ___ * 2)
 
 
 fun example() -> Void &io =
-	do
-		a = List.Link(1, List.Link(2, List.Link(3, List.Empty)))
-		b = List.new(1, 2, 3)
+	a = List.Link(1, List.Link(2, List.Link(3, List.Empty)))
+	b = List.new(1, 2, 3)
 
-		print(a.type)
-		-- Link[Int]
+	!print(a.Type)
+	-- Link[Int]
 
-		print(b.type)
-		-- List[Int]
+	!print(b.Type)
+	-- List[Int]
 
-		print(a.map.type))
-		-- (Link[Int], Int -> A) -> Link[A]
-	end
+	!print(a.map.Type))
+	-- (Link[Int], Int -> A) -> Link[A]
+
+	Void

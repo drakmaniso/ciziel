@@ -1,4 +1,4 @@
-<< Different approaches for proxy structs >>
+/* Different approaches for proxy structs */
 
 
 struct Date {

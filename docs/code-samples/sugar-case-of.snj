@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 
 
-<< Maybe `case ... of` expressions can desugars to `if` with `is` expressions.>>
+/* Maybe `case ... of` expressions can desugars to `if` with `is` expressions.*/
 
 
 type Foo-Bar-Baz = Foo | Bar | Baz

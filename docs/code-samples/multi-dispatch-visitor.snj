@@ -1,4 +1,4 @@
-<< Multiple dispatch emulated with the Visitor pattern >>
+/* Multiple dispatch emulated with the Visitor pattern */
 
 
 -------------------------------------------------------------------------------

@@ -1,219 +1,138 @@
---- GADT ----------------------------------------------------------------------
+module gadt
 
 
-module gadt1 ---- First GADT Example ------------------------------------------
+public ------------------------------------------------------------------------
 
 
-<<
-[from wikipedia]: https://en.wikipedia.org/wiki/Generalized_algebraic_data_type
->>
+/*
+First example, from [wikipedia][1].
+
+[1]: <https://en.wikipedia.org/wiki/Generalized_algebraic_data_type>
+*/
 
 
-public
+type Expr[_] =
+	| Expr[Bool].Bool(value: Bool)
+	| Expr[Int].Int(value: Int)
+	| Expr[Bool].Equal(left: ref Expr[Int], right: ref Expr[Int])
+	|;
 
 
-type Expr = EBool | EInt | EEqual
-struct EBool(value: Bool)
-struct EInt(value: Int)
-struct EEqual(left: *EInt, right: *EInt)
+dispatch (Expr[T]).eval -> T
+fun (Expr.Bool).eval -> Bool = self.value
+fun (Expr.Int).eval -> Int = self.value
+fun (Expr.Equal).eval -> Bool = left.equal == right.equal
 
 
-trait #expr {
-	Self.Output: Type
-	(Self).eval -> Self.Output
-}
+fun first-example() -> Void &io =
+	expr1 = Expr.Equal(Expr.Int(2), Expr.Int(3))
+	!print("{expr1.Type}")
+	-- Expr[Bool]
+
+	eval1 = expr1.eval
+	!print("{eval1.Type}")
+	-- Bool
+
+	Void
 
 
-tag Expr #expr
-type Expr.Output = Int | Bool
-auto (Expr).eval -> Int | Bool
+public ------------------------------------------------------------------------
 
 
-tag EBool #expr
-type EBool.Output = Bool
-fun (EBool).eval -> Bool = self.value
+/*
+Second example, from ["Fun with phantom types"][2] by R. Hinze.
+
+[2]: <https://www.researchgate.net/publication/228707929_Fun_with_phantom_types>
+*/
 
 
-tag EInt #expr
-type EInt.Output = Int
-fun (EInt).eval -> Int = self.value
+type Term[_] =
+	| Term[Int].Zero
+	| Term[Int].Succ(arg: Term[Int])
+	| Term[Int].Pred(arg: Term[Int])
+	| Term[Bool].Is-Zero(arg: Term[Int])
+	| Term[T].If {
+		condition: Term[Bool],
+		then-branch: T,
+		else-branch: T,
+	}
+	|;
 
 
-tag EEqual #expr
-type EEqual.Output = Bool
-fun (EEqual).eval -> Bool = (self.left.eval == self.right.eval)
-
-
-fun main() -> Void &io =
-	do
-		expr1 = EEqual(EInt 2, EInt 3)
-		print("{expr1.Type.name}")
-		-- EEqual
-
-		eval1 = expr1.eval
-		print("{eval1.Type.name}")
-		-- Bool
-
-		exprs = Array(EInt 2, EBool True, EEqual(EInt 2, EInt 3))
-		print("{expr2.Type.name}")
-		-- Array[Expr]
-
-		evals = exprs.map(___.eval)
-		print("{evals.Type.name}")
-		-- Array[Bool | Int]
-	end
-
-
-module gadt2 ---- Second GADT Example: Phantom Types --------------------------
-
-
-<<
-From ["Fun with phantom types"] by R. Hinze
-
-["Fun with phantom types"]:
-https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
->>
-
-
-public
-
-
-type Term = ITerm | BTerm
-type ITerm = Zero | Succ | Pred | If[Term]
-type BTerm = Is-Zero | If[Bool]
-
-
-struct Zero
-struct Succ(arg: ITerm)
-struct Pred(arg: ITerm)
-struct Is-Zero(arg: ITerm)
-struct If[T] {
-	condition: BTerm,
-	then-branch: T,
-	else-branch: T,
-}
-
-
-type Term.Output = Int | Bool
-type ITerm.Output = Int
-type BTerm.Output = Bool
-type Zero.Output = Int
-type Succ.Output = Int
-type Pred.Output = Int
-type Is-Zero.Output = Bool
-type If[T].Output = T
-
-
-auto (Term).eval -> Int | Bool
-auto (ITerm).eval -> Int
-auto (BTerm).eval -> Bool
-
-
-fun (Zero).eval -> Int = 0
-fun (Succ).eval -> Int = self.arg.eval + 1
-fun (Pred).eval -> Int = self.arg.eval - 1
-fun (Is-Zero).eval -> Bool = self.arg.eval == 0
-fun (If[T]).eval -> T =
+dispatch (Term[T]).eval -> T
+fun (Term.Zero).eval -> Int = 0
+fun (Term.Succ).eval -> Int = self.arg.eval + 1
+fun (Term.Pred).eval -> Int = self.arg.eval - 1
+fun (Term.Is-Zero).eval -> Bool = self.arg.eval == 0
+fun (Term[T].If).eval -> T =
 	if self.condition.eval then
 		self.then-branch.eval
 	else
 		self.else-branch.eval
-	end
 
 
-module gadt3 ---- Third GADT Example: Higher-Order Abstract Syntax ------------
+public ---- Third GADT Example: Higher-Order Abstract Syntax ------------------
 
 
-<<
-From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
->>
+/*
+Third example, also from [wikipedia][3].
+
+[3]: <https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax>
+*/
 
 
-public
+type Expr[_] =
+	| Expr[A].Lift(value: A)
+	| Expr[(A, B)].Pair(first: A, second: B)
+	| Expr[A -> B].Lambda(value: A -> B)
+	| Expr[B].Apply(function: Expr[_ -> B].Lambda, argument: B)
+	| Expr[A].Fix(function: Expr[A -> A].Lambda)
+	|;
 
 
-trait #expr {
-	Self.Output: Type
-	(Self).eval -> Self.Output
-}
+dispatch (Expr[A]).eval -> A
 
 
-struct Lift[T](value: T)
-
-
-struct Pair[T #expr, U #expr](
-	first: T,
-	second: U,
-)
-
-
-struct Lambda[T #expr, U #expr](value: T -> U)
-
-
-struct Apply[T #expr, U #expr](
-	function: Lambda[T, U],
-	argument: U,
-)
-
-
-struct Fix[T #expr](function: Lambda[T, T])
-
-
-tag Lift[T] #expr
-tag Pair[T, U] #expr
-tag Lambda[T, U] #expr
-tag Apply[T, U] #expr
-tag Fix[T] #expr
-
-
-type Lift[T].Output = T
-type Pair[T, U].Output = (T, U)
-type Lambda[T, U].Output = T -> U
-type Apply[T, U].Output = U
-type Fix[T].Output = T
-
-
-fun (Lift[T]).eval -> T =
+fun (Expr[A].Lift).eval -> A =
 	self.first.value
 
 
-fun (Pair[T, U]).eval -> (T, U) =
+fun (Expr[(A, B)].Pair).eval -> (A, B) =
 	(self.first.eval, self.second.eval)
 
 
-fun (Lambda[T, U]).eval -> (T -> U) =
-	x => self.function(Lift(x)).eval
+fun (Expr[A -> B].Lambda).eval -> (A -> B) =
+	x -> self.function(Expr.Lift(x)).eval
 
 
-fun (Apply[T, U]).eval -> U =
+fun (Expr[B].Apply).eval -> B =
 	self.function.eval(self.argument.eval)
 
 
-fun (Fix[T]).eval -> T =
-	self.function.eval(Fix(self.function).eval)
+fun (Expr[A].Fix).eval -> A =
+	self.function.eval(Expr.Fix(self.function).eval)
 
 
 fun example() -> Void &io =
-	do
-		factorial =
-			Fix(
-				Lambda(
-					f =>
-						Lambda(
-							y =>
-								y' = y.eval
-								f' = f.eval
+	factorial =
+		Expr.Fix(
+			Expr.Lambda(
+				f =>
+					Expr.Lambda(
+						y =>
+							y' = y.eval
+							f' = f.eval
 
-								if y' == 0 then
-									Lift(1)
-								else
-									Lift(y' * f'(y' - 1))
-								end
-						)
-				)
+							if y' == 0 then
+								Lift(1)
+							else
+								Lift(y' * f'(y' - 1))
+					)
 			)
+		)
 
-		factorial-of-ten = Apply(factorial, Lift(10))
+	factorial-of-ten = Expr.Apply(factorial, Expr.Lift(10))
 
-		print(factorial-of-ten.eval)
-	end
+	!print(factorial-of-ten.eval)
+
+	Void

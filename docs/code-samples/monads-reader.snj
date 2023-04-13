@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
-<<from:
+/*from:
 <https://package.elm-lang.org/packages/Punie/elm-reader/latest/>
->>
+*/
 
 
 type Reader[C, A](run: C -> A)
@@ -11,12 +11,12 @@ implement #monad[A] for Reader[_, A]
 
 
 fun Reader[C, A].wrap(item: A) -> Reader[C, A] =
-	Reader(=> item)
+	Reader(-> item)
 
 
 fun (Reader[C, A]).and-then(operation: A -> Reader[C, B]) -> Reader[C, B] =
 	Reader(
-		context =>
+		context ->
 			a = self.run(context)
 			new-reader = operation(a)
 			new-reader.run(context)
@@ -24,11 +24,11 @@ fun (Reader[C, A]).and-then(operation: A -> Reader[C, B]) -> Reader[C, B] =
 
 
 fun Reader.always(value: A) -> Reader[_, A] =
-	Reader(=> value)
+	Reader(-> value)
 
 
 const Reader[C, C].ask: Reader[C, C] =
-	Reader(x => x)
+	Reader(x -> x)
 
 
 fun Reader[C, A].asks(mapping: C -> A) -> Reader[C, A] =
@@ -36,11 +36,11 @@ fun Reader[C, A].asks(mapping: C -> A) -> Reader[C, A] =
 
 
 fun (Reader[C, A]).change-context(change: C -> C) -> Reader[C, A] =
-	Reader(ctx => self.run(change(ctx)))
+	Reader(ctx -> self.run(change(ctx)))
 
 
 fun (Reader[C, A]).map(transform: A -> B) -> Reader[C, B] =
-	Reader(ctx => transform(self.run(ctx)))
+	Reader(ctx -> transform(self.run(ctx)))
 
 
 -------------------------------------------------------------------------------
@@ -49,16 +49,17 @@ use reader
 public
 
 
-fun main() -> Void &io = do
-	print(greeting("Elm").run(France))
+fun main() -> Void &io =
+	!print(greeting("Elm").run(France))
 	-- Bonjour, Elm !
 
-	print(greeting("Elm").run(Spain))
+	!print(greeting("Elm").run(Spain))
 	-- ¡Buenos Dìas, Elm!
 
-	print(greeting("Elm").run(USA))
+	!print(greeting("Elm").run(USA))
 	-- Hello, Elm!
-end
+
+	Void
 
 
 local
@@ -68,29 +69,29 @@ type Country = France | Spain | USA
 
 
 fun hello-text(country: Country) -> String =
-	case country
-		of France then "Bonjour"
-		of Spain then "Buenos dìas"
-		of USA then "Hello"
-	end
+	match country
+		| France -> "Bonjour"
+		| Spain -> "Buenos dìas"
+		| USA -> "Hello"
+		|;
 
 
 fun greet(name: String) -> Reader[Country, String] =
 	Reader.asks(hello-text).and-then(
-		greeting =>
-			Reader(=> "{greeting} , {name}")
+		greeting ->
+			Reader(-> "{greeting} , {name}")
 	)
 
 
 fun exclamation(input: String) -> Reader[Country, String] =
 	Reader.ask.and-then(
-		country =>
-			Reader(=>
-				case country
-					of France then "{input} !"
-					of Spain then "¡{input}!"
-					of USA then "{input}!"
-				end
+		country ->
+			Reader(->
+				match country
+					| France -> "{input} !"
+					| Spain -> "¡{input}!"
+					| USA -> "{input}!"
+					|;
 			)
 	)
 
@@ -103,21 +104,21 @@ fun greeting(name: String) -> Reader[Country, String] =
 
 
 fun greet'(name: String) -> Reader[Country, String] =
-	greeting <- Reader.asks(hello-text)
-	Reader(=> "{greeting}, {name}")
+	greeting ?= Reader.asks(hello-text)
+	Reader(-> "{greeting}, {name}")
 
 
 fun exclamation'(input: String) -> Reader[Country, String] =
-	country <- Reader.ask
-	Reader(=>
-		case country
-			of France then "{input} !"
-			of Spain then "¡{input}!"
-			of USA then "{input}!"
-		end
+	country ?= Reader.ask
+	Reader(->
+		match country
+			| France -> "{input} !"
+			| Spain -> "¡{input}!"
+			| USA -> "{input}!"
+			|;
 	)
 
 
 fun greeting'(name: String) -> Reader[Country, String] =
-	n <- greet(name)
+	n ?= greet(name)
 	exclamation(n)

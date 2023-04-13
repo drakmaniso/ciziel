@@ -1,4 +1,4 @@
-<< Multiple dispatch using custom binary operators >>
+/* Multiple dispatch using custom binary operators */
 
 
 --- Simple Version: Non-generic `encounter` -----------------------------------

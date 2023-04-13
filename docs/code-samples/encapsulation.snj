@@ -1,4 +1,4 @@
-<< Encapsulation >>
+/* Encapsulation */
 
 
 -------------------------------------------------------------------------------
@@ -7,7 +7,7 @@
 local
 
 
-struct Private {
+type Private {
 	foo: Int,
 	bar: Bool,
 }
@@ -16,25 +16,25 @@ struct Private {
 public
 
 
-struct Opaque {
+type Opaque {
 	foo: Int,
 	bar: Bool,
 }
 
 
-struct Read-Only {
+type Read-Only {
 	foo: public Int,
 	bar: public Bool,
 }
 
 
-struct Transparent {
+type Transparent {
 	foo: data Int,
 	bar: data Bool,
 }
 
 
-struct Translucent {
+type Translucent {
 	hidden: Int,
 	read-only: public Bool,
 	read-and-write: data String,
@@ -47,7 +47,7 @@ struct Translucent {
 local
 
 
-union Private =
+type Private =
     | Foo
     | Bar
 
@@ -55,10 +55,10 @@ union Private =
 public
 
 
-type Opaque = Private
+alias Opaque = Private
 
 
-union Transparent =
+type Transparent =
     | Foo
     | Bar
 

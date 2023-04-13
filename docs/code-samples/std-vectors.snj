@@ -82,13 +82,13 @@ public ------------------------------------------------------------------------
 -- Implement `#vector` for `Vec2` using the automatic extension:
 
 
-struct Vec2(
+type Vec2(
 	x: data Float32,
 	y: data Float32,
 )
 
 
-type Vec2.Scalar = Float32
+type alias Vec2.Scalar = Float32
 extend Vec2 as #scalar #vec2
 
 
@@ -98,7 +98,7 @@ public ------------------------------------------------------------------------
 -- Implement `#vector` for `Polar2` manually:
 
 
-struct Polar2(
+type Polar2(
 	angle: data Float32,
 	length: data Float32,
 )
@@ -107,7 +107,7 @@ struct Polar2(
 extend Polar2 as #scalar #vector
 
 
-type Polar2.Scalar = Float32
+type alias Polar2.Scalar = Float32
 
 
 val Polar2.zero =
@@ -137,13 +137,13 @@ fun (other: Float32) * (self: Polar2) -> Polar2 =
 public ------------------------------------------------------------------------
 
 
-struct Point(
+type Point(
 	x: data Float32,
 	y: data Float32,
 )
 
 
-type Point.Scalar = Float32
+type alias Point.Scalar = Float32
 
 
 val Point.origin = Point(0, 0)

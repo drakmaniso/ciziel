@@ -7,7 +7,7 @@ struct Foo {
 }
 
 
-<< automatically defines: >>
+/* automatically defines: */
 
 
 auto Foo { a: Int, b: Bool } -> Foo
@@ -27,7 +27,7 @@ auto (Foo).with { b: Bool } -> Foo
 foo.with { a = 33, b = False }
 
 
-<< desugars to: >>
+/* desugars to: */
 
 
 foo.with { a = 33 }.with { b = False }
@@ -40,7 +40,7 @@ fun Foo.bar(a: Int, b: Bool) -> String =
     "foobar"
 
 
-<< desugars to an associated constant: >>
+/* desugars to an associated constant: */
 
 
 val Foo.bar: (Int, Bool) -> String =
@@ -55,14 +55,14 @@ fun (Foo).baz(a: Int, b: Bool) -> String =
     "foobaz"
 
 
-<< desugars to an associated function: >>
+/* desugars to an associated function: */
 
 
 fun Foo.baz(self: Foo, a: Int, b: Bool) -> String =
     "foobaz"
 
 
-<< which desugars to an associated constant: >>
+/* which desugars to an associated constant: */
 
 
 val Foo.baz: (Foo, Int, Bool) -> String =
@@ -76,7 +76,7 @@ val Foo.baz: (Foo, Int, Bool) -> String =
 foo.a
 
 
-<< desugars to: >>
+/* desugars to: */
 
 
 Foo.a(foo)
@@ -89,7 +89,7 @@ Foo.a(foo)
 foo.baz(1, True)
 
 
-<< desugars to: (assuming `Foo` is the type of `foo`) >>
+/* desugars to: (assuming `Foo` is the type of `foo`) */
 
 
 Foo.baz(foo, 1, True)
@@ -98,19 +98,19 @@ Foo.baz(foo, 1, True)
 -- Operator Calls -------------------------------------------------------------
 
 
-<< Any left-associative operator: >>
+/* Any left-associative operator: */
 
 
 foo + bar
 
 
-<< desugars to a method call: >>
+/* desugars to a method call: */
 
 
 foo.+(bar)
 
 
-<< which desugars to a function call: >>
+/* which desugars to a function call: */
 
 
 Foo.+(foo, bar)
@@ -122,7 +122,7 @@ Foo.+(foo, bar)
 => foo(___, 33, ___)
 
 
-<< desugars to: >>
+/* desugars to: */
 
 
 (a, b) => foo(a, 33, b)

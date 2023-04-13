@@ -1,5 +1,5 @@
 module main
-use /std/io (Io)
+use Io from /std/io
 
 
 public
@@ -7,24 +7,22 @@ public
 
 --- I/O Using the Io Monad.
 fun main() -> Io[]  =
-	do
-		fun get-number() =
-			do
-				Io.put-string("Please enter a number: ")
-				answer ?= Io.input()
+	fun get-number() =
+		!Io.put-string("Please enter a number: ")
+		answer ?= Io.input()
 
-				case answer.to-int
-					of Some(n) then Io(n)
-					of None then get-number()
-				end
-			end
+		match answer.to-int
+			| Some(n) -> Io(n)
+			| None -> get-number()
+			|;
 
-		number ?= get-number()
-		naive = naive-factorial(number)
-		tail = tail-factorial(number)
-		folded = folded-factorial(number)
+	number ?= get-number()
+	naive = naive-factorial(number)
+	tail = tail-factorial(number)
+	folded = folded-factorial(number)
 
-		Io.print("naive factorial: {naive}")
-		Io.print("tail recursice factorial: {tail}")
-		Io.print("fold-based factorial: {folded}")
-	end
+	!Io.print("naive factorial: {naive}")
+	!Io.print("tail recursice factorial: {tail}")
+	!Io.print("fold-based factorial: {folded}")
+
+	Io()

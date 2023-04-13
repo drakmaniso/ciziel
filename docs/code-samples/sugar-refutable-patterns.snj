@@ -8,15 +8,15 @@ fun example-1(numbers: Array[Int]) -> Option[Int] =
 
 
 fun example-1-desugared(numbers: Array[Int]) -> Option[Int] =
-	case numbers.at(0)
-		of Some(first) then
-			case numbers.at(1)
-				of Some(second) then
+	match numbers.at(0)
+		| Some(first) ->
+			match numbers.at(1)
+				| Some(second) ->
 					Some(first + second)
-				of a then a
-			end
-		of a then a
-	end
+				| a -> a
+				|;
+		| a -> a
+		|;
 
 
 fun example-2(numbers: Array[String]) -> Result[Int, String] =
@@ -34,23 +34,23 @@ fun example-2(numbers: Array[String]) -> Result[Int, String] =
 
 
 fun example-2-desugard(numbers: Array[String]) -> Result[Int, String] =
-	case numbers.at(0).ok-or("empty array")
-		of Some(first) then
-			case Int.parse(first).map-err(e => "parse error: {e}")
-				of Ok(a) then
-					case numbers.at(1).ok-or("array too small")
-						of Some(second) then
-							case Int.parse(second).map-err(e => "parse error: {e}")
-								of Ok(b) then
+	match numbers.at(0).ok-or("empty array")
+		| Some(first) ->
+			match Int.parse(first).map-err(e => "parse error: {e}")
+				| Ok(a) ->
+					match numbers.at(1).ok-or("array too small")
+						| Some(second) ->
+							match Int.parse(second).map-err(e => "parse error: {e}")
+								| Ok(b) ->
 									Ok(a + b)
-								of e then e
-							end
-						of e then e
-					end
-				of e then e
-			end
-		of e then e
-	end
+								| e -> e
+								|;
+						| e -> e
+						|;
+				| e -> e
+				|;
+		| e -> e
+		|;
 
 
 fun example-3(numbers: Array[String]) -> Result[Int, String] =
@@ -64,23 +64,23 @@ fun example-3(numbers: Array[String]) -> Result[Int, String] =
 
 
 fun example-3-desugard(numbers: Array[String]) -> Result[Int, String] =
-	case numbers.at(0) <else> => "array is empty"
-		of Ok(first) then
-			case Int.parse(first) <else> e => "parse error: {e}"
-				of Ok(a) then
-					case numbers.at(1) <else> => "array is too small"
-						of Ok(second) then
-							case Int.parse(second) <else> e => "parse error: {e}"
-								of Ok(b) then
+	match numbers.at(0) <else> => "array is empty"
+		| Ok(first) ->
+			match Int.parse(first) <else> e => "parse error: {e}"
+				| Ok(a) ->
+					match numbers.at(1) <else> => "array is too small"
+						| Ok(second) ->
+							match Int.parse(second) <else> e => "parse error: {e}"
+								| Ok(b) ->
 									Ok(a + b)
-								of e then e
-							end
-						of e then e
-					end
-				of e then e
-			end
-		of e then e
-	end
+								| e -> e
+								|;
+						| e -> e
+						|;
+				| e -> e
+				|;
+		| e -> e
+		|;
 
 
 fun example-3(numbers: Array[String]) -> Result[Int, String] =
@@ -98,23 +98,23 @@ fun example-3(numbers: Array[String]) -> Result[Int, String] =
 
 
 fun example-3-desugard(numbers: Array[String]) -> Result[Int, String] =
-	case numbers.at(0)
-		of Ok(first) then
-			case Int.parse(first)
-				of Ok(a) then
-					case numbers.at(1)
-						of Ok(second) then
-							case Int.parse(second)
-								of Ok(b) then
+	match numbers.at(0)
+		| Ok(first) ->
+			match Int.parse(first)
+				| Ok(a) ->
+					match numbers.at(1)
+						| Ok(second) ->
+							match Int.parse(second)
+								| Ok(b) ->
 									Ok(a + b)
-								of Err(e) then "parse error: {e}"
-							end
-						of None then "array is too small"
-					end
-				of Err(e) then "parse error: {e}"
-			end
-		of None then "array is empty"
-	end
+								| Err(e) -> "parse error: {e}"
+								|;
+						| None -> "array is too small"
+						|;
+				| Err(e) -> "parse error: {e}"
+				|;
+		| None -> "array is empty"
+		|;
 
 
 fun example-3(numbers: Array[String]) -> Result[Int, String] =
@@ -133,14 +133,14 @@ fun example-3(numbers: Array[String]) -> Int | None =
 
 
 fun example-3-desugared(numbers: Array[String]) -> Int | None =
-	case numbers.at(0)
-		of s: String then
-			case s.to-Int
-				of n: Int then n.abs
-				of a then a
-			end
-		of a then a
-	end
+	match numbers.at(0)
+		| s: String ->
+			match s.to-Int
+				| n: Int -> n.abs
+				| a -> a
+				|;
+		| a -> a
+		|;
 
 
 ---- Short-Circuit Operator --------------------------------------------------------
@@ -151,20 +151,20 @@ fun example-3(numbers: Array[String]) -> Int | None =
 
 
 fun example-3-desugared(numbers: Array[String]) -> Int | None =
-	case numbers.at(0)
-		of s: String then
-			case Int.parse(s)
-				of n: Int then math::abs(n)
-				of a then a
-			end
-		of a then a
-	end
+	match numbers.at(0)
+		| s: String ->
+			match Int.parse(s)
+				| n: Int -> math::abs(n)
+				| a -> a
+				|;
+		| a -> a
+		|;
 
 
 ---- Refutable Bind with failure wrapping -------------------------------------
 
 
-<<
+/*
 From a Rust RFC:
 	fn get_count_item(s: &str) -> (u64, &str) {
 		let mut it = s.split(' ');
@@ -176,7 +176,7 @@ From a Rust RFC:
 		};
 		(count, item)
 	}
->>
+*/
 
 
 fun get-count-item(s: String) -> (Int, String) | None | Int.Parse-Error =

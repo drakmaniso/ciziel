@@ -1,93 +1,106 @@
-<<
+/*
 # Covariance and Contravariance
 
 Adapted from a [blog article]
 (https://quuxplusone.github.io/blog/2019/01/20/covariance-and-contravariance/).
->>
+*/
 
 
 -- Unions ---------------------------------------------------------------------
 
 
-<< With unions, only covariance works. >>
+type Animal =
+	| Cat
+	| Horse
+	|;
 
 
-struct Cat
-fun (Cat).make-noise -> Void &io =
-    print("meow!")
+fun (Animal).make-noise -> Void &io =
+	match self
+		| Animal.Cat ->
+			print("meow!")
+		| Animal.Horse ->
+			print("neigh!")
+		|;
 
 
-struct Horse
-fun (Horse).make-noise -> Void &io =
-    print("neigh!")
+/* Breeders: covariance of return types */
 
 
-type Animal = Cat | Horse
-auto (Animal).make-noise -> Void &io
+type Breeder =
+	| For-Cats
+	| For-Horses
+	|;
 
 
-<< Breeders: covariance >>
+dispatch (Animal-Breeder).produce -> Animal
 
 
-struct Cat-Breeder
-fun (Cat-Breeder).produce -> Cat =
-    Cat
+fun (Breeder.Of-Cats).produce -> Animal.Cat =
+    Animal.Cat
 
 
-struct Horse-Breeder
-fun (Horse-Breeder).produce -> Horse =
-    Horse
+fun (Breeder.Of-Horses).produce -> Animal.Horse =
+    Animal.Horse
 
 
-type Animal-Breeder = Cat-Breeder | Horse-Breeder
-auto (Animal-Breeder).produce -> Animal
+/* Doctors: contravariance of argument types */
 
 
-<< Doctors: contravariance >>
+type Doctor =
+	| For-Cats
+	| For-Horses
+	|;
 
 
-struct Cat-Doctor
-fun (Cat-Doctor).treat(patient: Cat) -> Void &io =
+fun (Doctor.For-Cats).treat(patient: Animal.Cat) -> Void &io =
     print("All done.")
 
 
-struct Horse-Doctor
-fun (Horse-Doctor).treat(patient: Horse) -> Void &io =
+fun (Doctor.For-Horses).treat(patient: Animal.Horse) -> Void &io =
     print("All done.")
 
 
-type Animal-Doctor = Cat-Doctor | Horse-Doctor
-<<
-`Animal-Doctor` has no `treat` method, because it cannot be dispatched!
+
+/*
+With unions, only covariance works: `Doctor` has no `treat` method, because it
+cannot be dispatched!
 
     ```
-    (Animal-Doctor).treat(self, patient: ???) -> Void &io = auto
+    dispatch (Doctor).treat(patient: ???) -> Void &io
     ```
->>
+*/
 
 
-fun produce-and-treat(breeder: Animal-Breeder, doctor: Animal-Doctor) -> Void &io =
-	do
-		animal = breeder.produce
-		animal.make-noise
+fun produce-and-treat(breeder: Breeder, doctor: Doctor) -> Void &io =
+	animal = breeder.produce
+	!animal.make-noise
 
-		case (animal, doctor)
-			of (c: Cat, d: Cat-Doctor) then
-				d.treat(c)
-			of (h: Horse, d: Horse-Doctor) then
-				d.treat(h)
-			of (Cat, Horse-Doctor) then
-				panic("This doctor cannot treat a cat!")
-			of (Horse, Cat-Doctor) then
-				panic("This doctor cannot treat a horse!")
-		end
-	end
+	match animal
+		| c: Animal.Cat ->
+			match doctor
+				| d: Doctor.For-Cats -> d.treat(c)
+				| _ -> panic("This doctor cannot treat a cat!")
+				|;
+		| h: Animal.Horse ->
+			match doctor
+				| d: Doctor.For-Horses -> d.treat(h)
+				| _ -> panic("This doctor cannot treat a horse!")
+				|;
+		|;
+
 
 
 -- Traits ---------------------------------------------------------------------
 
 
-<< With traits, both covariance and contravariance works. >>
+/* With traits, both covariance and contravariance works. */
+
+
+type Animal =
+	| Cat
+	| Horse
+	|;
 
 
 trait #animal {
@@ -95,71 +108,69 @@ trait #animal {
 }
 
 
-struct Cat
-tag Cat #animal
-fun (Cat).make-noise -> Void &io =
-    print("meow!")
+extend Animal as #animal
+fun (Animal).make-noise -> Void &io =
+	match self
+		| Animal.Cat ->
+			print("meow!")
+		| Animal.Horse ->
+			print("neigh!")
+		|;
 
 
-struct Horse
-tag Horse #animal
-fun (Horse).make-noise -> Void &io =
-    print("neigh!")
+/* Breeders: covariance */
 
 
--- Breeders: covariance
+type Breeder =
+	| Of-Cats
+	| Of-Horses
+	|;
 
 
-trait #animal-breeder {
-	Self.Animal
-	(Self).produce -> Self.Animal
+trait #breeder {
+	Self.Product
+	(Self).produce -> Self.Product
 }
 
 
-struct Cat-Breeder
-tag Cat-Breeder #animal-breeder
-type Cat-Breeder.Animal = Cat
-fun (Cat-Breeder).produce -> Cat =
-    Cat
+extend Breeder.Of-Cats as #breeder
+alias Breeder.Of-Cats.Product = Animal.Cat
+fun (Breeder.Of-Cats).produce -> Animal.Cat =
+    Animal.Cat
 
 
-struct Horse-Breeder
-tag Horse-Breeder #animal-breeder
-type Horse-Breeder.Animal = Horse
-fun (Horse-Breeder).produce -> Horse =
+extend Breeder.Of-Horses as #breeder
+alias Breeder.Of-Horses.Animal = Animal.Horse
+fun (Breeder.Of-Horses).produce -> Animal.Horse =
     Horse
 
 
--- Doctors: contravariance
+/* Doctors: contravariance */
 
 
-trait #animal-doctor {
-	type Self.Animal
-	fun (Self).treat(patient: Self.Animal) -> Void &io
+trait #doctor {
+	type Self.Patient
+	fun (Self).treat(patient: Self.Patient) -> Void &io
 }
 
 
-struct Cat-Doctor
-tag Cat-Doctor #animal-doctor
-type Cat-Doctor.Animal = Cat
-fun (Cat-Doctor).treat(patient: Cat) -> Void &io =
+extend Doctor.Of-Cats as #doctor
+type Doctor.Of-Cats.Patient = Animal.Cat
+fun (Doctor.Of-Cats).treat(patient: Animal.Cat) -> Void &io =
     print("All done.")
 
 
-struct Horse-Doctor
-tag Horse-Doctor #animal-doctor
-type Horse-Doctor.Animal = Horse
-fun (Horse-Doctor).treat(patient: Horse) -> Void &io =
+tag Doctor.Of-Horses as #doctor
+type Doctor.Of-Horses.Patient = Animal.Horse
+fun (Doctor.Of-Horses).treat(patient: Animal.Horse) -> Void &io =
     print("All done.")
 
 
-forall B #animal-breeder,
-	D #animal-doctor,
-	B.Animal == D.Animal
+forall B #breeder,
+	D #doctor,
+	B.Patient == D.Patient
 fun produce-and-treat(breeder: B, doctor: D) -> Void &io =
-	do
-		animal = breeder.produce
-		animal.make-noise
-
-		doctor.treat(animal)
-	end
+	animal = breeder.produce
+	!animal.make-noise
+	!doctor.treat(animal)
+	Void

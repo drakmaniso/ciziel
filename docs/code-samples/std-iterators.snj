@@ -20,16 +20,16 @@ trait #iterator {
 public ------------------------------------------------------------------------
 
 
-struct Map[I #iterator, A] {
-	iterator: I
-	transform: I.Item -> A
+type Map[I #iterator, A] {
+	iterator: I,
+	transform: I.Item -> A,
 }
 
 
 extend Map[I, A] as #iterator
 
 
-type Map[I, A].Item = A
+alias Map[I, A].Item = A
 
 
 fun (Map[I, A]).peek -> Option[A] =
@@ -49,9 +49,9 @@ local ["test"] ----------------------------------------------------------------
 use /std/io (&io)
 
 
-struct Counter {
-    count: Int
-    limit: public Int
+type Counter {
+    count: Int,
+    limit: public Int,
 }
 
 
@@ -62,7 +62,7 @@ fun Counter.new(limit: Int) -> Counter =
 Counter #iterator
 
 
-type Counter.Item = Int
+alias Counter.Item = Int
 
 
 fun (Counter).peek -> Option[Int] =
@@ -70,7 +70,6 @@ fun (Counter).peek -> Option[Int] =
 		None
 	else
 		Ok(self.count)
-	end
 
 
 fun (Counter).next -> Counter =
@@ -78,24 +77,21 @@ fun (Counter).next -> Counter =
 		self
 	else
 		self.with { count = count + 1 }
-	end
 
 
 fun example() -> Void &io =
-	do
-		fun step(c) =
-			case c.peek
-				of None then
-					print("Done!")
-				of Ok(number) then
-					print("{number}, ")
-					step(c.next)
-			end
+	fun step(c) =
+		match c.peek
+			| None ->
+				print("Done!")
+			| Ok(number) ->
+				!print("{number}, ")
+				step(c.next)
+			|;
 
-		counter = Counter.new(7)
+	counter = Counter.new(7)
 
-		step(counter)
-	end
+	step(counter)
 
 
 local ["test"] ----------------------------------------------------------------
@@ -111,8 +107,8 @@ forall I #iterator,
 	I.Item == J.Item,
 	I.Item #eq
 fun compare(i: I, j: J) -> Bool =
-    case (i.peek, j.peek)
-		of (None, None) then True
-		of (Ok(a), Ok(b)) and (a == b) then compare(i-next, j-next)
-		of _ then False
-	end
+    match (i.peek, j.peek)
+		| (None, None) -> True
+		| (Ok(a), Ok(b)) and (a == b) -> compare(i-next, j-next)
+		| _ -> False
+		|;

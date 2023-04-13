@@ -8,29 +8,52 @@ public ------------------------------------------------------------------------
 
 
 fun main() -> Void &io =
-	do
-		fun get-number() =
-			do
-				io.put-string("Please enter a number: ")
-				answer = io::input()
+	fun get-number() =
+		!io.put-string("Please enter a number: ")
+		answer = io::input()
 
-				case answer.to-int
-					of Some(number) then
-						number
-					of None then
-						get-number()
-				end
-			end
+		match answer.to-int
+			| Some(number) ->
+				number
+			| None ->
+				get-number()
+			|;
 
-		number = get-number()
-		naive = naive-factorial(number)
-		tail = tail-factorial(number)
-		folded = folded-factorial(number)
 
-		print("naive factorial: {naive}")
-		print("tail recursive factorial: {tail}")
-		print("fold-based factorial: {folded}")
-	end
+	number = get-number()
+	naive = naive-factorial(number)
+	tail = tail-factorial(number)
+	folded = folded-factorial(number)
+
+	!print("naive factorial: {naive}")
+	!print("tail recursive factorial: {tail}")
+	!print("fold-based factorial: {folded}")
+
+	Void
+
+
+fun main() -> Void &io =
+	fun get-number() =
+		!io.put-string("Please enter a number: ")
+		answer = io::input()
+
+		match answer.to-int
+			| Some(number) ->
+				number
+			| None ->
+				get-number()
+			|;
+
+	number = get-number()
+	naive = naive-factorial(number)
+	tail = tail-factorial(number)
+	folded = folded-factorial(number)
+
+	!print("naive factorial: {naive}")
+	!print("tail recursive factorial: {tail}")
+	!print("fold-based factorial: {folded}")
+
+	Void
 
 
 local -------------------------------------------------------------------------
@@ -41,7 +64,6 @@ fun naive-factorial(n) =
 		1
 	else
 		n * naive-factorial(n - 1)
-	end
 
 
 fun tail-factorial(n: Int) -> Int =
@@ -50,7 +72,6 @@ fun tail-factorial(n: Int) -> Int =
 			accum
 		else
 			step(n - 1, n * accum)
-		end
 
 	step(n, 1)
 
@@ -66,7 +87,6 @@ fun generic-tail-factorial(number: N) -> N =
 			accum
 		else
 			step(num - N.one, num * accum)
-		end
 
 	step(number, N.one)
 
@@ -90,7 +110,6 @@ fun gcd(a: Int, b: Int) -> Int =
 		a'
 	else
 		gcd(b', a' <mod> b')
-	end
 
 
 fun fibonacci(n: Int) -> Int =
@@ -102,7 +121,6 @@ fun fibonacci(n: Int) -> Int =
 			current
 		else
 			step(n - 1, current, previous + current)
-		end
 
 	step(n, 1, 1)
 
@@ -115,19 +133,16 @@ fun pipeline-example-1() =
 
 	my-array
 		.iterator
-		.filter(=> ___.is-even)
-		.map(=> ___ * 2)
-		.fold("", (s, n) => "{s}, {n <to> String}")
-		.map(
-			char =>
-				next-char = (char.code + 1) <to> Char
+		.filter(-> ___.is-even)
+		.map(-> ___ * 2)
+		.fold("", (s, n) -> "{s}, {n <to> String}")
+		.map(char ->
+			next-char = (char.code + 1) <to> Char
 
-				if next-char.is-letter then
-					next-char.to-uppercase
-				else
-					Rune "?"
-				end
-		)
+			if next-char.is-letter then
+				next-char.to-uppercase
+			else
+				Rune "?")
 		<collect> Array
 
 
@@ -136,26 +151,25 @@ fun pipeline-example-2() =
 
 	names
 		.iterator
-		.map(=> ___.to-lowercase)
-		.filter(=> ___.length > 0)
-		.filter(=> ___.test-all(=> ___.is-alpha))
+		.map(-> ___.to-lowercase)
+		.filter(-> ___.length > 0)
+		.filter(-> ___.test-all(-> ___.is-alpha))
 		.map(
-			name =>
-				case
-					of name == "Bop" then
+			name ->
+				match
+					| name == "Bop" ->
 						"Betty"
-					of name.length > 100 then
+					| name.length > 100 ->
 						"(too long)"
-					of _ then
+					| _ ->
 						name
-				end
+					|;
 		)
 		.fold(
 			"",
-			(string, name) =>
+			(string, name) ->
 				if string.length > 0 then
 					string ++ ", " ++ name
 				else
 					string ++ name
-				end
 		)

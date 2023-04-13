@@ -1,14 +1,14 @@
-<< The Expression Problem >>
+/* The Expression Problem */
 
 
 module basic
-
-
 public
 
 
-struct Literal(value: data Int)
-struct Addition[E](left: data *E, right: data *E)
+type Expr[E] =
+	| Literal(value: data Int)
+	| Addition(left: data ref E, right: data ref E)
+	|;
 
 
 trait #eval {
@@ -16,38 +16,41 @@ trait #eval {
 }
 
 
-tag Literal #eval
 forall E #eval
-tag Addition[E] #eval
-
-
-fun (Literal).eval -> Int =
-	self.value
+extend Expr[E] as #eval
 
 
 forall E #eval
-fun (Addition[E]).eval -> Int =
-    self.left.eval + self.right.eval
+fun (Expr[E]).eval -> Int =
+	match self
+		| Expr.Literal(value) -> value
+		| Expr.Addition(left, right) -> left.eval + right.eval
+		|;
 
 
 -------------------------------------------------------------------------------
-
-
 module extended
-use basic (#eval, Literal, Addition)
+use basic (#eval)
 public
 
 
-struct Negation[E](subexpr: *E)
+type Expr[E] =
+	| as basic::Expr[E].Literal
+	| as basic::Expr[E].Addition
+	| Negation(subexpr: data *E)
+	|;
 
 
 forall E #eval
-tag Negation[E] #eval
+extend Expr[E] as #eval
 
 
 forall E #eval
-fun (Negation[E]).eval -> Int =
-    - self.subexpr.eval
+fun (Expr[E]).eval -> Int =
+	match self
+		| Expr.Negation(subexpr) -> - subexpr.eval
+		| e: basic::Expr[E] -> e.eval
+		|;
 
 
 trait #pretty {
@@ -55,45 +58,54 @@ trait #pretty {
 }
 
 
-tag Literal #pretty
 forall E #pretty
-tag Addition[E] #pretty
+extend basic::Expr[E] as #pretty
+
+
 forall E #pretty
-tag Negation[E] #pretty
+fun (basic::Expr[E]).pretty -> String =
+	match self
+		| basic::Expr.Literal(value) -> value.to-String
+		| basic::Expr.Addition(left, right) ->
+			l = self.left.pretty
+			r = self.right.pretty
+
+			case (self.left, self.right)
+				| (Expr.Literal(...), Expr.Literal(...)) -> "{l} + {r}"
+				| (Expr.Literal(...), _) -> "{l} + ({r})"
+				| (_, Literal(...)) -> "({l}) + {r}"
+				| (_, _) -> "({l}) + ({r})"
+				|;
+		|;
 
 
-fun (Literal).pretty -> String =
-    self.value.to-string
+forall E #pretty
+extend Expr[E] as #pretty
 
 
-forall E #eval
-fun (Addition[E]).pretty -> String =
-	l = self.left.pretty
-	r = self.right.pretty
-
-	case (self.left, self.right)
-		of (Literal(...), Literal(...)) then "{l} + {r}"
-		of (Literal(...), _) then "{l} + ({r})"
-		of (_, Literal(...)) then "({l}) + {r}"
-		of (_, _) then "({l}) + ({r})"
-	end
+forall E #pretty
+fun (Expr[E]).pretty -> String =
+	match self
+		| Expr.Negation(subexpr) -> "- ({subexpr.pretty})"
+		| e: basic::Expr[E] -> e.pretty
+		|;
 
 
-fun (Negation[#pretty]).pretty -> String =
-    "- ({self.subexpr.pretty})"
-
-
-module main --- Usage ---------------------------------------------------------
+-------------------------------------------------------------------------------
+module main
 use /std/io (&io)
-use basic (#eval, Literal, Addition)
-use extended (#pretty, Negation)
+use basic (#eval)
+use extended (#pretty)
+public
 
 
-type Expr = Literal | Addition[Expr] | Negation[Expr]
+alias Expr = extended::Expr[Expr]
+-- Or:
+type Expr = as extended::Expr[Expr]
+auto extend Expr as #eval
+auto extend Expr as #pretty
 
 
 fun main() -> Void &io =
-	do
-		e1: Expr = Addition(Literal(77), Negation(Literal(12)))
-		print("{e1.pretty} = {e1.eval}")
-	end
+	e1 = Expr.Addition(Expr.Literal(77), Expr.Negation(Expr.Literal(12)))
+	print("{e1.pretty} = {e1.eval}")

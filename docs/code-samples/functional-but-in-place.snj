@@ -3,8 +3,8 @@ struct Polygon {
 }
 
 
-<< `offset` is an updater: a method where the return type is the same as the
-receiver type. >>
+/* `offset` is an updater: a method where the return type is the same as the
+receiver type. */
 fun (Polygon).offset(delta: Vec2) -> Polygon =
     self.vertices.map(=> ___ + delta)
 

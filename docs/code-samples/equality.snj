@@ -15,31 +15,33 @@ module basic
 public
 
 
-type Basic = Foo | Bar
-struct Foo
-struct Bar
+type Basic =
+	| Foo
+	| Bar
+	|;
 
 
 implement #eq for Basic
 
 
 fun (Basic) == (other: Basic) -> Bool =
-	case (self, other)
-		of (Foo, Foo) then True
-		of (Bar, Bar) then True
-		of (Foo, Bar) then False
-		of (Bar, Foo) then False
-	end
+	match (self, other)
+		| (Foo, Foo) -> True
+		| (Bar, Bar) -> True
+		| (Foo, Bar) -> False
+		| (Bar, Foo) -> False
+		|;
 
 
-<< Question: do `Foo` and `Bar` implement `#eq`? This would require trait
-conformance to accept widening of arguments. >>
+/*
+Question: do `Foo` and `Bar` implement `#eq`? This would require trait
+conformance to accept widening of arguments.
 
-<< Note: this approach is not extensible, since the equality trait needs a
-concrete type. >>
+Note: this approach is not extensible, since the equality trait needs a
+concrete type.
+*/
 
-
----- Single Dispatch with Unknown type ----------------------------------------
+// Single Dispatch with Unknown type //////////////////////////////////////////
 
 
 module /std
@@ -53,7 +55,7 @@ trait #eq {
 
 
 type Unknown =
-	__core__ -- (union of all types)
+	__core__ // (union of all types)
 
 
 module basic

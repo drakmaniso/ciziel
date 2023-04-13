@@ -3,13 +3,13 @@ struct Dog { name: String }
 type Pet = Cat | Dog
 
 
-<< The fields that are common to all variants are automatically elevated: >>
+/* The fields that are common to all variants are automatically elevated: */
 
 
 auto fun (Pet).name -> String
 
 
-<<>>
+/**/
 
 
 struct Wool-Ball { color: Color }
@@ -21,7 +21,7 @@ type Dog.Typical-Toy = Stick
 auto type Pet.Typical-Toy = Wool-Ball | Stick
 
 
-<< The `greet` method is automatically elevated: >>
+/* The `greet` method is automatically elevated: */
 
 
 fun (Cat).greet(human: String) -> String = "{self.name} ignores {human}"
@@ -29,7 +29,7 @@ fun (Dog).greet(human: String) -> String = "{self.name} plays with {human}"
 auto fun (Pet).greet(human: String) -> String
 
 
-<< But the `play` method cannot be elevated: >>
+/* But the `play` method cannot be elevated: */
 
 
 fun (Cat).play(toy: Wool-Ball) -> String = "{self.name} plays with a ball of color {toy.color}"
