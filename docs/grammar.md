@@ -3,36 +3,43 @@
 This document present the grammar of the language (currently, only part of the
 core language).
 
-## Keywords
+## Lexing
 
-    module use
-    forall
-    val fun type alias dispatch
-    require ensure
-    match if then else
-    not and or
+The language is whitespace insensitive, with one small exception: in a function call, the opening parenthesis must be on the same line as the function.
 
-## Delimiters
+## Semicolon Insertion Rule
 
-    ( ) { } [ ]
-    . ...
-    : ::
-    ,
-    | ;
+If a line starts with an opening parenthesis and the previous line does *not* end with an operator, then a semicolon is inserted before the parenthesis.
 
-## Operators
+### Delimiters
 
-    ->
+    DELIMITERS <-
+        | "(" | ")" | "{" | "}" | "[" | "]"
+        | "." | "..."
+        | ":" | "::"
+        | "," | ";"
+
+### Operators
+
+    | ->
     =
     == != < <= > >=
     + - * /
     not and or
 
-## Identifiers
+### Keywords
 
-    ID <- [a-z_][A-Za-z0-9_-]*[']*
+    KEYWORDS <-
+        | "module" | "use" | "from"
+        | "forall" | "extend" | "as" | "to" | "ref"
+        | "val" | "fun" | "type" | "alias" | "dispatch"
+        | "require" | "ensure"
+        | "match" | "if" | "then" | "else"
+        | "not" | "and" | "or"
 
-    TYPE-ID <- [A-Z][A-Za-z0-9_-]*[']*
+### Identifiers
+
+    IDENT <- [a-z_][A-Za-z0-9_-]*[']*
 
     OPERATOR-ID <- [<][a-z][A-Za-z0-9_-]*[']*[>]
 
@@ -40,7 +47,7 @@ core language).
 
     program <- declaration*
 
-    declaration <- "val" ID ":" type "=" expr
+    declaration <- "val" IDENT ":" type "=" expr
 
     type <- "Int" / "Bool" / "\" "(" type ("," type)* ")" "->" type
 
@@ -61,7 +68,7 @@ core language).
 
     if-expr <- "if" expr block "else" block
 
-    lambda <- "\" "(" IDENTIFIER ("," IDENTIFIER)* ")" block
+    lambda <- "\" "(" IDENT ("," IDENT)* ")" block
 
     block <- "{" (statement ";"?)* "}"
 
@@ -69,7 +76,7 @@ core language).
 
     arguments <- ~"(" (expr ("," expr)*)? ")"
 
-    atom <- IDENTIFIER / LITERAL / paren-expr
+    atom <- IDENT / LITERAL / paren-expr
 
     paren-expr <- "(" expr ")"
 
