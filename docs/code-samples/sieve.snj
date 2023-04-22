@@ -6,16 +6,16 @@ private
 
 
 fun main() -> () &io =
-	do
-		all-numbers = Array(False, False, True, ..., [1001] = True)
-		primes = sieve(all-numbers, 2)
+	all-numbers = Array(False, False, True, ..., [1001] = True)
+	primes = sieve(all-numbers, 2)
 
-		primes.foreach-indexed((i, is-prime) =>
-			if is-prime then
-				print("{i} ")
-			end
-		)
-	end
+	!primes.foreach-indexed((i, is-prime) =>
+		if is-prime then
+			print("{i} ")
+		else ()
+	)
+
+	()
 
 
 fun sieve(flags: Array[Bool], start: Int) -> Array[Bool] =
@@ -25,14 +25,12 @@ fun sieve(flags: Array[Bool], start: Int) -> Array[Bool] =
 		else
 			flags' = flags.with([n * i] = False)
 			cross-multiples(flags', n, i + 1)
-		end
 
 	fun first-not-crossed(flags, n) =
 		if flags[n] then
 			n
 		else
 			first-not-crossed(flags, n + 1)
-		end
 
 	if start >= flags.size then
 		flags
@@ -40,4 +38,3 @@ fun sieve(flags: Array[Bool], start: Int) -> Array[Bool] =
 		flags' = cross-multiples(flags, start, 1)
 		start' = first-not-crossed(flags', start + 1)
 		sieve(flags', start')
-	end

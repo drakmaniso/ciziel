@@ -18,7 +18,7 @@ type Expr[T] =
 		left: ref Expr[Int],
 		right: ref Expr[Int],
 	)
-	;
+	|;
 
 
 fun (Expr[Bool].EBool).eval -> Bool = self.value
@@ -63,7 +63,7 @@ type Term[T] =
 		then-branch: T,
 		else-branch: T,
 	}
-	;
+	|;
 
 
 fun (Term[Int].Zero).eval -> Int = 0
@@ -94,7 +94,7 @@ public
 type Term =
 	| as ITerm
 	| as BTerm
-	;
+	|;
 
 
 type ITerm =
@@ -102,13 +102,13 @@ type ITerm =
 	| as Succ
 	| as Pred
 	| as If[Term]
-	;
+	|;
 
 
 type BTerm =
 	| as Is-Zero
 	| as If[Bool]
-	;
+	|;
 
 
 type Zero
@@ -163,7 +163,7 @@ type Expr[_] =
 	| Lambda(value: A -> B) -> Expr[A -> B]
 	| Apply(function: Expr[A -> B].Lambda, argument: B) -> Expr[B]
 	| Fix(function: Expr[A -> A].Lambda) -> Expr[A]
-	;
+	|;
 
 
 fun (Expr[A].Lift).eval -> A =

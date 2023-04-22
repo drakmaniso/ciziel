@@ -8,7 +8,7 @@ type Foo-Bar-Baz =
 	| Foo(v: Int)
 	| Bar(v: Int)
 	| Baz(v: String)
-	;
+	|;
 
 
 fun example-1(value: Foo) =
@@ -16,7 +16,7 @@ fun example-1(value: Foo) =
 		| Foo(33) -> "First Case"
 		| Foo(x) and (x <= 0) -> "Second Case: {x}"
 		| Foo(x) -> "Third Case: {x}"
-		;
+		|;
 
 
 fun example-1-desugared(value: Foo) =
@@ -39,7 +39,7 @@ fun example-2(value: Foo-Bar-Baz) =
 
 		| Foo(33)
 		| Baz("33") -> "Second Case"
-		;
+		|;
 
 
 fun example-2-desugared(value: Foo-Bar-Baz) =

@@ -15,7 +15,7 @@ fun main() -> () &io =
 		match answer.to-int
 			| Some(number) -> number
 			| None -> get-number()
-			;
+			|;
 
 	number = get-number()
 	naive = naive-factorial(number)
@@ -106,8 +106,8 @@ fun pipeline-example-1() =
 
 	my-array
 		.iterator
-		.filter(-> ___.is-even)
-		.map(-> ___ * 2)
+		.filter(___.is-even)
+		.map(___ * 2)
 		.fold("", (s, n) -> "{s}, {n <to> String}")
 		.map(
 			char ->
@@ -126,16 +126,16 @@ fun pipeline-example-2() =
 
 	names
 		.iterator
-		.map(-> ___.to-lowercase)
-		.filter(-> ___.length > 0)
-		.filter(-> ___.test-all(-> ___.is-alpha))
+		.map(___.to-lowercase)
+		.filter(n -> n.length > 0)
+		.filter(n -> n.test-all(___.is-alpha))
 		.map(
 			name ->
 				match
 					| name == "Bop" -> "Betty"
 					| name.length > 100 -> "(too long)"
 					| _ -> name
-					;
+					|;
 		)
 		.fold(
 			"",

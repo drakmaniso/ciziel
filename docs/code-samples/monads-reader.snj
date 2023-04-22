@@ -11,7 +11,7 @@ implement #monad[A] for Reader[_, A]
 
 
 fun Reader[C, A].wrap(item: A) -> Reader[C, A] =
-	Reader(-> item)
+	Reader(() -> item)
 
 
 fun (Reader[C, A]).and-then(operation: A -> Reader[C, B]) -> Reader[C, B] =
@@ -24,7 +24,7 @@ fun (Reader[C, A]).and-then(operation: A -> Reader[C, B]) -> Reader[C, B] =
 
 
 fun Reader.always(value: A) -> Reader[_, A] =
-	Reader(-> value)
+	Reader(() -> value)
 
 
 const Reader[C, C].ask: Reader[C, C] =
@@ -73,25 +73,25 @@ fun hello-text(country: Country) -> String =
 		| France -> "Bonjour"
 		| Spain -> "Buenos dìas"
 		| USA -> "Hello"
-		;
+		|;
 
 
 fun greet(name: String) -> Reader[Country, String] =
 	Reader.asks(hello-text).and-then(
 		greeting ->
-			Reader(-> "{greeting} , {name}")
+			Reader(() -> "{greeting} , {name}")
 	)
 
 
 fun exclamation(input: String) -> Reader[Country, String] =
 	Reader.ask.and-then(
 		country ->
-			Reader(->
+			Reader(() ->
 				match country
 					| France -> "{input} !"
 					| Spain -> "¡{input}!"
 					| USA -> "{input}!"
-					;
+					|;
 			)
 	)
 
@@ -105,17 +105,17 @@ fun greeting(name: String) -> Reader[Country, String] =
 
 fun greet'(name: String) -> Reader[Country, String] =
 	greeting ?= Reader.asks(hello-text)
-	Reader(-> "{greeting}, {name}")
+	Reader(() -> "{greeting}, {name}")
 
 
 fun exclamation'(input: String) -> Reader[Country, String] =
 	country ?= Reader.ask
-	Reader(->
+	Reader(() ->
 		match country
 			| France -> "{input} !"
 			| Spain -> "¡{input}!"
 			| USA -> "{input}!"
-			;
+			|;
 	)
 
 

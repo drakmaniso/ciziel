@@ -13,11 +13,11 @@ type List[A] =
 		head: data A
 		tail: data List[A]
 	}
-	;
+	|;
 
 
-type alias Empty = List[_].Empty
-type alias Link[A] = List[A].Link
+alias Empty = List[_].Empty
+alias Link[A] = List[A].Link
 
 
 fun List[A].new(...items: Array[A]) -> List[A] =
@@ -45,7 +45,7 @@ fun (List[A]) == (other: List[A]) -> Bool =
 
 		| (_, _) ->
 			False
-		;
+		|;
 
 
 public --- Pushing and Poping -------------------------------------------------
@@ -102,7 +102,7 @@ fun (List[A]) ++ (other: List[A]) -> List[A] =
 				head = head,
 				tail = tail ++ list-2
 			}
-		;
+		|;
 
 
 extend List[A] as #flatten
@@ -113,7 +113,7 @@ fun (List[List[A]]).flatten -> List[A] =
 		| List.Empty -> List.Empty
 		| List.Link { head, tail } ->
 			head ++ tail.flatten
-		;
+		|;
 
 
 extend List[A] as #monad[A]
@@ -153,7 +153,7 @@ fun (List[A].Iterator).next -> List[A].Iterator =
 		| List.Empty -> self
 		| List.Link { tail, ... } ->
 			self.with { current = tail }
-		;
+		|;
 
 
 local ["test"] ----------------------------------------------------------------
@@ -164,7 +164,7 @@ use List from /std/list
 
 
 fun double(list: List[Int]) -> List[Int] =
-    list.map(-> ___ * 2)
+    list.map(___ * 2)
 
 
 fun example() -> () &io =

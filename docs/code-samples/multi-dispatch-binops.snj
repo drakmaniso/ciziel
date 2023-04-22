@@ -8,13 +8,13 @@ module cats-and-dogs
 
 public
 
-struct Cat { name: data String }
-struct Dog { name: data String }
+type Cat { name: data String }
+type Dog { name: data String }
 
-fun (Cat).<meets> (other: Cat) -> String = "slinks"
-fun (Cat).<meets> (other: Dog) -> String = "hisses"
-fun (Dog).<meets> (other: Dog) -> String = "sniffs"
-fun (Cat).<meets> (other: Cat) -> String = "chases"
+fun (Cat) <meets> (other: Cat) -> String = "slinks"
+fun (Cat) <meets> (other: Dog) -> String = "hisses"
+fun (Dog) <meets> (other: Dog) -> String = "sniffs"
+fun (Cat) <meets> (other: Cat) -> String = "chases"
 
 
 module birds
@@ -22,13 +22,13 @@ use cats-and-birds (Cat, Dog)
 
 public
 
-struct Bird { name: data String }
+type Bird { name: data String }
 
-fun (Bird).<meets> (other: Bird) -> String = "chirps"
-fun (Bird).<meets> (other: Cat) -> String = "chirps"
-fun (Bird).<meets> (other: Dog) -> String = "chirps"
-fun (Cat).<meets> (other: Bird) -> String = "hunts"
-fun (Dog).<meets> (other: Bird) -> String = "barks"
+fun (Bird) <meets> (other: Bird) -> String = "chirps"
+fun (Bird) <meets> (other: Cat) -> String = "chirps"
+fun (Bird) <meets> (other: Dog) -> String = "chirps"
+fun (Cat) <meets> (other: Bird) -> String = "hunts"
+fun (Dog) <meets> (other: Bird) -> String = "barks"
 
 
 module usage
@@ -39,35 +39,35 @@ public
 
 type Pet = Cat | Dog | Bird
 
-fun encounter(a: Pet, b: Pet) -> String =
+fun encounter(a: Pet, b: Pet) -> Void &io =
     verb = a <meets> b
-    "{a.name} meets {b.name} and {verb}"
+    print("{a.name} meets {b.name} and {verb}")
 
 
 fun example-encounter() -> () &io =
-	do
-		pets =
-			Array(
-				Cat("Spot"),
-				Dog("Fido"),
-				Bird("Coco"),
-			)
+	spot = Cat("Spot")
+	fido = Dog("Fido")
+	coco = Bird("Coco")
 
-		pets.foreach(a =>
-			pets.foreach(b =>
-				print(encounter(a, b))
-			)
-		)
-		--- Spot meets Spot and slinks
-		--- Spot meets Fido and hisses
-		--- Spot meets Coco and hunts
-		--- Fido meets Spot and chases
-		--- Fido meets Fido and sniffs
-		--- Fido meets Coco and barks
-		--- Coco meets Spot and chirps
-		--- Coco meets Fido and chirps
-		--- Coco meets Coco and chirps
-	end
+	!encounter(spot, spot)
+	--- Spot meets Spot and slinks
+	!encounter(spot, fido)
+	--- Spot meets Fido and hisses
+	!encounter(spot, coco)
+	--- Spot meets Coco and hunts
+	!encounter(fido, spot)
+	--- Fido meets Spot and chases
+	!encounter(fido, fido)
+	--- Fido meets Fido and sniffs
+	!encounter(fido, coco)
+	--- Fido meets Coco and barks
+	!encounter(coco, spot)
+	--- Coco meets Spot and chirps
+	!encounter(coco, fido)
+	--- Coco meets Fido and chirps
+	!encounter(coco, coco)
+	--- Coco meets Coco and chirps
+	()
 
 
 --- Using Traits: Generic `encounter` -----------------------------------------
@@ -78,14 +78,14 @@ module pets
 public
 
 trait #pet {
-    (Self).name -> String
-    (Self).<meets> (other: Self) -> String
+    (Self) name -> String
+    (Self) <meets> (other: Self) -> String
 }
 
 forall P #pet
-fun encounter(a: P, b: P) -> String =
+fun encounter(a: P, b: P) -> Void &io =
     verb = a <meets> b
-    "{a.name} meets {b.name} and {verb}"
+    print("{a.name} meets {b.name} and {verb}")
 
 
 module cats-and-dogs
@@ -93,27 +93,27 @@ use pets (#pet)
 
 public
 
-type Usual-Pet = Cat | Dog
-struct Cat { name: data String }
-struct Dog { name: data String }
+type Usual-Pet =
+	| Cat { name: data String }
+	| Dog { name: data String }
 
-tag Usual-Pet #pet
-tag Cat #pet
-tag Dog #pet
+extend Usual-Pet as #pet
+extend Cat as #pet
+extend Dog as #pet
 
-fun (Cat).<meets> (other: Cat) -> String = "slinks"
-fun (Cat).<meets> (other: Dog) -> String = "hisses"
-fun (Dog).<meets> (other: Cat) -> String = "chases"
-fun (Dog).<meets> (other: Dog) -> String = "sniffs"
+fun (Cat) <meets> (other: Cat) -> String = "slinks"
+fun (Cat) <meets> (other: Dog) -> String = "hisses"
+fun (Dog) <meets> (other: Cat) -> String = "chases"
+fun (Dog) <meets> (other: Dog) -> String = "sniffs"
 
 
 module birds
-use pets (#pet)
-use cats-and-dogs (Cat, Dog)
+use #pet from pets
+use Cat, Dog from cats-and-dogs
 
 public
 
-type Exotic-Pet = Cat | Dog | Bird
+type Exotic-Pet = Cat | Dog | Blird
 struct Bird { name: data String }
 
 tag Exotic-Pet #pet

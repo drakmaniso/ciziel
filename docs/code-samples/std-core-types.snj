@@ -13,7 +13,7 @@ public ------------------------------------------------------------------------
 type Bool =
 	| False
 	| True
-	;
+	|;
 
 
 alias False = Bool.False
@@ -49,7 +49,7 @@ public ------------------------------------------------------------------------
 type Option[A] =
 	| Some(item: data A)
 	| None
-	;
+	|;
 
 
 alias Some[A] = Option[A].Some
@@ -63,7 +63,7 @@ fun (Option[A]).map(transform: A -> B) -> Option[B] =
 	match self
 		| Some(item) -> Some(transform(item))
 		| None -> None
-		;
+		|;
 
 
 extend Option[A] as #monad[A]
@@ -77,21 +77,21 @@ fun (Option[A]).and-then(operation: A -> Option[B]) -> Option[B] =
 	match self
 		| Some(item) -> operation(item)
 		| None -> None
-		;
+		|;
 
 
 fun (Option[A]) as Result[A, None] =
 	match self
 		| Some(item) -> Ok(item)
 		| None -> Err(None)
-		;
+		|;
 
 
 fun (Result[A, None]) as Option[A] =
 	match self
 		| Ok(item) -> Some(item)
 		| Err(None) -> None
-		;
+		|;
 
 
 extend Option[A] as #unwrap[A, None]
@@ -101,7 +101,7 @@ fun (Option[A]).unwrapped -> Result[A, None] =
 	match self
 		| Some(item) -> Ok(item)
 		| None -> Err(None)
-		;
+		|;
 
 
 extend Option[A] as #else[A, ()]
@@ -111,14 +111,14 @@ fun (Option[A]) <else> (make-error: () -> E) -> Result[A, E] =
 	match self
 		| Some(item) -> Ok(item)
 		| None -> Err(make-error())
-		;
+		|;
 
 
 fun (Option[A]).ok-or(error: E) -> Result[A, E] =
 	match self
 		| Some(item) -> Ok(item)
 		| None -> Err(error)
-		;
+		|;
 
 
 forall N[B, F]
@@ -129,7 +129,7 @@ fun (Option[A]).shortcut(
 	match self
 		| None -> else-op()
 		| Some(item) -> then-op(item)
-		;
+		|;
 
 
 public ------------------------------------------------------------------------
@@ -138,7 +138,7 @@ public ------------------------------------------------------------------------
 type Result[A, E #error] =
 	| Ok(item: data A)
 	| Err(error: data E)
-	;
+	|;
 
 
 alias Ok[A] = Result[A, _].Ok
@@ -152,7 +152,7 @@ fun (Result[A, E]).map(transform: A -> B) -> Result[B, E] =
 	match self
 		| Ok(item) -> Ok(transform(item))
 		| Err(e) -> Err(e)
-		;
+		|;
 
 
 extend Result[A, E] as #monad[A]
@@ -166,7 +166,7 @@ fun (Result[A, E]).and-then(operation: A -> Result[B, E]) -> Result[B, E] =
 	match self
 		| Ok(item) -> operation(item)
 		| Err(e) -> Err(e)
-		;
+		|;
 
 
 extend Result[A, E] as #unwrap[A]
@@ -183,4 +183,4 @@ fun (Result[A, E]) <else> (transform: E -> F) -> Result[A, F] =
 	match self
 		| Ok(item) -> Ok(item)
 		| Err(e) -> Err(transform(e))
-		;
+		|;

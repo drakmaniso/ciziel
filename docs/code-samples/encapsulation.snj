@@ -50,7 +50,7 @@ local
 type Private =
     | Foo
     | Bar
-	;
+	|;
 
 
 public
@@ -62,7 +62,7 @@ alias Opaque = Private
 type Transparent =
     | Foo
     | Bar
-	;
+	|;
 
 
 -------------------------------------------------------------------------------

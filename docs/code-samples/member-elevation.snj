@@ -1,9 +1,11 @@
-struct Cat { name: String }
-struct Dog { name: String }
-type Pet = Cat | Dog
+
+type Pet =
+	| Cat { name: String }
+	| Dog { name: String }
+	|;
 
 
-/* The fields that are common to all variants are automatically elevated: */
+/* The fields that are common to all variants are automatically dispatched: */
 
 
 dispatch (Pet).name -> String
@@ -12,24 +14,26 @@ dispatch (Pet).name -> String
 /**/
 
 
-struct Wool-Ball { color: Color }
-struct Stick { length: Int }
+type Pet-Toy =
+	| Wool-Ball { color: Color }
+	| Stick { length: Int }
+	|;
 
 
+type Pet.Typical-Toy -- Pet-Toy
 type Cat.Typical-Toy = Wool-Ball
 type Dog.Typical-Toy = Stick
-dispatch Pet.Typical-Toy -- Wool-Ball | Stick
 
 
-/* The `greet` method is automatically elevated: */
+/* The `greet` method is automatically dispatched: */
 
 
+fun (Pet).greet(human: String) -> String
 fun (Cat).greet(human: String) -> String = "{self.name} ignores {human}"
 fun (Dog).greet(human: String) -> String = "{self.name} plays with {human}"
-dispatch (Pet).greet(human: String) -> String
 
 
-/* But the `play` method cannot be elevated: */
+/* But the `play` method cannot be dispatched: */
 
 
 fun (Cat).play(toy: Wool-Ball) -> String = "{self.name} plays with a ball of color {toy.color}"

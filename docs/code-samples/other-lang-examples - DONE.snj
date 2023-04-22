@@ -25,13 +25,13 @@
 
 fun stack-or-reduce(lex, stack) =
 	match (lex, stack)
-		| (Lint(n), _) -> Ok(stack ++ Texp(ExpInt(n)))
-		| (Lident(v), _) -> Ok(stack ++ Texp(ExpVar(v)))
-		| (Lstring(s), _) -> Ok(stack ++ Texp(ExpStr(s)))
-		| (Lsymbol("("), _) -> Ok(stack ++ Tlp)
-		| (Lsymbol(")"), Array(..., Tlp, Texp(e)) -> Ok(stack ++ Texp(e)))
-		| (Lsymbol(")"), _) -> stack-or-reduce(lex, reduce(0, stack))
-		| (Lsymbol(s), _) ->
+		(Lint(n), _) -> Ok(stack ++ Texp(ExpInt(n)))
+		(Lident(v), _) -> Ok(stack ++ Texp(ExpVar(v)))
+		(Lstring(s), _) -> Ok(stack ++ Texp(ExpStr(s)))
+		(Lsymbol("("), _) -> Ok(stack ++ Tlp)
+		(Lsymbol(")"), Array(..., Tlp, Texp(e)) -> Ok(stack ++ Texp(e)))
+		(Lsymbol(")"), _) -> stack-or-reduce(lex, reduce(0, stack))
+		(Lsymbol(s), _) ->
 			symbol =
 				if s != "-" then
 					tsymb(s)
@@ -39,56 +39,56 @@ fun stack-or-reduce(lex, stack) =
 					-- according to the last exp element put on the stack
 				else
 					match stack
-						| Array(..., Texp(_)) -> Tbin(minus)
-						| _ -> Tunr(uminus)
-						|;
+						Array(..., Texp(_)) -> Tbin(minus)
+						_ -> Tunr(uminus)
+					done
 			match symbol
-				| Tunr(op) -> Ok(stack ++ Tunr(op))
-				| Tbin(op) ->
+				Tunr(op) -> Ok(stack ++ Tunr(op))
+				Tbin(op) ->
 					stack-or-reduce(lex, reduce(priority-binop(op), stack))
 						.unwrap-or(stack ++ Tbin(op))
-				| _ -> Err(ParseError)
-				|;
-		| _ -> Err(ParseError)
-		|;
+				_ -> Err(ParseError)
+			done
+		_ -> Err(ParseError)
+	done
 
 
 -- More idiomatic:
 
 
 fun stack-or-reduce(lex, stack) =
-	match lex
-		| Lex.Int(n) -> Ok(stack ++ Term.Exp(Exp.Int(n)))
-		| Lex.Ident(v) -> Ok(stack ++ Term.Exp(Exp.Var(v)))
-		| Lex.String(s) -> Ok(stack ++ Term.Exp(Exp.Str(s)))
-		| Lex.Symbol("(") -> Ok(stack ++ Term.LPar)
-		| Lex.Symbol(")") ->
-			match stack
-				| Array(..., Term.LPar, Term.Exp(e)) ->
+	match lex with
+		Lex.Int(n) -> Ok(stack ++ Term.Exp(Exp.Int(n)))
+		Lex.Ident(v) -> Ok(stack ++ Term.Exp(Exp.Var(v)))
+		Lex.String(s) -> Ok(stack ++ Term.Exp(Exp.Str(s)))
+		Lex.Symbol("(") -> Ok(stack ++ Term.LPar)
+		Lex.Symbol(")") ->
+			match stack with
+				Array(..., Term.LPar, Term.Exp(e)) ->
 					Ok(stack ++ Term.Exp(e)))
-				| _ ->
+				_ ->
 					stack-or-reduce(lex, reduce(0, stack))
-				|;
+			done
 
-		| Lex.Symbol(s) ->
+		Lex.Symbol(s) ->
 			-- remove the ambiguity case the `-` symbol
 			-- according to the last exp element put on the stack
 			symbol =
 				if s == "-" then
-					match stack
-						| Array(..., Term.Exp(_)) -> Term.Bin(minus)
-						| _ -> Term.Unr(uminus)
-						|;
+					match stack with
+						Array(..., Term.Exp(_)) -> Term.Bin(minus)
+						_ -> Term.Unr(uminus)
+					done
 				else
 					tsymb(s)
 
-			match symbol
-				| Term.Unr(op) -> Ok(stack ++ Term.Unr(op))
-				| Term.Bin(op) ->
+			match symbol with
+				Term.Unr(op) -> Ok(stack ++ Term.Unr(op))
+				Term.Bin(op) ->
 					stack-or-reduce(lex, reduce(priority-binop(op), stack))
 						.unwrap-or(stack ++ Term.Bin(op))
-				| _ -> Err(Parse-Error)
-				|;
+				_ -> Err(Parse-Error)
+			done
 
-		| _ -> Err(Parse-Error)
-		|;
+		_ -> Err(Parse-Error)
+	done

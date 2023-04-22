@@ -2,15 +2,15 @@
 
 
 fun example-1(numbers: Array[Int]) -> Option[Int] =
-	first ?= numbers.at(0)
-	second ?= numbers.at(1)
+	first <- chain(numbers.at(0))
+	second <- chain(numbers.at(1))
 
 	Some(first + second)
 
 
 fun example-1-desugared(numbers: Array[Int]) -> Option[Int] =
-	numbers.at(0).and-then(first =>
-		numbers.at(1).and-then(second =>
+	numbers.at(0).chain(first =>
+		numbers.at(1).chain(second =>
 			Some(first + second)
 		)
 	)

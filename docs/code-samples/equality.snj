@@ -18,7 +18,7 @@ public
 type Basic =
 	| Foo
 	| Bar
-	;
+	|;
 
 
 implement #eq for Basic
@@ -30,7 +30,7 @@ fun (Basic) == (other: Basic) -> Bool =
 		| (Bar, Bar) -> True
 		| (Foo, Bar) -> False
 		| (Bar, Foo) -> False
-		;
+		|;
 
 
 /*
@@ -66,7 +66,7 @@ public
 type Basic =
 	| Foo
 	| Bar
-	;
+	|;
 
 
 extend Basic as #eq
@@ -78,7 +78,7 @@ fun (Foo) == (other: Unknown) -> Bool =
 	match (self, other)
 		| (Foo, Foo) -> True
 		| _ -> False
-		;
+		|;
 
 
 tag Bar #eq
@@ -87,7 +87,7 @@ fun (Bar) == (other: Unknown) -> Bool =
 	match (self, other)
 		| (Bar, Bar) -> True
 		| _ -> False
-		;
+		|;
 
 module extended
 use #eq, Unknown from /std
@@ -105,10 +105,10 @@ extend Extended as #eq
 extend Baz as #eq
 alias Baz.Eq-RHS = Unknown
 fun (Baz) == (other: Unknown) -> Bool =
-		match (self, other)
+	match (self, other)
 		| (Baz, Baz) -> True
 		| _ -> False
-		;
+		|;
 
 
 ---- Double Dispatch ----------------------------------------------------------
@@ -130,7 +130,7 @@ public
 type Basic =
 	| First
 	| Second
-	;
+	|;
 
 
 extend Basic as #eq
@@ -151,7 +151,7 @@ public
 type Extended =
 	| as Basic
 	| Third
-	;
+	|;
 
 
 extend Extended as #eq
@@ -169,7 +169,7 @@ module basic
 type Basic =
 	| Foo
 	| Bar
-	;
+	|;
 
 
 trait #basic {
@@ -192,7 +192,7 @@ fun (Foo) == (other: A) -> Bool =
 		| Some(Foo) -> True
 		| Some(Bar) -> False
 		| None -> False
-	done
+		|;
 
 
 alias Bar.Eq-RHS = A #basic
@@ -202,7 +202,7 @@ fun (Bar) == (other: A) -> Bool =
 		| Some(Foo) -> False
 		| Some(Bar) -> True
 		| None -> False
-	done
+		|;
 
 
 -- Extension --
@@ -216,7 +216,7 @@ public
 type Extended =
 	| as Basic
 	| Baz
-	;
+	|;
 
 
 extend Extended as #basic
@@ -244,4 +244,4 @@ fun (Baz) == (other: A) -> Bool =
 		| Foo -> False
 		| Bar -> False
 		| Baz -> True
-	done
+		|;

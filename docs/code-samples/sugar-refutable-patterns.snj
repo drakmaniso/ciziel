@@ -14,9 +14,9 @@ fun example-1-desugared(numbers: Array[Int]) -> Option[Int] =
 				| Some(second) ->
 					Some(first + second)
 				| a -> a
-				;
+				|;
 		| a -> a
-		;
+		|;
 
 
 fun example-2(numbers: Array[String]) -> Result[Int, String] =
@@ -44,13 +44,13 @@ fun example-2-desugard(numbers: Array[String]) -> Result[Int, String] =
 								| Ok(b) ->
 									Ok(a + b)
 								| e -> e
-								;
+								|;
 						| e -> e
-						;
+						|;
 				| e -> e
-				;
+				|;
 		| e -> e
-		;
+		|;
 
 
 fun example-3(numbers: Array[String]) -> Result[Int, String] =
@@ -74,13 +74,13 @@ fun example-3-desugard(numbers: Array[String]) -> Result[Int, String] =
 								| Ok(b) ->
 									Ok(a + b)
 								| e -> e
-								;
+								|;
 						| e -> e
-						;
+						|;
 				| e -> e
-				;
+				|;
 		| e -> e
-		;
+		|;
 
 
 fun example-3(numbers: Array[String]) -> Result[Int, String] =
@@ -108,13 +108,13 @@ fun example-3-desugard(numbers: Array[String]) -> Result[Int, String] =
 								| Ok(b) ->
 									Ok(a + b)
 								| Err(e) -> "parse error: {e}"
-								;
+								|;
 						| None -> "array is too small"
-						;
+						|;
 				| Err(e) -> "parse error: {e}"
-				;
+				|;
 		| None -> "array is empty"
-		;
+		|;
 
 
 fun example-3(numbers: Array[String]) -> Result[Int, String] =
@@ -138,9 +138,9 @@ fun example-3-desugared(numbers: Array[String]) -> Int | None =
 			match s.to-Int
 				| n: Int -> n.abs
 				| a -> a
-				;
+				|;
 		| a -> a
-		;
+		|;
 
 
 ---- Short-Circuit Operator --------------------------------------------------------
@@ -156,9 +156,9 @@ fun example-3-desugared(numbers: Array[String]) -> Int | None =
 			match Int.parse(s)
 				| n: Int -> math::abs(n)
 				| a -> a
-				;
+				|;
 		| a -> a
-		;
+		|;
 
 
 ---- Refutable Bind with failure wrapping -------------------------------------

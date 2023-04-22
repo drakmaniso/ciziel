@@ -1,14 +1,20 @@
-/* The Expression Problem */
+***
+# The Expression Problem
+***
+
 
 
 module basic
 public
 
 
-type Expr[E] =
-	| Literal(value: data Int)
-	| Addition(left: data ref E, right: data ref E)
-	|;
+type Literal(value: data Int)
+
+
+type Addition[E](
+	left: data *E,
+	right: data *E,
+)
 
 
 trait #eval {
@@ -16,16 +22,19 @@ trait #eval {
 }
 
 
-forall E #eval
-extend Expr[E] as #eval
+extend Literal as #eval
 
 
-forall E #eval
-fun (Expr[E]).eval -> Int =
-	match self
-		| Expr.Literal(value) -> value
-		| Expr.Addition(left, right) -> left.eval + right.eval
-		|;
+fun (Literal).eval -> Int =
+	self.value
+
+
+extend Addition[E #eval] as #eval
+
+
+fun (Expr[E #eval].Addition).eval -> Int =
+	self.left.eval + self.right.eval
+
 
 
 -------------------------------------------------------------------------------
@@ -34,23 +43,14 @@ use basic (#eval)
 public
 
 
-type Expr[E] =
-	| as basic::Expr[E].Literal
-	| as basic::Expr[E].Addition
-	| Negation(subexpr: data *E)
-	|;
+type Negation[E](subexpr: data *E)
 
 
-forall E #eval
-extend Expr[E] as #eval
+extend Negation[E #eval] as #eval
 
 
-forall E #eval
-fun (Expr[E]).eval -> Int =
-	match self
-		| Expr.Negation(subexpr) -> - subexpr.eval
-		| e: basic::Expr[E] -> e.eval
-		|;
+fun (Expr[E #eval]).eval -> Int =
+	- self.subexpr.eval
 
 
 trait #pretty {
@@ -94,19 +94,45 @@ fun (Expr[E]).pretty -> String =
 -------------------------------------------------------------------------------
 module main
 use &io from /std/io
-use #eval from basic
-use #pretty from extended
+use #eval, Literal, Addition from basic
+use #pretty, Negatiohn from extended
 public
 
 
-type My-Expr(expr: Expr[My-Expr])
-extend My-Expr as #eval
-extend My-Expr as #pretty
+type Expr =
+	 | Literal
+	 | Addition[Expr]
+	 | Negation[Expr]
+	 ;
+
+
+dispatch Expr as #eval
+dispatch Expr as #pretty
+
+
+***
+This will automatically define the following methods:
+
+	fun (Expr).eval -> Int =
+		match self
+			| Expr.Literal(value)  -> value
+			| Expr.Addition(left, right) -> left.eval + right.eval
+			| Expr.Negation(subexpr) -> - subexpr.eval
+			|;
+
+
+	fun (Expr).pretty -> String =
+		match self
+			| Expr.Literal(value) -> value.pretty
+			| Expr.Addition(left, right) ->
+			|;
+***
 
 
 fun main() -> () &io =
-	e1 = My-Expr(
-		Expr.Addition( Expr.Literal(77), Expr.Negation( Expr.Literal(12) ) )
+	e1 = Expr.Addition(
+		Expr.Literal(77),
+		Expr.Negation( Expr.Literal(12) )
 	)
 	print("{e1.pretty} = {e1.eval}")
 

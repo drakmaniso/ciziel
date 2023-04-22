@@ -15,7 +15,7 @@ type Expr[_] =
 	| Expr[Bool].Bool(value: Bool)
 	| Expr[Int].Int(value: Int)
 	| Expr[Bool].Equal(left: ref Expr[Int], right: ref Expr[Int])
-	;
+	|;
 
 
 dispatch (Expr[T]).eval -> T
@@ -56,7 +56,7 @@ type Term[_] =
 		then-branch: T,
 		else-branch: T,
 	}
-	;
+	|;
 
 
 dispatch (Term[T]).eval -> T
@@ -87,7 +87,7 @@ type Expr[_] =
 	| Expr[A -> B].Lambda(value: A -> B)
 	| Expr[B].Apply(function: Expr[_ -> B].Lambda, argument: B)
 	| Expr[A].Fix(function: Expr[A -> A].Lambda)
-	;
+	|;
 
 
 dispatch (Expr[A]).eval -> A

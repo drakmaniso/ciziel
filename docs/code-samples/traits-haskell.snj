@@ -5,7 +5,7 @@ trait #functor[A] {
     fun (Self[A]).fmap(transform: A -> B) -> Self[B]
 
     fun (Self[A]) $> (value: B) -> Self[B] =
-        self.map(-> value)
+        self.map(() -> value)
 
     fun Self[A].lift(transform: A -> B) -> (Self[A] -> Self[B]) =
         -> ___.map(transform)
@@ -50,7 +50,7 @@ trait #monad[A] {
     fun (Self[A]) */= (operation: A -> Self[B]) -> Self[B]
 
     fun (Self[A]) */ (other: Self[B]) -> Self[B] =
-        self */= (-> other)
+        self */= (() -> other)
 
 	forall M #monad
     fun (Self[M[A]]).join -> Self[A] =

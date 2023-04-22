@@ -59,7 +59,7 @@ fun Counter.new(limit: Int) -> Counter =
     Counter { count = 0, limit = limit }
 
 
-Counter #iterator
+extend Counter as #iterator
 
 
 alias Counter.Item = Int
@@ -87,7 +87,7 @@ fun example() -> () &io =
 			| Ok(number) ->
 				!print("{number}, ")
 				step(c.next)
-			;
+			|;
 
 	counter = Counter.new(7)
 
@@ -111,4 +111,4 @@ fun compare(i: I, j: J) -> Bool =
 		| (None, None) -> True
 		| (Ok(a), Ok(b)) and (a == b) -> compare(i-next, j-next)
 		| _ -> False
-		;
+		|;
