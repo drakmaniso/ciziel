@@ -5,4 +5,4 @@ compile
 *.o
 build/
 build/*
-
+**/.obsidian
