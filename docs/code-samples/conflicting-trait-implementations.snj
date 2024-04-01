@@ -1,0 +1,35 @@
+module foo
+
+def Foo = union(FooA, FooB) #eq #ord
+def FooA = data struct
+def FooB = data struct
+
+derive #eq, #ord for Foo
+
+
+module bar
+
+import std.hashmaps { HashMap }
+import lib.foo { Foo }
+
+def my-map: Map[Foo, Int] =
+	HashMap.singleton(FooA(42))
+
+
+module baz
+
+import std.hashmaps { HashMap }
+import lib.foo { Foo }
+import lib.bar { my-map }
+
+let #ord for Foo
+
+let (self: Foo) > (other: Foo) -> Bool =
+	match (self, other)
+	case (FooA, FooB) then True
+	else (_, _) then False
+
+let ouch: HashMap[Foo, Int] =
+	my-map.insert(FooB(42))
+
+-- `my-map` and `FooB(42)` have different implementations or `#ord` for `Foo`

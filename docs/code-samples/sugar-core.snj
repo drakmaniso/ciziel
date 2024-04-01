@@ -1,31 +1,32 @@
 -- Constructors ---------------------------------------------------------------
 
 
-type Foo {
-	a: data Int,
-	b: data Bool,
-}
-
-
-/* desugars to: */
-
-
-type Foo =
-	Foo {
-		a: data Int,
-		b: data Int,
+def Foo: #data =
+	struct {
+		a: Int,
+		b: Bool,
 	}
 
 
-fun Foo { a: Int, b: Bool } -> Foo
+<< desugars to: >>
 
 
-fun (Foo).a -> Int
-fun (Foo).b -> Bool
+def Foo =
+	struct {
+		a: Int,
+		b: Int,
+	}
 
 
-fun (Foo).with { a: Int } -> Foo
-fun (Foo).with { b: Bool } -> Foo
+def Foo { a: Int, b: Bool } -> Foo
+
+
+def (Foo).a -> Int
+def (Foo).b -> Bool
+
+
+def (Foo).with { a: Int } -> Foo
+def (Foo).with { b: Bool } -> Foo
 
 
 -- Functional Update ----------------------------------------------------------
@@ -34,7 +35,7 @@ fun (Foo).with { b: Bool } -> Foo
 foo.with { a = 33, b = False }
 
 
-/* desugars to: */
+<< desugars to: >>
 
 
 foo.with { a = 33 }.with { b = False }
@@ -43,14 +44,14 @@ foo.with { a = 33 }.with { b = False }
 -- Associated Functions -------------------------------------------------------
 
 
-fun Foo.bar(a: Int, b: Bool) -> String =
+def Foo.bar(a: Int, b: Bool) -> String =
     "foobar"
 
 
-/* desugars to an associated constant: */
+<< desugars to an associated constant: >>
 
 
-val Foo.bar: (Int, Bool) -> String =
+def Foo.bar: (Int, Bool) -> String =
     (a, b) ->
 		"foobar"
 
@@ -58,22 +59,22 @@ val Foo.bar: (Int, Bool) -> String =
 -- Methods --------------------------------------------------------------------
 
 
-fun (Foo).baz(a: Int, b: Bool) -> String =
+def (f: Foo).baz(a: Int, b: Bool) -> String =
     "foobaz"
 
 
-/* desugars to an associated function: */
+<< desugars to an associated function: >>
 
 
-fun Foo.baz(self: Foo, a: Int, b: Bool) -> String =
+def Foo.baz(f: Foo, a: Int, b: Bool) -> String =
     "foobaz"
 
 
-/* which desugars to an associated constant: */
+<< which desugars to an associated constant: >>
 
 
-val Foo.baz: (Foo, Int, Bool) -> String =
-    (self, a, b) ->
+def Foo.baz: (Foo, Int, Bool) -> String =
+    (f, a, b) ->
 		"foobaz"
 
 
@@ -83,7 +84,7 @@ val Foo.baz: (Foo, Int, Bool) -> String =
 foo.a
 
 
-/* desugars to: */
+<< desugars to: >>
 
 
 Foo.a(foo)
@@ -96,7 +97,7 @@ Foo.a(foo)
 foo.baz(1, True)
 
 
-/* desugars to: (assuming `Foo` is the type of `foo`) */
+<< desugars to: (assuming `Foo` is the type of `foo`) >>
 
 
 Foo.baz(foo, 1, True)
@@ -105,19 +106,19 @@ Foo.baz(foo, 1, True)
 -- Operator Calls -------------------------------------------------------------
 
 
-/* Any left-associative operator: */
+<< Any left-associative operator: >>
 
 
 foo + bar
 
 
-/* desugars to a method call: */
+<< desugars to a method call: >>
 
 
 foo.+(bar)
 
 
-/* which desugars to a function call: */
+<< which desugars to a function call: >>
 
 
 Foo.+(foo, bar)
@@ -126,10 +127,10 @@ Foo.+(foo, bar)
 -- Short Lambdas --------------------------------------------------------------
 
 
--> foo(___, 33, ___)
+foo(___, 33, ___)
 
 
-/* desugars to: */
+<< desugars to: >>
 
 
 (a, b) -> foo(a, 33, b)

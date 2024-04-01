@@ -1,186 +1,171 @@
 module /std
 
 
-public ------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-type () = __Unconstructible__
+def () = __Unconstructible__
 
 
-public ------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-type Bool =
-	| False
-	| True
-	|;
+def Bool = False | True
+def False = record
+def True = record
 
 
-alias False = Bool.False
-alias True = Bool.True
+-------------------------------------------------------------------------------
 
 
-public ------------------------------------------------------------------------
+given A
+def #functor[A] =
+	has Self[A]
+	has (Self[A]).map(transform: A -> B) -> Self[B]
 
 
-trait #functor[A] {
-	type Self[A]
-	fun (Self[A]).map(transform: A -> B) -> Self[B]
-}
+given A
+def #monad[A] =
+	has Self[A]
+	has Self[A].wrap(item: A) -> Self[A]
+	has (m: Self[A]).and-then(operation: A -> Self[B]) -> Self[B]
 
 
-trait #monad[A] {
-	type Self[A]
-	fun Self[A].wrap(item: A) -> Self[A]
-	fun (Self[A]).and-then(operation: A -> Self[B]) -> Self[B]
-}
+-------------------------------------------------------------------------------
 
 
-trait #faillible[A, E] {
-	type Self[A, E]
-	extend Self[A, E] as #monad[A]
-	fun (Self[A]) <fail> (make-error: E -> F) -> Result[A, F]
-}
+given A
+def Option[A] = None | Some[A]
 
 
-public ------------------------------------------------------------------------
+def None
 
 
-type Option[A] =
-	| Some(item: data A)
-	| None
-	|;
+given A
+def Some[A](item: data A)
 
 
-alias Some[A] = Option[A].Some
-alias None = Option[_].None
+given A
+def Option[A] as #functor[A]
 
 
-extend Option[A] as #functor[A]
-
-
-fun (Option[A]).map(transform: A -> B) -> Option[B] =
+given A
+def (Option[A]).map(transform: A -> B) -> Option[B] =
 	match self
-		| Some(item) -> Some(transform(item))
-		| None -> None
-		|;
+	when Some(item) then
+		Some(transform(item))
+	else when None then
+		None
 
 
-extend Option[A] as #monad[A]
+given A
+def Option[A] as #monad[A]
 
 
+given A
 fun Option[A].wrap(item: A) -> Option[A] =
 	Some(item)
 
 
-fun (Option[A]).and-then(operation: A -> Option[B]) -> Option[B] =
+given A
+def (Option[A]).and-then(operation: A -> Option[B]) -> Option[B] =
 	match self
-		| Some(item) -> operation(item)
-		| None -> None
-		|;
+	when Some(item) then
+		operation(item)
+	else when None then
+		None
 
 
-fun (Option[A]) as Result[A, None] =
+given A
+def (Option[A]) as Result[A, None] =
 	match self
-		| Some(item) -> Ok(item)
-		| None -> Err(None)
-		|;
+	when Some(item) then
+		Ok(item)
+	else when None then
+		Err(None)
 
 
-fun (Result[A, None]) as Option[A] =
+given A
+def (Result[A, None]) as Option[A] =
 	match self
-		| Ok(item) -> Some(item)
-		| Err(None) -> None
-		|;
+	when Ok(item) then
+		Some(item)
+	else when Err(None) then
+		None
 
 
-extend Option[A] as #unwrap[A, None]
+given A
+def Option[A] as #unwrap[A, None]
 
 
-fun (Option[A]).unwrapped -> Result[A, None] =
+given A
+def (Option[A]).unwrapped -> Result[A, None] =
 	match self
-		| Some(item) -> Ok(item)
-		| None -> Err(None)
-		|;
+	when Some(item) then
+		Ok(item)
+	else when None then
+		Err(None)
 
 
-extend Option[A] as #else[A, ()]
-
-
-fun (Option[A]) <else> (make-error: () -> E) -> Result[A, E] =
+given A
+def (Option[A]).ok-or(error: E) -> Result[A, E] =
 	match self
-		| Some(item) -> Ok(item)
-		| None -> Err(make-error())
-		|;
+	when Some(item) then
+		Ok(item)
+	else when None then
+		Err(error)
 
 
-fun (Option[A]).ok-or(error: E) -> Result[A, E] =
+-------------------------------------------------------------------------------
+
+
+given A, E: #error
+def Result[A, E] = Ok[A] | Err[E]
+
+
+given A
+def Ok[A](item: data A)
+
+
+given E: #error
+def Err[E](error: data E)
+
+
+given A
+def #functor[A] for Result[A, _]
+
+
+given A, B, E: #error
+def (Result[A, E]).map(transform: A -> B) -> Result[B, E] =
 	match self
-		| Some(item) -> Ok(item)
-		| None -> Err(error)
-		|;
+	when Ok(item) then
+		Ok(transform(item))
+	else when Err(e) then
+		Err(e)
 
 
-forall N[B, F]
-fun (Option[A]).shortcut(
-	else-op: () -> N[B, F],
-	then-op: A -> N[B, F],
-) -> N[B, F] =
-	match self
-		| None -> else-op()
-		| Some(item) -> then-op(item)
-		|;
+given A
+def #monad[A] for Result[A, _]
 
 
-public ------------------------------------------------------------------------
-
-
-type Result[A, E #error] =
-	| Ok(item: data A)
-	| Err(error: data E)
-	|;
-
-
-alias Ok[A] = Result[A, _].Ok
-alias Err[E] = Result[_, E].Err
-
-
-extend Result[A, E] as #functor[A]
-
-
-fun (Result[A, E]).map(transform: A -> B) -> Result[B, E] =
-	match self
-		| Ok(item) -> Ok(transform(item))
-		| Err(e) -> Err(e)
-		|;
-
-
-extend Result[A, E] as #monad[A]
-
-
-fun Result[A, E].ok(item: A) -> Result[A, E] =
+given A, E: #error
+def Result[A, E].ok(item: A) -> Result[A, E] =
 	Ok(item)
 
 
-fun (Result[A, E]).and-then(operation: A -> Result[B, E]) -> Result[B, E] =
+given A, B, E: #error
+def (Result[A, E]).and-then(operation: A -> Result[B, E]) -> Result[B, E] =
 	match self
-		| Ok(item) -> operation(item)
-		| Err(e) -> Err(e)
-		|;
+	when Ok(item) then
+		operation(item)
+	else when Err(e) then
+		Err(e)
 
 
-extend Result[A, E] as #unwrap[A]
+given A
+def #unwrap[A] for Result[A, _]
 
 
-fun (Result[A, E]).unwrapped -> Result[A, E] =
+given A, E: #error
+def (Result[A, E]).unwrapped -> Result[A, E] =
 	self
-
-
-extend Result[A, E] as #else[A, E]
-
-
-fun (Result[A, E]) <else> (transform: E -> F) -> Result[A, F] =
-	match self
-		| Ok(item) -> Ok(item)
-		| Err(e) -> Err(transform(e))
-		|;

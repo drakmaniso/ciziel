@@ -15,32 +15,44 @@ type Expr[T] =
 	| EBool(value: Bool)
 	| EInt(value: Int)
 	| Equal(
-		left: ref Expr[Int],
-		right: ref Expr[Int],
+		left: Ref[Expr[Int]],
+		right: Ref[Expr[Int]],
 	)
-	|;
 
 
-fun (Expr[Bool].EBool).eval -> Bool = self.value
-fun (Expr[Int].EInt).eval -> Int = self.value
-fun (Expr[Bool].Equal).eval -> Bool = (self.left.eval == self.right.eval)
+
+forall T, T == Bool
+fun (Expr[T].EBool).eval -> T =
+	self.value
+end
+
+
+forall T, T == Int
+fun (Expr[T].EInt).eval -> T =
+	self.value
+end
+
+
+forall T, T == Bool
+fun (Expr[T].Equal).eval -> T =
+	(self.left.eval == self.right.eval)
+end
 
 
 alias EBool = Expr[Bool].EBool
-alias EInt = Expr[Bool].EInt
+alias EInt = Expr[Int].EInt
 alias Equal = Expr[Bool].Equal
 
 
 fun first-example() -> () &io =
 	expr1 = Equal(EInt(2), EInt(3))
-	!print("{expr1.Type}")
+	print("{expr1.Type}")
 	-- Expr[Bool].Equal
 
 	eval1 = expr1.eval
-	!print("{eval1.Type}")
+	print("{eval1.Type}")
 	-- Bool
-
-	()
+end
 
 
 public ------------------------------------------------------------------------

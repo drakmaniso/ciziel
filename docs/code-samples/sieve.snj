@@ -1,40 +1,40 @@
 module eratosthenes
-use /std/io (&io)
+use Io from std::io
 
 
-private
-
-
-fun main() -> () &io =
-	all-numbers = Array(False, False, True, ..., [1001] = True)
-	primes = sieve(all-numbers, 2)
-
-	!primes.foreach-indexed((i, is-prime) =>
-		if is-prime then
-			print("{i} ")
-		else ()
+def main() -> Nil / Io =
+	let all-numbers = Array(False, False, True, ..., [1001] = True)
+	let primes = sieve(all-numbers, 2)
+	in
+	primes.foreach-indexed(
+		(i, is-prime) =>
+			if is-prime then
+				Io.print("{i} ")
+			else
+				Nil
 	)
 
-	()
 
-
-fun sieve(flags: Array[Bool], start: Int) -> Array[Bool] =
-	fun cross-multiples(flags, n, i) =
+def sieve(flags: Array[Bool], start: Int) -> Array[Bool] =
+	let cross-multiples(flags, n, i) =
 		if n * i >= flags.size then
 			flags
 		else
-			flags' = flags.with([n * i] = False)
+			let flags' = flags.with { [n * i] = False }
+			in
 			cross-multiples(flags', n, i + 1)
 
-	fun first-not-crossed(flags, n) =
+	let first-not-crossed(flags, n) =
 		if flags[n] then
 			n
 		else
 			first-not-crossed(flags, n + 1)
 
+	in
 	if start >= flags.size then
 		flags
 	else
-		flags' = cross-multiples(flags, start, 1)
-		start' = first-not-crossed(flags', start + 1)
+		let flags' = cross-multiples(flags, start, 1)
+		let start' = first-not-crossed(flags', start + 1)
+		in
 		sieve(flags', start')

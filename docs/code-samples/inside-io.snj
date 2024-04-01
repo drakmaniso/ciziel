@@ -1,53 +1,52 @@
-/*
+<<
 # Inside IO
 
 From the [haskel wiki](https://wiki.haskell.org/IO_inside)
-*/
+>>
 
 
-/**/
-module first-attempt
+-- First Attempt
 
-fun get-char() -> Char =
+
+let get-char() -> Char =
     ...
 
-fun get-2-chars() -> String =
+let get-2-chars() -> String =
     "{get-char()} {get-char()}"
 
-fun get-2-chars' -> String =
-    c = get-char()
+let get-2-chars' -> String =
+    let c = get-char()
     "{c} {c}"
 
-fun get-confirmation() -> Bool =
-    get-char() == Char "y"
+let get-confirmation() -> Bool =
+    get-char() == Char("y")
 
 
-/**/
-module second-attempt
+-- Second Attempt
 
-fun get-char(fake-param: Int) -> Char =
+
+let get-char(fake-param: Int) -> Char =
     ...
 
-fun get-2-chars() -> String =
+let get-2-chars() -> String =
     "{get-char(0)} {get-char(1)}"
 
-fun get-confirmation() -> Bool =
-    get-char(0) == Char "y"
+let get-confirmation() -> Bool =
+    get-char(0) == Char("y")
 
 
-/**/
-module third-attempt
+-- Third Attempt
 
 
 
 
-/**/
-module with-monadic-bind
+-- With Monadic Bind
 
-fun get-char() -> Io[Char] =
+
+let get-char() -> Io[Char] =
     ...
 
-fun get-2-chars() -> Io[String] =
+let get-2-chars() -> Io[String] =
     get-char().and-then(a =>
         get-char().and-then(b =>
             Io("{a} {b}")
@@ -55,7 +54,7 @@ fun get-2-chars() -> Io[String] =
 	)
 
 
-fun get-4-chars() -> Io[String] =
+let get-4-chars() -> Io[String] =
     get-2-chars().and-then(a =>
         get-2-chars().and-then(b =>
             Io("{a} {b}")
@@ -63,32 +62,32 @@ fun get-4-chars() -> Io[String] =
 	)
 
 
-fun get-confirmation() -> Io[Bool] =
+let get-confirmation() -> Io[Bool] =
     get-char().and-then(a =>
         Io(a == "y")
 	)
 
 
 
-/**/
-module with-do-notation
+-- With Do Notation
 
-fun get-char() -> Io[Char] =
+
+let get-char() -> Io[Char] =
     ...
 
 
-fun get-2-chars() -> Io[String] =
-    a ?= get-char()
-    b ?= get-char()
+let get-2-chars() -> Io[String] =
+    let? a = get-char()
+    let? b = get-char()
     Io("{a} {b}")
 
 
-fun get-4-chars() -> Io[String] =
-    a ?= get-2-chars()
-    b ?= get-2-chars()
+let get-4-chars() -> Io[String] =
+    let? a = get-2-chars()
+    let? b = get-2-chars()
     Io("{a} {b}")
 
 
-fun get-confirmation() -> Io[Bool] =
-    a ?= get-char()
+let get-confirmation() -> Io[Bool] =
+    let? a = get-char()
     Io(a == Char "y")

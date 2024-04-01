@@ -1,147 +1,174 @@
 module main
 
 
-use &io from /std/io
+use Io from std::io
 
 
-public ------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-fun main() -> () &io =
-	fun get-number() =
-		!io.put-string("Please enter a number: ")
-		answer = io::input()
-
+def main() -> None / Io =
+	let get-number() =
+		do Io.put-string("Please enter a number: ")
+		let answer = Io.get-line()
+		in
 		match answer.to-int
-			| Some(number) -> number
-			| None -> get-number()
-			|;
+		case Some(number?) then number
+		else None then get-number()
 
-	number = get-number()
-	naive = naive-factorial(number)
-	tail = tail-factorial(number)
-	folded = folded-factorial(number)
+	let number = get-number()
+	let naive = naive-factorial(number)
+	let tail = tail-factorial(number)
+	let folded = folded-factorial(number)
 
-	!print("naive factorial: {naive}")
-	!print("tail recursive factorial: {tail}")
-	!print("fold-based factorial: {folded}")
+	do Io.put-line("naive factorial: {naive}")
+	do Io.put-line("tail recursive factorial: {tail}")
+	do Io.put-line("fold-based factorial: {folded}")
 
-	()
-
-
-local -------------------------------------------------------------------------
+	in
+	None
 
 
-fun naive-factorial(n) =
-	if n <= 1 then
-		1
-	else
-		n * naive-factorial(n - 1)
+-------------------------------------------------------------------------------
 
 
-fun tail-factorial(n: Int) -> Int =
-	fun step(n, accum) =
+let naive-factorial(n) =
+	if n <= 1 then 1
+	else n * naive-factorial(n - 1)
+
+
+let tail-factorial(n: Int32) -> Int32 =
+	let step(n, accum) =
 		if n <= 1 then
 			accum
 		else
-			step(n - 1, n * accum)
-
+			goto step(n - 1, n * accum)
+	in
 	step(n, 1)
 
 
-fun fold-factorial(n: Int) -> Int =
-	(2 <upto> n).fold(1, Int.*)
+let fold-factorial(n: Int32) -> Int32 =
+	(2 <upto> n).fold(1, Int32.*)
 
 
-forall N #num
-fun generic-tail-factorial(number: N) -> N =
-	fun step(num, accum) =
+given N: #num
+let generic-tail-factorial(number: N) -> N =
+	let step(num, accum) =
 		if num <= N.one then
 			accum
 		else
 			step(num - N.one, num * accum)
-
+	in
 	step(number, N.one)
 
 
-forall N #num #range
-fun generic-fold-factorial(number: N) -> N =
+given N: #num #range
+let generic-fold-factorial(number: N) -> N =
 	(N.one <upto> number).fold(N.one, N.*)
 
 
-local -------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-fun gcd(a: Int, b: Int) -> Int =
-	require a > 0 and b > 0
-	ensure result > 0
-
-	a' = (a, b).max
-	b' = (a, b).min
-
+let gcd(a: Int32, b: Int32) -> Int32 =
+	let a' = (a, b).max
+	let b' = (a, b).min
+	in
 	if b' == 0 then
 		a'
 	else
-		gcd(b', a' <mod> b')
+		gcd(b', a' mod b')
 
 
-fun fibonacci(n: Int) -> Int =
-	require n > 0
-	ensure result > 0
+let gcd(a: Int32, b: Int32) -> Int32 =
+	let (a, b) = ((a, b).max, (a, b).min)
+	in
+	if b == 0 then
+		a
+	else
+		gcd(b, a mod b)
 
-	fun step(n, previous, current) =
+
+let gcd(a: Int32, b: Int32) -> Int32 =
+	let [a, b] = [a, b].sort
+	in
+	if a == 0 then
+		b
+	else
+		gcd(a, b mod a)
+
+
+let fibonacci(n: Int32) -> Int32 =
+	let step(n, previous, current) =
 		if n == 0 then
 			current
 		else
 			step(n - 1, current, previous + current)
-
+	in
 	step(n, 1, 1)
 
 
-local -------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-fun pipeline-example-1() =
-	my-array = Array(1, 2, 3, 4, 5, 6, 7)
-
+let pipeline-example-1() =
+	let my-array = Array(1, 2, 3, 4, 5, 6, 7)
+	in
 	my-array
 		.iterator
 		.filter(___.is-even)
 		.map(___ * 2)
-		.fold("", (s, n) -> "{s}, {n <to> String}")
-		.map(
-			char ->
-				next-char = (char.code + 1) <to> Char
-
-				if next-char.is-letter then
-					next-char.to-uppercase
-				else
-					Rune("?")
-		)
-		<collect> Array
+		.fold("", (s, n) => "{s}, {n <to> String}")
+		.map(char =>
+			let next-char = (char.code + 1) to Char
+			in
+			if next-char.is-letter then
+				next-char.to-uppercase
+			else
+				Rune("?") )
+		collect Array
 
 
-fun pipeline-example-2() =
-	names = Array("Judy", "Mary", "Jane", "", "Bop")
-
+let pipeline-example-2() =
+	let names = Array("Judy", "Mary", "Jane", "", "Bop")
+	in
 	names
 		.iterator
 		.map(___.to-lowercase)
-		.filter(n -> n.length > 0)
-		.filter(n -> n.test-all(___.is-alpha))
-		.map(
-			name ->
-				match
-					| name == "Bop" -> "Betty"
-					| name.length > 100 -> "(too long)"
-					| _ -> name
-					|;
-		)
-		.fold(
-			"",
-			(string, name) ->
-				if string.length > 0 then
-					string ++ ", " ++ name
-				else
-					string ++ name
-		)
+		.filter(name => name.length > 0)
+		.filter(name => name.test-all(___.is-alpha))
+		.map(name =>
+			if name == "Bop" then
+				"Betty"
+			else if name.length > 100 then
+				"(too long)"
+			else
+				name )
+		.fold("", (string, name) =>
+			if string.length > 0 then
+				string ++ ", " ++ name
+			else
+				string ++ name )
+
+-- or:
+
+let pipeline-example-3() =
+	let names = Array("Judy", "Mary", "Jane", "", "Bop")
+	in
+	names
+		.iterator
+		.map(=> ___.to-lowercase)
+		.filter(=> ___.length > 0)
+		.filter(=> ___.test-all(=> ___.is-alpha))
+		.map(name =>
+			if name == "Bop" then
+				"Betty"
+			else if name.length > 100 then
+				"(too long)"
+			else
+				name )
+		.fold("", (string, name) =>
+			if string.length > 0 then
+				string ++ ", " ++ name
+			else
+				string ++ name )

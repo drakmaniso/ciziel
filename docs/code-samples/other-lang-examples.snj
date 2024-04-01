@@ -1,94 +1,156 @@
---   let rec stack_or_reduce lex stack = match lex , stack with
---      Lint n ,  _      ->  (Texp (ExpInt n))::stack
---    | Lident v ,  _    ->  (Texp (ExpVar v))::stack
---    | Lstring s , _    ->  (Texp (ExpStr s))::stack
---    | Lsymbol "(" , _  ->  Tlp::stack
---    | Lsymbol ")" , (Texp e)::Tlp::st  ->  (Texp e)::st
---    | Lsymbol ")" , _ -> stack_or_reduce lex (reduce 0 stack)
---    | Lsymbol s , _
---         -> let symbol =
---              if s<>"-" then tsymb s
---              (* remove the ambiguity of the ``-'' symbol           *)
---              (* according to the last exp element put on the stack *)
---              else match stack
---                   with (Texp _)::_  ->  Tbin MINUS
---                                 | _ ->  Tunr UMINUS
---            in ( match symbol with
---                   Tunr op  ->  (Tunr op)::stack
---                 | Tbin op  ->
---                     ( try stack_or_reduce lex (reduce (priority_binop op)
---                                                stack )
---                       with ParseError -> (Tbin op)::stack )
---                 | _ -> raise ParseError )
---    | _ , _ -> raise ParseError ;;
+<<
+Original code, in OCaml:
 
+```ocaml
 
-fun stack-or-reduce(lex, stack) =
+let rec stack_or_reduce lex stack = match lex , stack with
+     Lint n ,  _      ->  (Texp (ExpInt n))::stack
+   | Lident v ,  _    ->  (Texp (ExpVar v))::stack
+   | Lstring s , _    ->  (Texp (ExpStr s))::stack
+   | Lsymbol "(" , _  ->  Tlp::stack
+   | Lsymbol ")" , (Texp e)::Tlp::st  ->  (Texp e)::st
+   | Lsymbol ")" , _ -> stack_or_reduce lex (reduce 0 stack)
+   | Lsymbol s , _
+        -> let symbol =
+             if s<>"-" then tsymb s
+             (* remove the ambiguity of the ``-'' symbol           *)
+             (* according to the last exp element put on the stack *)
+             else match stack
+                  with (Texp _)::_  ->  Tbin MINUS
+                                | _ ->  Tunr UMINUS
+           in ( match symbol with
+                  Tunr op  ->  (Tunr op)::stack
+                | Tbin op  ->
+                    ( try stack_or_reduce lex (reduce (priority_binop op)
+                                               stack )
+                      with ParseError -> (Tbin op)::stack )
+                | _ -> raise ParseError )
+   | _ , _ -> raise ParseError ;;
+
+```
+>>
+
+def stack-or-reduce(lex, stack) =
 	match (lex, stack)
-		| (Lint(n), _) -> Ok(stack ++ Texp(ExpInt(n)))
-		| (Lident(v), _) -> Ok(stack ++ Texp(ExpVar(v)))
-		| (Lstring(s), _) -> Ok(stack ++ Texp(ExpStr(s)))
-		| (Lsymbol("("), _) -> Ok(stack ++ Tlp)
-		| (Lsymbol(")"), Array(..., Tlp, Texp(e)) -> Ok(stack ++ Texp(e)))
-		| (Lsymbol(")"), _) -> stack-or-reduce(lex, reduce(0, stack))
-		| (Lsymbol(s), _) ->
-			symbol =
-				if s != "-" then
-					tsymb(s)
-					-- remove the ambiguity of the ``-'' symbol
-					-- according to the last exp element put on the stack
-				else
-					match stack
-						| Array(..., Texp(_)) -> Tbin(minus)
-						| _ -> Tunr(uminus)
-						|;
-			match symbol
-				| Tunr(op) -> Ok(stack ++ Tunr(op))
-				| Tbin(op) ->
-					stack-or-reduce(lex, reduce(priority-binop(op), stack))
-						.unwrap-or(stack ++ Tbin(op))
-				| _ -> Err(ParseError)
-				|;
-		| _ -> Err(ParseError)
-		|;
+	case (Lint(n?), ?) then Ok(stack ++ Texp(ExpInt(n)))
+	case (Lident(v?), ?) then Ok(stack ++ Texp(ExpVar(v)))
+	case (Lstring(s?), ?) then Ok(stack ++ Texp(ExpStr(s)))
+	case (Lsymbol("("), ?) then Ok(stack ++ Tlp)
+	case (Lsymbol(")"), Array(..., Tlp, Texp(e?)) then Ok(stack ++ Texp(e)))
+	case (Lsymbol(")"), ?) then stack-or-reduce(lex, reduce(0, stack))
+	case (Lsymbol(s?), ?) then
+		let symbol =
+			if s != "-" then
+				tsymb(s)
+				-- remove the ambiguity of the ``-'' symbol
+				-- according to the last exp element put on the stack
+			else
+				match stack
+				case Array(..., Texp(?)) then Tbin(minus)
+				else ? then Tunr(uminus)
+		in
+		match symbol
+		case Tunr(op?) then Ok(stack ++ Tunr(op))
+		case Tbin(op?) then
+			stack-or-reduce(lex, reduce(priority-binop(op), stack))
+				.unwrap-or(stack ++ Tbin(op))
+		else ? then Err(ParseError)
+	else ? then Err(ParseError)
 
 
 -- More idiomatic:
 
 
-fun stack-or-reduce(lex, stack) =
+def stack-or-reduce(lex, stack) =
 	match lex
-		| Lex.Int(n) -> Ok(stack ++ Term.Exp(Exp.Int(n)))
-		| Lex.Ident(v) -> Ok(stack ++ Term.Exp(Exp.Var(v)))
-		| Lex.String(s) -> Ok(stack ++ Term.Exp(Exp.Str(s)))
-		| Lex.Symbol("(") -> Ok(stack ++ Term.LPar)
-		| Lex.Symbol(")") ->
-			match stack
-				| Array(..., Term.LPar, Term.Exp(e)) ->
-					Ok(stack ++ Term.Exp(e)))
-				| _ ->
-					stack-or-reduce(lex, reduce(0, stack))
-				|;
+	case Lex.Int(n?) then
+		Ok(stack ++ Term.Exp(Exp.Int(n)))
 
-		| Lex.Symbol(s) ->
-			-- remove the ambiguity case the `-` symbol
-			-- according to the last exp element put on the stack
-			symbol =
-				if s == "-" then
-					match stack
-						| Array(..., Term.Exp(_)) -> Term.Bin(minus)
-						| _ -> Term.Unr(uminus)
-						|;
-				else
-					tsymb(s)
+	case Lex.Ident(v?) then
+		Ok(stack ++ Term.Exp(Exp.Var(v)))
 
-			match symbol
-				| Term.Unr(op) -> Ok(stack ++ Term.Unr(op))
-				| Term.Bin(op) ->
-					stack-or-reduce(lex, reduce(priority-binop(op), stack))
-						.unwrap-or(stack ++ Term.Bin(op))
-				| _ -> Err(Parse-Error)
-				|;
+	case Lex.String(s?) then
+		Ok(stack ++ Term.Exp(Exp.Str(s)))
 
-		| _ -> Err(Parse-Error)
-		|;
+	case Lex.Symbol("(") then
+		Ok(stack ++ Term.LPar)
+
+	case Lex.Symbol(")") then
+		match stack
+		case Array(..., Term.LPar, Term.Exp(e?)) then
+			Ok(stack ++ Term.Exp(e)))
+		else ? then
+			stack-or-reduce(lex, reduce(0, stack))
+
+	case Lex.Symbol(s) then
+		-- remove the ambiguity on the `-` symbol
+		-- according to the last exp element put on the stack
+		let symbol =
+			if s == "-" then
+				match stack
+				case Array(..., Term.Exp(?)) then Term.Bin(minus)
+				else ? then Term.Unr(uminus)
+			else
+				tsymb(s)
+		in
+		match symbol
+		case Term.Unr(op?) then
+			Ok(stack ++ Term.Unr(op))
+		case Term.Bin(op?) then
+			stack-or-reduce(lex, reduce(priority-binop(op), stack))
+				.unwrap-or(stack ++ Term.Bin(op))
+		else ? then
+			Err(Parse-Error)
+
+	else ? then
+		Err(Parse-Error)
+
+
+-- More uniform:
+
+
+def stack-or-reduce(lex, stack) =
+	match lex
+	case Lex.Int(n?) then
+		Ok(stack ++ Term.Exp(Exp.Int(n)))
+
+	case Lex.Ident(v?) then
+		Ok(stack ++ Term.Exp(Exp.Var(v)))
+
+	case Lex.String(s?) then
+		Ok(stack ++ Term.Exp(Exp.Str(s)))
+
+	case Lex.Symbol("(") then
+		Ok(stack ++ Term.LPar)
+
+	case Lex.Symbol(")") then
+		match stack
+		case Array(..., Term.LPar, Term.Exp(e?)) then
+			Ok(stack ++ Term.Exp(e?)))
+		else ? then
+			stack-or-reduce(lex, reduce(0, stack))
+
+	case Lex.Symbol(s) then
+		-- remove the ambiguity on the `-` symbol
+		-- according to the last exp element put on the stack
+		let symbol =
+			if s == "-" then
+				match stack
+				case Array(..., Term.Exp(?)) then
+					Term.Bin(minus)
+				else ? then
+					Term.Unr(uminus)
+			else
+				tsymb(s)
+		in
+		match symbol
+		case Term.Unr(op) then
+			Ok(stack ++ Term.Unr(op))
+		case Term.Bin(op) then
+			stack-or-reduce(lex, reduce(priority-binop(op), stack))
+				.unwrap-or(stack ++ Term.Bin(op))
+		else ? then
+			Err(Parse-Error)
+
+	else ? then
+		Err(Parse-Error)

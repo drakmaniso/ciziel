@@ -1,22 +1,26 @@
 -- [Haskell's Typeclassopedia]: https:--wiki.haskell.org/Typeclassopedia
 
 
+forall A
 trait #functor[A] {
+	type Self[A]
+
     fun (Self[A]).fmap(transform: A -> B) -> Self[B]
 
     fun (Self[A]) $> (value: B) -> Self[B] =
-        self.map(() -> value)
+        self.map(() => value)
 
     fun Self[A].lift(transform: A -> B) -> (Self[A] -> Self[B]) =
-        -> ___.map(transform)
+        ___.map(transform)
 }
 
 
 -------------------------------------------------------------------------------
 
 
+forall A
 trait #applicative[A] {
-    trait #functor[A]
+	type Self[A]: #functor[A]
 
     -- aka `wrap`
     fun Self[A].pure(value: A) -> Self[A]
@@ -28,31 +32,36 @@ trait #applicative[A] {
     fun (Self[A]) *> (other: Self[B]) -> Self[B] =
         (identity <$ a) <*> b
 
-    -- aka `discard`? `when-also`?
+    -- aka `discard`? `case-also`?
     fun (Self[A]) <* (other: Self[B]) -> Self[A] =
-        const-f = { x, any -> x }
-        Self.lift-2(const-f)
+		do
+			const-f = { x, any -> x }
+
+			Self.lift-2(const-f)
+		end
 
     fun Self[Any].lift-2(f: (A, B) -> C) -> (Self[A], Self[B]) -> Self[C] =
-        curried-f: A -> B -> C = a -> b -> f(a, b)
+		do
+			curried-f: A -> B -> C = a => b => f(a, b)
 
-		(a, b) ->
-			Self.pure(curried-f) <*> Self.pure(a) <*> Self.pure(b)
+			(a, b) =>
+				Self.pure(curried-f) <*> Self.pure(a) <*> Self.pure(b)
+		end
 }
 
 
 -------------------------------------------------------------------------------
 
 trait #monad[A] {
-    trait #applicative[A]
+    type Self[A]: #applicative[A]
 
     -- aka `chain`, `flat-map`, `bind`...
     fun (Self[A]) */= (operation: A -> Self[B]) -> Self[B]
 
     fun (Self[A]) */ (other: Self[B]) -> Self[B] =
-        self */= (() -> other)
+        self */= (() => other)
 
-	forall M #monad
+	forall M: #monad
     fun (Self[M[A]]).join -> Self[A] =
         self.chain(identity)
 }
@@ -79,7 +88,7 @@ trait #comonad[A] {
     fun (Self[A]).duplicate -> Self[Self[A]] =
         self.extend(identity)
 
-    fun (Self[A]).extend(f: fun(Self[A]) -> B) -> Self[B] =
+    fun (Self[A]).extend(f: Self[A] -> B) -> Self[B] =
         self.duplicate.map(f)
 }
 
@@ -97,7 +106,7 @@ trait #monoid {
 
     val Self.empty: Self
 
-    forall A[Self] #functor
+    forall A[Self]: #functor
     fun Self.concat(values: A[Self]) -> Self =
         values.fold(Self.append, Self.empty)
 }
@@ -120,15 +129,16 @@ trait #monad-plus[A] {
 
 -------------------------------------------------------------------------------
 trait #reduce[T] {
-	forall T #monoid
+	forall T: #monoid
     fun (Self[T]).reduce(operation: (T, T) -> T) -> T
 
-	forall T #monoid
+	forall T: #monoid
     fun (Self[T]).fold-map(operation: T -> A) -> A
 }
 
 
-trait #reduce[T #monoid] {
+forall T: #monoid
+trait #reduce[T] {
     fun (Self).reduce(operation: (T, T) -> T) -> T
     fun (Self).fold-map(operation: T -> A) -> A
 }
@@ -175,8 +185,7 @@ trait #category[T, U] {
 }
 
 
-trait #arrow[T, U] {
-    trait #category[T, U]
+trait #arrow[T, U]: #category[T, U] {
     fun Self.arrow(operation: T -> U) -> Self[T, U]
     fun (Self).first -> Self[(T, A), (U, A)]
     fun (Self).parrallel-compose(other: Self[A, B]) -> Self[(T, A), (U, B)]
@@ -184,21 +193,18 @@ trait #arrow[T, U] {
 }
 
 
-trait #arrow-apply[T, U] {
-    trait #arrow[T, U]
+trait #arrow-apply[T, U]: #arrow[T, U] {
     val Self.application: Self[(Self[A, B], A), B]
 }
 
 
-trait #arrow-loop[T, U] {
-    trait #arrow[T, U]
+trait #arrow-loop[T, U]: #arrow[T, U] {
     fun Self.loop(Self[(A, C), (B, C)]) -> Self[A, B]
 }
 
 
 -------------------------------------------------------------------------------
-trait #comonad[T] {
-    trait #functor[T]
+trait #comonad[T]: #functor[T] {
     fun (Self).extract -> T
     fun (Self).duplicate -> Self[Self[T]]
     fun (Self).extend_(operation: Self[T] -> A) -> Self[A] =

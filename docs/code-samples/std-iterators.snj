@@ -1,43 +1,42 @@
 module /std/iterators
 
 
-public ------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-trait #iterable {
-    type Self.Iterator #iterator
-    fun (Self).iterator -> Self.Iterator
-}
+def #iterable =
+    has Self.Iterator: #iterator
+    has (Self).iterator -> Self.Iterator
 
 
-trait #iterator {
-    type Self.Item
-	fun (Self).peek -> Option[Self.Item]
-	fun (Self).next -> Self
-}
+def #iterator =
+    has Self.Item: #any
+	has (Self).peek -> Option[Self.Item]
+	has (Self).next -> Self
 
 
-public ------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-type Map[I #iterator, A] {
-	iterator: I,
-	transform: I.Item -> A,
-}
+def Map[I #iterator, A] =
+	record {
+		iterator: I,
+		transform: I.Item -> A,
+	}
 
 
-extend Map[I, A] as #iterator
+def Map[I, A] as #iterator
 
 
-alias Map[I, A].Item = A
+def Map[I, A].Item = A
 
 
-fun (Map[I, A]).peek -> Option[A] =
-	item ?= self.iterator.peek
+def (Map[I, A]).peek -> Option[A] =
+	let? item = self.iterator.peek
 	Ok(self.transform(item))
 
 
-fun (Map[I, A]).next -> Map[I, A] =
+def (Map[I, A]).next -> Map[I, A] =
 	self.with {
 		iterator = self.iterator.next
 	}
@@ -55,60 +54,60 @@ type Counter {
 }
 
 
-fun Counter.new(limit: Int) -> Counter =
+let Counter.new(limit: Int) -> Counter =
     Counter { count = 0, limit = limit }
 
 
-extend Counter as #iterator
+let Counter as #iterator
 
 
-alias Counter.Item = Int
+let Counter.Item = Int
 
 
-fun (Counter).peek -> Option[Int] =
+let (Counter).peek -> Option[Int] =
 	if self.count >= self.limit then
 		None
 	else
 		Ok(self.count)
 
 
-fun (Counter).next -> Counter =
+let (Counter).next -> Counter =
 	if self.count >= self.limit then
 		self
 	else
 		self.with { count = count + 1 }
 
 
-fun example() -> () &io =
-	fun step(c) =
+let example() -> Nil &io =
+	let step(c) =
 		match c.peek
-			| None ->
-				print("Done!")
-			| Ok(number) ->
-				!print("{number}, ")
-				step(c.next)
-			|;
+		when None then
+			print("Done!")
+		else when Ok(number) then
+			do print("{number}, ")
+			step(c.next)
 
-	counter = Counter.new(7)
+	let counter = Counter.new(7)
 
 	step(counter)
 
 
-local ["test"] ----------------------------------------------------------------
+-------------------------------------------------------------------------------
 
-
-forall I #iterator
-fun foo(iterator: I, f: I.Item -> Int) -> Array[Int] =
+given I #iterator
+let foo(iterator: I, f: I.Item -> Int) -> Array[Int] =
     iterator.fold(Array(), Array.push)
 
 
-forall I #iterator,
+given I #iterator,
 	J #iterator,
 	I.Item == J.Item,
 	I.Item #eq
-fun compare(i: I, j: J) -> Bool =
+let compare(i: I, j: J) -> Bool =
     match (i.peek, j.peek)
-		| (None, None) -> True
-		| (Ok(a), Ok(b)) and (a == b) -> compare(i-next, j-next)
-		| _ -> False
-		|;
+	case (None, None) then
+		True
+	case (Ok(a), Ok(b)) and (a == b) then
+		compare(i-next, j-next)
+	else
+		False

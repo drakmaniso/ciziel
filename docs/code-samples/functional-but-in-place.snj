@@ -1,53 +1,55 @@
-struct Polygon {
-    vertices: Array[Vec2]
-}
+let Polygon =
+	struct {
+		vertices: Array[Vec2]
+	}
 
 
-/* `offset` is an updater: a method where the return type is the same as the
-receiver type. */
-fun (Polygon).offset(delta: Vec2) -> Polygon =
-    self.vertices.map(=> ___ + delta)
+<< `offset` is an updater: a method where the return type is the same as the
+receiver type. >>
+let (p: own Polygon).offset(delta: Vec2) -> own Polygon =
+	p.vertices.map(=> ___ + delta)
 
 
-fun main() -> () &io =
-	shape = Polygon(vertices = [...])
-	shape' = shape.offset(Vec2(1, 0)) -- `offset` should *mutate* the array
-	!print(shape')
+let example-1() -> () &io =
+	let shape = Polygon { vertices = [...] }
+	let shape' = shape.offset(Vec2(1, 0)) -- *mutates* the array
+	do print(shape')
 	()
 
 
-fun main() -> () &io =
-	shape = Polygon(vertices = [...])
-	!print(shape.offset(Vec2(1, 0))) -- `offset` should *allocate* a new array
-	!print(shape)
+let example-2() -> () &io =
+	let shape = Polygon { vertices = [...] }
+	do print(shape.offset(Vec2(1, 0))) -- *allocates* a new array (i.e. inserts `clone` then mutates)
+	do print(shape)
 	()
 
 
-fun main() -> () &io =
-	shape = Polygon(vertices = [...])
-	!print(shape.offset(Vec2(1, 0))) -- `offset` should *mutate* the array
+let example-3() -> () &io =
+	let shape = Polygon { vertices = [...] }
+	do print(shape.offset(Vec2(1, 0))) -- `offset` should *mutate* the array
 	()
 
 
 -- Computed Properties --------------------------------------------------------
 
 
-struct Angle {
-    radians: Float64
-}
+let Angle =
+	struct {
+		radians: Float64
+	}
 
 
-fun (Angle).degrees -> Float64 =
-    (self.radians * 180) / (2 * math::pi)
+let (a: Angle).degrees -> Float64 =
+    (a.radians * 180) / (2 * math::pi)
 
 
-fun (Angle).with-degrees(degrees: Float64) -> Angle =
-    Angle { radians = (degrees * 2 * math::pi) / 180 }
+let (a: own Angle).with-degrees(degrees: Float64) -> own Angle =
+    a with { radians = (degrees * 2 * math::pi) / 180 }
 
 
-fun main() -> () &io =
-	theta = Angle { radians = 0.12 }
-	x = theta.degrees
-	theta' = theta.with-degrees(x + 90) -- mutates `theta`
-	!print(theta')
+let example-4() -> () &io =
+	let theta = Angle { radians = 0.12 }
+	let x = theta.degrees
+	let theta' = theta.with-degrees(x + 90) -- mutates `theta`
+	do print(theta')
 	()

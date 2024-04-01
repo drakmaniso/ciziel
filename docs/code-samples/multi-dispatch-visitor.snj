@@ -36,7 +36,7 @@ fun (Dog).visit-dog(other: Dog) -> String = "sniffs"
 
 forall A #usual-pet, B #usual-pet
 fun encounter-usual(a: A, b: B) -> String =
-    verb = a.meets-usual(b)
+    let verb = a.meets-usual(b)
     "{a.name} meets {b.name} and {verb}"
 
 

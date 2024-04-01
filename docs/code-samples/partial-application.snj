@@ -1,32 +1,36 @@
-fun foo(a: Int, b: Float) -> String = "{a} and {b}"
+def foo(a: Int, b: Float) -> String =
+	"{a} and {b}"
 
 
-fun (Int).bar(b: Float) -> String = "{a} and {b}"
+def (a: Int).bar(b: Float) -> String =
+	"{a} and {b}"
 
 
-fun example-partial-application() -> () &io =
-	do
-		print( (=> foo(___, 0.5)).Type )
-		-- Int -> String
+def example-partial-application() -> Nil &io =
+	let print-type(a) = print(a.Type)
 
-		print( (=> foo(123, ___)).Type )
-		-- Float -> String
+	do print-type( foo(___, 0.5) )
+	-- Int -> String
 
-		print( (=> foo(___, ___)).Type )
-		-- (Int, Float) -> String
+	do print-type( foo(123, ___) )
+	-- Float -> String
 
-		print( (=> ___.bar(0.5)).Type )
-		-- Int -> String
+	do print-type( foo(___, ___) )
+	-- (Int, Float) -> String
 
-		print( (=> 123.bar(___)).Type )
-		-- Float -> String
+	do print-type( ___.bar(0.5) )
+	-- Int -> String
 
-		print( (=> ___.bar(___)).Type )
-		-- (Int, Float) -> String
-	end
+	do print-type( 123.bar(___) )
+	-- Float -> String
+
+	do print-type( ___.bar(___) )
+	-- (Int, Float) -> String
+
+	Nil
 
 
-fun main() =
-	ex1 = 123.pipe(=> foo("abc", ___))
-	ex2 = 123.pipe(x => foo("abc", x))
-	()
+def main() =
+	let _ex1 = 123.pipe(=> foo("abc", ___))
+	let _ex2 = 123.pipe(x => foo("abc", x))
+	Nil

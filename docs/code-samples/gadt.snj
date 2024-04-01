@@ -4,18 +4,15 @@ module gadt
 public ------------------------------------------------------------------------
 
 
-/*
-First example, from [wikipedia][1].
+<< First example, from [wikipedia][1].
 
-[1]: <https://en.wikipedia.org/wiki/Generalized_algebraic_data_type>
-*/
+[1]: <https://en.wikipedia.org/wiki/Generalized_algebraic_data_type> >>
 
 
-type Expr[_] =
+union Expr[_] =
 	| Expr[Bool].Bool(value: Bool)
 	| Expr[Int].Int(value: Int)
 	| Expr[Bool].Equal(left: ref Expr[Int], right: ref Expr[Int])
-	|;
 
 
 dispatch (Expr[T]).eval -> T
@@ -25,12 +22,12 @@ fun (Expr.Equal).eval -> Bool = left.equal == right.equal
 
 
 fun first-example() -> () &io =
-	expr1 = Expr.Equal(Expr.Int(2), Expr.Int(3))
-	!print("{expr1.Type}")
+	let expr1 = Expr.Equal(Expr.Int(2), Expr.Int(3))
+	do print("{expr1.Type}")
 	-- Expr[Bool]
 
-	eval1 = expr1.eval
-	!print("{eval1.Type}")
+	let eval1 = expr1.eval
+	do print("{eval1.Type}")
 	-- Bool
 
 	()
@@ -39,32 +36,36 @@ fun first-example() -> () &io =
 public ------------------------------------------------------------------------
 
 
-/*
+<<
 Second example, from ["Fun with phantom types"][2] by R. Hinze.
 
 [2]: <https://www.researchgate.net/publication/228707929_Fun_with_phantom_types>
-*/
+>>
 
 
-type Term[_] =
-	| Term[Int].Zero
-	| Term[Int].Succ(arg: Term[Int])
-	| Term[Int].Pred(arg: Term[Int])
-	| Term[Bool].Is-Zero(arg: Term[Int])
-	| Term[T].If {
-		condition: Term[Bool],
-		then-branch: T,
-		else-branch: T,
-	}
-	|;
+union Term = ITerm | BTerm
+union ITerm = Zero | Succ | Pred | If[Int]
+union BTerm = Is-Zero | If[Bool]
 
+data Zero
+data Succ(arg: ITerm)
+data Pred(arg: ITerm)
+data Is-Zero(arg: ITerm)
+data If[T] {
+	condition: BTerm,
+	then-branch: T,
+	else-branch: T,
+}
 
-dispatch (Term[T]).eval -> T
-fun (Term.Zero).eval -> Int = 0
-fun (Term.Succ).eval -> Int = self.arg.eval + 1
-fun (Term.Pred).eval -> Int = self.arg.eval - 1
-fun (Term.Is-Zero).eval -> Bool = self.arg.eval == 0
-fun (Term[T].If).eval -> T =
+auto (Term).eval -> Int | Bool
+auto (ITerm).eval -> Int
+auto (BTerm).eval -> Bool
+
+fun (Zero).eval -> Int = 0
+fun (Succ).eval -> Int = self.arg.eval + 1
+fun (Pred).eval -> Int = self.arg.eval - 1
+fun (Is-Zero).eval -> Bool = self.arg.eval == 0
+fun (If[T]).eval -> T =
 	if self.condition.eval then
 		self.then-branch.eval
 	else
@@ -74,11 +75,11 @@ fun (Term[T].If).eval -> T =
 public ---- Third GADT Example: Higher-Order Abstract Syntax ------------------
 
 
-/*
+<<
 Third example, also from [wikipedia][3].
 
 [3]: <https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax>
-*/
+>>
 
 
 type Expr[_] =

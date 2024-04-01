@@ -1,0 +1,82 @@
+<< Encapsulation >>
+
+
+-- Records --------------------------------------------------------------------
+
+
+let Private =
+	type {
+		foo: Int,
+		bar: Bool,
+	}
+
+
+def Opaque =
+	type {
+		foo: Int,
+		bar: Bool,
+	}
+
+
+def Mixed =
+	type {
+		hidden: Int,
+		def read-only: Bool,
+		data writable: String,
+	}
+
+
+def Transparent =
+	data {
+		foo: Int,
+		bar: Bool,
+	}
+
+
+-- Unions ---------------------------------------------------------------------
+
+
+let Private =
+	type Foo
+	type Bar { baz: Bool }
+
+
+def Opaque =
+	type Foo
+	type Bar { baz: Bool }
+
+
+def Transparent =
+	data Foo
+	data Bar { baz: Bool }
+
+
+-- Aliases --------------------------------------------------------------------
+
+
+let Foo = Int
+
+
+<< Outside of the module, `Foo` is visible, but opaque (i.e. it is not an alias
+for `Int` anymore). >>
+def Foo = type as Int
+
+
+def Foo = data as Int
+
+
+-------------------------------------------------------------------------------
+
+
+let #private =
+	has (t: Self).foo -> Int
+	has (t: Self).bar(arg: Bool) -> String
+
+
+def #opaque =
+	has Self #private
+
+
+def #transparent =
+	has (t: Self).foo -> Int
+	has (t: Self).bar(arg: Bool) -> String

@@ -1,0 +1,113 @@
+<< The Expression Problem >>
+
+
+module basic
+
+
+def #eval =
+	has (e: Self).eval -> Int
+
+
+def Literal =
+	struct {
+		value: Int,
+	}
+	#data
+
+
+def Addition[T #any] =
+	struct {
+		left: Ref[T],
+		right: Ref[T],
+	}
+	#data
+
+
+def #eval for Literal, Addition[#eval]
+
+
+def (l: Literal).eval -> Int =
+	l.value
+
+
+def (a: Addition[#eval]).eval -> Int =
+	a.left.eval + a.right.eval
+
+
+-------------------------------------------------------------------------------
+
+
+module extended
+
+
+use basic { #eval, Literal, Addition }
+
+
+def Negation[T #any] =
+	struct {
+		subexpr: Ref[T],
+	}
+	#data
+
+
+def #eval for Negation[#eval]
+
+
+def (n: Negation[#eval]).eval -> Int =
+	- n.subexpr.eval
+
+
+def #pretty =
+	has (p: Self).pretty -> String
+
+
+def #pretty for Literal, Addition[#pretty], Negation[#pretty]
+
+
+def (l: Literal).pretty -> String =
+	l.value <to> String
+
+
+def (a: Addition[#pretty]).pretty -> String =
+	let l = a.left.pretty
+	let r = a.right.pretty
+	in
+	match (a.left, a.right)
+	case (Literal(_), Literal(_)) then
+		"{l} + {r}"
+	case (Literal(_), _) then
+		"{l} + ({r})"
+	case (_, Literal(_)) then
+		"({l}) + {r}"
+	else (_, _) then
+		"({l}) + ({r})"
+
+
+def (n: Negation[#pretty]).pretty -> String =
+	"- ({n.subexpr.pretty})"
+
+
+-------------------------------------------------------------------------------
+
+
+module main
+
+
+use std::io { &io }
+use basic { #eval, Literal, Addition }
+use extended { #pretty, Negation }
+
+
+let Expr =
+	| Literal
+	| Addition[Expr]
+	| Negation[Expr]
+
+
+let #eval #pretty for Expr
+
+
+def main() -> () &io =
+	let e1: Expr = Addition(Literal(77), Negation(Literal(12)))
+	do Io.print("{e1.pretty} = {e1.eval}")
+	in ()

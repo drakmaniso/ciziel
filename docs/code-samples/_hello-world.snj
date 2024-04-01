@@ -1,6 +1,8 @@
 module main
 
-use &io from /std/io
 
-fun main() -> () &io =
+use std::io { &io }
+
+
+def main() ->  Nil &io =
 	print("Hello, World!")

@@ -1,0 +1,291 @@
+module geom
+
+
+use std::vec { Vec2, Point }
+use std::math
+
+
+-------------------------------------------------------------------------------
+
+
+def #shape =
+	trait
+	has (s: Self).perimeter -> Float32
+	has (s: Self).area -> Float32
+	has (s: Self).move-by(delta: Vec2) -> Self
+	has (s: Self).scale-by(factor: Float32) -> Self
+
+
+def Circle =
+	data struct {
+		center: Point,
+		radius: Float32,
+	}
+
+
+def Triangle =
+	data struct {
+		a: Point,
+		b: Point,
+		c: Point,
+	}
+
+
+def Rectangle =
+	data struct {
+		origin: Point,
+		width: Float32,
+		height: Float32,
+		angle: Float32,
+	}
+
+
+def BBox =
+	struct {
+		def min: Point,
+		def max: Point,
+	}
+
+
+def Polygon: #owned =
+	struct {
+		points: Array[Point],
+	}
+
+
+def Basic-Shape =
+	union
+	| Circle
+	| Triangle
+	| Rectangle
+	| BBox
+
+
+def #shape for Basic-Shape
+
+
+-------------------------------------------------------------------------------
+
+
+def Circle.around(points: Array[Point]) -> Circle =
+	let welzl(points, boundary) =
+		match points
+		case Array()
+		case ? and (boundary.length == 3) then
+			trivial(boundary)
+		else Array(p?, ...rest?) then
+			let c = welzl(rest, boundary)
+			in
+			if c.encloses(p) then
+				c
+			else
+				welzl(rest, boundary.push(p))
+	in
+	welzl(points, Array())
+
+
+def Circle.diameter(self) -> Float32 =
+	c.radius * 2
+
+
+def Circle.with-diameter(self, diameter: Float32) -> Circle =
+	c.with { radius = diameter / 2 }
+
+
+def #shape for Circle
+
+
+def Circle.perimeter(self) -> Float32 =
+	math::pi * c.diameter
+
+
+def Circle.with-perimeter(self, perimeter: Float32) -> Circle =
+	c.with { diameter = perimeter / math::pi }
+
+
+def Circle.area(self) -> Float32 =
+	math::pi * (c.radius ** 2)
+
+
+def Circle.with-area(self, area: Float32) -> Circle =
+	c.with { radius = Float32.sqrt(area / math::pi) }
+
+
+def Circle.move-by(self, delta: Vec2) -> Circle =
+	c.with { center += delta }
+
+
+def Circle.scale-by(self, factor: Float32) -> Circle =
+	c.with { radius *= factor }
+
+
+-------------------------------------------------------------------------------
+
+
+def (t: Triangle).perimeter -> Float32 =
+	let { a, b, c } = t
+	in
+	distance(a, b) + distance(b, c) + distance(c, a)
+
+
+def (t: Triangle).area -> Float32 =
+	let { a, b, c } = t
+	in
+	0.5 * (
+		(a.x * (b.y - c.y))
+		+ (b.x * (c.y - a.y))
+		+ (c.x * (a.y - b.y))
+	).abs
+
+
+
+def (t: Triangle).move-by(delta: Vec2) -> Triangle =
+	t.with { a += delta, b += delta, c += delta }
+
+
+def (t: Triangle).scale-by(factor: Vec2) -> Triangle =
+	let scale-from-center(v) = t.center + (factor * (v - t.center))
+	in
+	t.with {
+		a = scale-from-center(t.a),
+		b = scale-from-center(t.b),
+		c = scale-from-center(t.c),
+	}
+
+
+-------------------------------------------------------------------------------
+
+
+def BBox.new(a: Point, b: Point) -> BBox =
+	let xs = (a.x, b.x)
+	let ys = (a.y, b.y)
+	in
+	BBox {
+		min = Point(min(...xs), min(...ys)),
+		max = Point(max(...xs), max(...ys)),
+	}
+
+
+def (b: BBox).min -> Point
+
+
+def (b: BBox).max -> Point
+
+
+def (b: BBox).width -> Float32 =
+	b.max.x - b.min.x
+
+
+def (b: BBox).height -> Float32 =
+	b.max.y - b.min.y
+
+
+def (b: BBox).size -> Vec2 =
+	Vec2(b.width, b.height)
+
+
+def #shape for BBox
+
+
+def (b: BBox).perimeter -> Float32 =
+	2 * (b.width + b.height)
+
+
+def (b: BBox).area -> Float32 =
+	b.width * b.height
+
+
+def (b: BBox).move-by(delta: Vec2) -> BBox =
+	b.with {
+		min += delta,
+		max += delta,
+	}
+
+
+def (b: BBox).scale-by(factor: Float32) -> BBox =
+	let size-delta = (factor * b.size) - b.size
+	in
+	b.with {
+		min -= size-delta / 2,
+		max += size-delta / 2,
+	}
+
+
+
+-------------------------------------------------------------------------------
+
+
+def Rectangle.new(
+	origin: Point,
+	width: Float32,
+	height: Float32,
+	angle: Float32,
+) -> Rectangle =
+	let { ox, w } =
+		if width < 0 then {
+			ox = origin.x - width,
+			w = - width,
+		}
+		else {
+			ox = origin.x,
+			w = width,
+		}
+
+	let { oy, h } =
+		if height < 0 then {
+			oy = origin.y - height,
+			h = - height,
+		}
+		else {
+			oy = origin.y,
+			h = height,
+		}
+
+	in
+	Rectangle {
+		origin = Point(ox, oy),
+		width = w,
+		height = h,
+		angle = angle <mod> (2 * math.pi),
+	}
+
+
+def (r: Rectangle).size -> Vec2 =
+	Vec2(r.width, r.height)
+
+
+def #shape for Rectangle
+
+
+def (r: Rectangle).perimeter -> Float32 =
+	2 * (r.width + r.height)
+
+
+def (r: Rectangle).area -> Float32 =
+	r.width * r.height
+
+
+def (r: Rectangle).move-by(delta: Point) -> Rectangle =
+	r.with { origin += delta }
+
+
+def (r: Rectangle).scale-by(factor: Float32) -> Rectangle =
+	r.with {
+		width *= factor,
+		height *= factor,
+	}
+
+
+-------------------------------------------------------------------------------
+
+
+def Polygon.new(...points: Array[Point]) =
+	Polygon(points)
+
+
+def (p: Polygon) [] (index: Int) -> Point =
+	p.points[index]
+
+
+def (p: Polygon) [] (range: Range[Int]) -> Array[Point] =
+	p.points[range]

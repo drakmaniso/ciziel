@@ -1,0 +1,121 @@
+<<
+pub fn check_for_match_at(gems: &Grid<Gem>, position: VecG) -> bool {
+    match gems.tiling() {
+        Tiling::Square => {
+            let horizontal_count = 1
+                + count_matches(gems, position, SQUARE_LEFT)
+                + count_matches(gems, position, SQUARE_RIGHT);
+
+            let vertical_count = 1
+                + count_matches(gems, position, SQUARE_UP)
+                + count_matches(gems, position, SQUARE_DOWN);
+
+            let gem = gems.at(position);
+            let in_square_up_left = gems.at(position + SQUARE_UP) == gem
+                && gems.at(position + SQUARE_LEFT) == gem
+                && gems.at(position + SQUARE_UP + SQUARE_LEFT) == gem;
+            let in_square_up_right = gems.at(position + SQUARE_UP) == gem
+                && gems.at(position + SQUARE_RIGHT) == gem
+                && gems.at(position + SQUARE_UP + SQUARE_RIGHT) == gem;
+            let in_square_down_left = gems.at(position + SQUARE_DOWN) == gem
+                && gems.at(position + SQUARE_LEFT) == gem
+                && gems.at(position + SQUARE_DOWN + SQUARE_LEFT) == gem;
+            let in_square_down_right = gems.at(position + SQUARE_DOWN) == gem
+                && gems.at(position + SQUARE_RIGHT) == gem
+                && gems.at(position + SQUARE_DOWN + SQUARE_RIGHT) == gem;
+
+            horizontal_count >= 3
+                || vertical_count >= 3
+                || in_square_up_left
+                || in_square_up_right
+                || in_square_down_left
+                || in_square_down_right
+        }
+        Tiling::Hex => {
+            let vertical_count =
+                1 + count_matches(gems, position, HEX_N) + count_matches(gems, position, HEX_S);
+
+            let upward_diagonal_count =
+                1 + count_matches(gems, position, HEX_SW) + count_matches(gems, position, HEX_NE);
+
+            let downward_diagonal_count =
+                1 + count_matches(gems, position, HEX_NW) + count_matches(gems, position, HEX_SE);
+
+            vertical_count >= 3 || upward_diagonal_count >= 3 || downward_diagonal_count >= 3
+        }
+    }
+}
+
+pub fn count_matches(gems: &Grid<Gem>, position: VecG, direction: VecG) -> i32 {
+    match gems.at(position) {
+        None => 0,
+        Some(starting_gem) => {
+            let mut p = position + direction;
+            let mut count = 0;
+            while gems.at(p) == Some(starting_gem) {
+                p += direction;
+                count += 1;
+            }
+            count
+        }
+    }
+}
+>>
+
+fun check-for-match-at(gems: Grid[Gem], position: VecG) -> Bool =
+    match gems.tiling()
+	case Tiling::Square then
+		horizontal-count =
+			1 + count-matches(gems, position, SQUARE-LEFT)
+			+ count-matches(gems, position, SQUARE-RIGHT)
+		vertical-count =
+			1 + count-matches(gems, position, SQUARE-UP)
+			+ count-matches(gems, position, SQUARE-DOWN)
+
+		gem = gems.at(position)
+		in-square-up-left =
+			gems.at(position + SQUARE-UP) == gem
+			and gems.at(position + SQUARE-LEFT) == gem
+			and gems.at(position + SQUARE-UP + SQUARE-LEFT) == gem
+		in-square-up-right =
+			gems.at(position + SQUARE-UP) == gem
+			and gems.at(position + SQUARE-RIGHT) == gem
+			and gems.at(position + SQUARE-UP + SQUARE-RIGHT) == gem
+		in-square-down-left =
+			gems.at(position + SQUARE-DOWN) == gem
+			and gems.at(position + SQUARE-LEFT) == gem
+			and gems.at(position + SQUARE-DOWN + SQUARE-LEFT) == gem
+		in-square-down-right =
+			gems.at(position + SQUARE-DOWN) == gem
+			and gems.at(position + SQUARE-RIGHT) == gem
+			and gems.at(position + SQUARE-DOWN + SQUARE-RIGHT) == gem
+
+		horizontal-count >= 3
+			|| vertical-count >= 3
+			|| in-square-up-left
+			|| in-square-up-right
+			|| in-square-down-left
+			|| in-square-down-right
+
+	else Tiling::Hex then
+		vertical-count =
+			1 + count-matches(gems, position, HEX-N) + count-matches(gems, position, HEX-S)
+		upward-diagonal-count =
+			1 + count-matches(gems, position, HEX-SW) + count-matches(gems, position, HEX-NE)
+		downward-diagonal-count =
+			1 + count-matches(gems, position, HEX-NW) + count-matches(gems, position, HEX-SE)
+
+		vertical-count >= 3 || upward-diagonal-count >= 3 || downward-diagonal-count >= 3
+
+
+fun count-matches(gems: &Grid[Gem], position: VecG, direction: VecG) -> i32 =
+    match gems.at(position)
+	case None then
+		0
+	else Some(starting-gem) then
+		start = position + direction
+		repeat_while(
+			0,
+			count => gems.at(start + (count * direction)) == Some(starting-gem)
+			count => start + (count * direction)
+		)

@@ -1,0 +1,25 @@
+let example() =
+	let a: !Array[I32] = Array(1, 2, 3, 4)
+	let b: !Array[I32] = a
+	-- `a` is now inaccessible
+	let c: &Array[I32] = &b
+	-- `b` is inaccessible
+	do print("First value of the array: {c[0]}")
+	-- `b` is accessible
+	let d: !Array[I32] = b
+	let e: !Array[I32] = d.with { [0] = 10, ..., [2] = 30, 40, 50, 60 }
+
+given T
+let slice(array: &Array[T], start: USize, fin: USize) -> &Array[T] from array
+
+let !Lend-Iterator[&] =
+	struct {
+		array: &Array[T],
+		index: USize,
+	}
+
+let !Move-Iterator =
+	struct {
+		array: !Array[T],
+		index: USize,
+	}

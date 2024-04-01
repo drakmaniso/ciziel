@@ -1,0 +1,39 @@
+module units
+
+
+def Radians = opaque Float32
+def Meters = opaque Float32
+def Point = opaque Vec2
+
+
+-------------------------------------------------------------------------------
+
+
+def #meters =
+	has (v: Self).m -> Meters
+	has (v: Self).cm -> Meters = v.m / 100
+
+
+def Float32 as #meters
+def (v: Float32).m -> Meters = m
+
+
+def Meters as #add
+def Meters.zero: Meters = 0
+def (m: Meters) + (other: Meters) -> Meters = m + other
+def (m: Meters) + (other: Float32) -> Meters = m + other
+def (other: Float32) + (m: Meters) -> Meters = other + m
+def (m: Meters) * (other: Float32) -> Meters = m * other
+def (other: Float32) * (m: Meters) -> Meters = other * m
+
+
+-------------------------------------------------------------------------------
+
+
+def #radians =
+	has (a: Self).rad -> Radians
+	has (a: Self).deg -> Radians = (a.rad / 180) * math::pi
+
+
+def Float32 as #radians
+def (a: Float32).rad -> Radians = a

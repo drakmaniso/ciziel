@@ -1,0 +1,134 @@
+/* Different approaches for proxy structs */
+
+
+Date ::=
+	struct {
+		repr: UInt32
+	}
+
+
+Date.new(day: Int, month: Int, year: Int) -> Date ::=
+	do
+		day' := day - 1
+		month' := (month - 1) <lshift> 16
+		year' := (year - 1) <lshift> 32
+
+		Date { repr = year' <and> month' <and> day' }
+	end
+
+
+(d: Date).day -> Int ::=
+    d.repr <and> 0x000000FF
+
+
+public
+fun (d: Date).with-day(day: Int) -> Date :=
+	do
+		d' := d.repr <and> 0xFFFFFF00
+		day' := day - 1
+
+		Date { repr = day' <and> d' }
+	end
+
+
+public
+fun (d: Date).month -> Int :=
+    (d.repr <and> 0x0000FF00) <rshift> 16
+
+
+public
+fun (d: Date).with-month(month: Int) -> Date :=
+	do
+		d' := d.repr <and> 0xFFFFFF00
+		month' := (month - 1) <lshift> 16
+
+		Date { repr = month' <and> d' }
+	end
+
+
+fun (d: Date).year -> Int :=
+	do
+		d' := d.repr <and> 0xFFFFFF00
+
+		d.repr <rshift> 32
+	end
+
+
+fun (d: Date).with-year(year: Int) -> Date :=
+	do
+		d' := d.repr <and> 0xFFFFFF00
+		year' := value <lshift> 32
+
+		Date { repr = year' <and> d' }
+	end
+
+-------------------------------------------------------------------------------
+
+
+struct Date {
+	repr: UInt32
+}
+
+
+fun Date { day: Int, month: Int, year: Int } -> Date
+		require 1 <= day <= 31
+			and 1 <= month <= 12
+			and -32768 <= year <= 32767
+	=
+	day' = day - 1
+	month' = (month - 1) <lshift> 16
+	year' = (year - 1) <lshift> 32
+
+	Date { repr = year' <and> month' <and> day' }
+
+
+fun (Date).day -> Int =
+    self.repr <and> 0x000000FF
+
+
+fun (Date).with { day: Int } -> Date =
+	self' = self.repr <and> 0xFFFFFF00
+	day' = day - 1
+	Date { repr = day' <and> self' }
+
+
+fun (Date).month -> Int =
+    (self.repr <and> 0x0000FF00) <rshift> 16
+
+
+fun (Date).with { month: Int } -> Date =
+	self' = self.repr <and> 0xFFFFFF00
+	month' = (month - 1) <lshift> 16
+	Date { repr = month' <and> self' }
+
+
+fun (Date).year -> Int =
+	self' = self.repr <and> 0xFFFFFF00
+    self.repr <rshift> 32
+
+
+fun (Date).with { year: Int } -> Date =
+	self' = self.repr <and> 0xFFFFFF00
+	year' = value <lshift> 32
+	Date { repr = year' <and> self' }
+
+
+-------------------------------------------------------------------------------
+
+
+proxy Date {
+	day: data Int = self.repr <and> 0x000000FF
+	month: data Int = (self.repr <and> 0x0000FF00) <rshift> 16
+	year: data Int = self.repr <rshift> 32
+
+	self: UInt32 =
+		require 1 <= day <= 31
+			and 1 <= month <= 12
+			and -32768 <= year <= 32767
+
+		day' = day - 1
+		month' = (month - 1) <lshift> 16
+		year' = (year - 1) <lshift> 32
+
+		Date { repr = year' <and> month' <and> day' }
+}

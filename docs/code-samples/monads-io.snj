@@ -2,27 +2,24 @@ module main
 use Io from /std/io
 
 
-public
-
-
 --- I/O Using the Io Monad.
-fun main() -> Io[]  =
-	fun get-number() =
-		!Io.put-string("Please enter a number: ")
-		answer ?= Io.input()
-
+def main() -> Io[Nil]  =
+	let get-number() =
+		do Io.put-string("Please enter a number: ")
+		let? answer = Io.input()
+		in
 		match answer.to-int
-			| Some(n) -> Io(n)
-			| None -> get-number()
-			|;
+		case Some(n) then Io(n)
+		else None then get-number()
 
-	number ?= get-number()
-	naive = naive-factorial(number)
-	tail = tail-factorial(number)
-	folded = folded-factorial(number)
+	let? number = get-number()
+	let naive = naive-factorial(number)
+	let tail = tail-factorial(number)
+	let folded = folded-factorial(number)
 
-	!Io.print("naive factorial: {naive}")
-	!Io.print("tail recursice factorial: {tail}")
-	!Io.print("fold-based factorial: {folded}")
+	do Io.print("naive factorial: {naive}")
+	do Io.print("tail recursice factorial: {tail}")
+	do Io.print("fold-based factorial: {folded}")
 
-	Io()
+	in
+	Io(Nil)

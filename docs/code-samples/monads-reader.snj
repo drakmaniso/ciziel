@@ -1,124 +1,136 @@
 -------------------------------------------------------------------------------
-/*from:
+
+<<
+from:
 <https://package.elm-lang.org/packages/Punie/elm-reader/latest/>
-*/
+>>
 
 
-type Reader[C, A](run: C -> A)
+given A, CTX
+def Reader[A, CTX] = struct(run: CTX -> A)
 
 
-implement #monad[A] for Reader[_, A]
+given A
+def #monad[A] for Reader[A, _]
 
 
-fun Reader[C, A].wrap(item: A) -> Reader[C, A] =
-	Reader(() -> item)
+given A, CTX
+def Reader[A, CTX].wrap(item: A) -> Reader[A, CTX] =
+	Reader(() => item)
 
 
-fun (Reader[C, A]).and-then(operation: A -> Reader[C, B]) -> Reader[C, B] =
+given A, B, CTX
+def (r: Reader[A, CTX]).and-then(operation: A -> Reader[B, CTX]) -> Reader[B, CTX] =
 	Reader(
-		context ->
-			a = self.run(context)
-			new-reader = operation(a)
+		context =>
+			let a = r.run(context)
+			let new-reader = operation(a)
+			in
 			new-reader.run(context)
 	)
 
 
-fun Reader.always(value: A) -> Reader[_, A] =
-	Reader(() -> value)
+given A
+def Reader[A, _].always(value: A) -> Reader[A, _] =
+	Reader(() => value)
 
 
-const Reader[C, C].ask: Reader[C, C] =
-	Reader(x -> x)
+given CTX
+def Reader[CTX, CTX].ask: Reader[CTX, CTX] =
+	Reader(x => x)
 
 
-fun Reader[C, A].asks(mapping: C -> A) -> Reader[C, A] =
+given A, CTX
+def Reader[A, CTX].asks(mapping: CTX -> A) -> Reader[A, CTX] =
 	Reader(mapping)
 
 
-fun (Reader[C, A]).change-context(change: C -> C) -> Reader[C, A] =
-	Reader(ctx -> self.run(change(ctx)))
+given A, CTX
+def (r: Reader[A, CTX]).change-context(change: CTX -> CTX) -> Reader[A, CTX] =
+	Reader(ctx => r.run(change(ctx)))
 
 
-fun (Reader[C, A]).map(transform: A -> B) -> Reader[C, B] =
-	Reader(ctx -> transform(self.run(ctx)))
+given A, CTX
+def (r: Reader[A, CTX]).map(transform: A -> B) -> Reader[B, CTX] =
+	Reader(ctx => transform(r.run(ctx)))
 
 
 -------------------------------------------------------------------------------
 module reader-usage
 use reader
-public
 
 
-fun main() -> () &io =
-	!print(greeting("Elm").run(France))
+def main() -> () / Io =
+	do Io.print(greeting("Elm").run(France))
 	-- Bonjour, Elm !
 
-	!print(greeting("Elm").run(Spain))
+	do print(greeting("Elm").run(Spain))
 	-- ¡Buenos Dìas, Elm!
 
-	!print(greeting("Elm").run(USA))
+	do print(greeting("Elm").run(USA))
 	-- Hello, Elm!
 
-	()
+	in ()
 
 
-local
+let Country = France | Spain | USA
 
 
-type Country = France | Spain | USA
-
-
-fun hello-text(country: Country) -> String =
+let hello-text(country: Country) -> String =
 	match country
-		| France -> "Bonjour"
-		| Spain -> "Buenos dìas"
-		| USA -> "Hello"
-		|;
+	case France then "Bonjour"
+	case Spain then "Buenos dìas"
+	else USA then "Hello"
 
 
-fun greet(name: String) -> Reader[Country, String] =
-	Reader.asks(hello-text).and-then(
-		greeting ->
-			Reader(() -> "{greeting} , {name}")
-	)
+let greet(name: String) -> Reader[Country, String] =
+	Reader
+		.asks(hello-text)
+		.and-then(
+			greeting =>
+				Reader(() => "{greeting} , {name}")
+		)
 
 
-fun exclamation(input: String) -> Reader[Country, String] =
-	Reader.ask.and-then(
-		country ->
-			Reader(() ->
-				match country
-					| France -> "{input} !"
-					| Spain -> "¡{input}!"
-					| USA -> "{input}!"
-					|;
-			)
-	)
+let exclamation(input: String) -> Reader[Country, String] =
+	Reader
+		.ask
+		.and-then(
+			country =>
+				Reader(
+					() =>
+						match country
+						case France then "{input} !"
+						case Spain then "¡{input}!"
+						else USA then "{input}!"
+				)
+		)
 
 
-fun greeting(name: String) -> Reader[Country, String] =
+let greeting(name: String) -> Reader[Country, String] =
 	greet(name).and-then(exclamation)
 
 
 -- Or, with monadic bind:
 
 
-fun greet'(name: String) -> Reader[Country, String] =
-	greeting ?= Reader.asks(hello-text)
-	Reader(() -> "{greeting}, {name}")
+let greet'(name: String) -> Reader[Country, String] =
+	let? greeting = Reader.asks(hello-text)
+
+	Reader(() => "{greeting}, {name}")
 
 
-fun exclamation'(input: String) -> Reader[Country, String] =
-	country ?= Reader.ask
-	Reader(() ->
+let exclamation'(input: String) -> Reader[Country, String] =
+	let? country = Reader.ask
+	in
+	Reader(() =>
 		match country
-			| France -> "{input} !"
-			| Spain -> "¡{input}!"
-			| USA -> "{input}!"
-			|;
-	)
+		case France then "{input} !"
+		case Spain then "¡{input}!"
+		else USA then "{input}!" )
 
 
-fun greeting'(name: String) -> Reader[Country, String] =
-	n ?= greet(name)
+let greeting'(name: String) -> Reader[Country, String] =
+	let? n = greet(name)
+	in
 	exclamation(n)

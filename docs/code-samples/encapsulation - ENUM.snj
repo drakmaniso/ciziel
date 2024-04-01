@@ -1,0 +1,79 @@
+<< Encapsulation >>
+
+
+-- Records --------------------------------------------------------------------
+
+
+let Private =
+	struct {
+		foo: Int,
+		bar: Bool,
+	}
+
+
+def Opaque =
+	struct {
+		foo: Int,
+		bar: Bool,
+	}
+
+
+def Mixed =
+	struct {
+		hidden: Int,
+		def read-only: Bool,
+		pub writable: String,
+	}
+
+
+def Transparent =
+	pub struct {
+		foo: Int,
+		bar: Bool,
+	}
+
+
+-- Unions ---------------------------------------------------------------------
+
+
+let Private =
+	enum(Foo, Bar)
+
+
+def Opaque =
+	enum(Foo, Bar)
+
+
+def Transparent =
+	pub enum(Foo, Bar)
+
+
+-- Aliases --------------------------------------------------------------------
+
+
+let Foo = Int
+
+
+<< Outside of the module, `Foo` is visible, but opaque (i.e. it is not an alias
+for `Int` anymore). >>
+def Foo = enum(Int)
+
+
+def Foo = pub enum(Int)
+
+
+-------------------------------------------------------------------------------
+
+
+let #private =
+	has (t: Self).foo -> Int
+	has (t: Self).bar(arg: Bool) -> String
+
+
+def #opaque =
+	has Self #private
+
+
+def #transparent =
+	has (t: Self).foo -> Int
+	has (t: Self).bar(arg: Bool) -> String

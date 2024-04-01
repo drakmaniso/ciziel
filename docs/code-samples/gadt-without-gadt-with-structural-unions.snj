@@ -1,0 +1,366 @@
+module gadt
+
+
+-------------------------------------------------------------------------------
+
+
+<<
+First example, from [wikipedia][1].
+
+[1]: <https://en.wikipedia.org/wiki/Generalized_algebraic_data_type>
+>>
+
+
+let Bool-Expr =
+	enum {
+		EBool,
+		Equal,
+	}
+
+
+let Int-Expr =
+	| EInt
+
+
+let EBool = data struct(value: Bool)
+
+
+let EInt = data struct(value: Int)
+
+
+let Equal[E #any] = data struct(left: Ref[E], right: Ref[E])
+
+
+let #eval =
+	has Self.Output: Type
+	has (e: Self).eval -> Self.Output
+
+
+let #eval for EBool
+let EBool.Output = Bool
+let (e: EBool).eval -> Bool =
+	e.value
+
+
+let #eval for EInt
+let EInt.Output = Int
+let (e: EInt).eval -> Int =
+	e.value
+
+
+let #eval for Equal[E]
+let Equal[E #eval].Output = E.Output
+let (e: Equal[E #eval]).eval -> Bool =
+	(e.left.eval == e.right.eval)
+
+
+let first-example() -> () &io =
+	let expr1 = Equal(EInt(2), EInt(3))
+	do print("{expr1.Type}")
+	--> Equal[Int-Expr]
+
+	let eval1 = expr1.eval
+	do print("{eval1.Type}")
+	--> Bool
+
+	in ()
+
+
+-------------------------------------------------------------------------------
+
+
+<<
+Second example, from ["Fun with phantom types"][2] by R. Hinze.
+
+[2]: <https://www.researchgate.net/publication/228707929_Fun_with_phantom_types>
+>>
+
+
+let Term[T] =
+	| Zero[T]
+	| Succ[T]
+	| Pred[T]
+	| Is-Zero[T]
+	| If[T]
+
+
+given T, T == Int
+let Zero[T] = record
+
+
+given T, T == Int
+let Succ[T] = record(argument: Term[Int])
+
+
+given T, T == Int
+let Pred[T] = record(argument: Term[Int])
+
+
+given T, T == Int
+let Is-Zero[T] = record(argument: Term[Int])
+
+
+given T, T == Int
+let If[T] =
+	record {
+		condition: Term[Bool],
+		then-branch: T,
+		else-branch: T,
+	}
+
+
+given T
+let (e: Zero[T]).eval -> T
+
+
+given T, T == Int
+let (e: Zero[T]).eval -> T = 0
+
+
+given T, T == Int
+let (e: Succ[T]).eval -> T = e.argument.eval + 1
+
+
+given T, T == Int
+let (e: Pred[T]).eval -> T = e.argument.eval - 1
+
+
+given T, T == Bool
+let (e: Is-Zero[T]).eval -> T = e.argument.eval == 0
+
+
+given T
+let (e: If[T]).eval -> T =
+	if e.condition.eval then
+		e.then-branch.eval
+	else
+		e.else-branch.eval
+
+
+module gadt2 ---- Second GADT Example: Phantom Types --------------------------
+
+
+<<
+From ["Fun with phantom types"] by R. Hinze
+
+["Fun with phantom types"]:
+https://www.researchgate.net/publication/228707929_Fun_with_phantom_types
+>>
+
+
+public
+
+
+let Term =
+	| ITerm
+	| BTerm
+
+
+let ITerm =
+	| Zero
+	| Succ
+	| Pred
+	| If[Term]
+
+
+let BTerm =
+	| Is-Zero
+	| If[Bool]
+
+
+let Zero = record
+let Succ = record(argument: ITerm)
+let Pred = record(argument: ITerm)
+let Is-Zero = record(argument: ITerm)
+let If[T] =
+	record {
+		condition: BTerm,
+		then-branch: T,
+		else-branch: T,
+	}
+
+
+let Zero.Output = Int
+let Succ.Output = Int
+let Pred.Output = Int
+let Is-Zero.Output = Bool
+let If[T].Output = T
+
+
+let (ITerm).eval -> Int
+let (BTerm).eval -> Bool
+
+
+let (Zero).eval -> Int = 0
+let (Succ).eval -> Int = self.argument.eval + 1
+let (Pred).eval -> Int = self.argument.eval - 1
+let (Is-Zero).eval -> Bool = self.argument.eval == 0
+let (If[T]).eval -> T =
+	if self.condition.eval then
+		self.then-branch.eval
+	else
+		self.else-branch.eval
+
+
+module gadt3 ---- Third GADT Example: Higher-Order Abstract Syntax ------------
+
+
+<<
+From [wikipedia](https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax)
+>>
+
+
+let Expr[A, B] =
+	| Lift[A]
+	| Pair[A, B]
+	| Lambda[A, B]
+	| Apply[A, B]
+	| Fix[A]
+
+
+let Lift[A] = record(value: A) -> Expr[A]
+let Pair[A, B] = record(first: A, second: B) -> Expr[(A, B)]
+let Lambda[A, B] = record(value: A -> B) -> Expr[A -> B]
+let Apply[A, B] = record(function: Expr[A -> B].Lambda, argument: B) -> Expr[B]
+let Fix[A] = record(function: Expr[A -> A].Lambda) -> Expr[A]
+
+
+let (Expr[A].Lift).eval -> A =
+	self.first.value
+
+
+let (Expr[(A, B)].Pair).eval -> (A, B) =
+	(self.first.eval, self.second.eval)
+
+
+let (Expr[A -> B].Lambda).eval -> (A -> B) =
+	x => self.function(Expr.Lift(x)).eval
+
+
+let (Expr[B].Apply).eval -> B =
+	self.function.eval(self.argument.eval)
+
+
+let (Expr[A].Fix).eval -> A =
+	self.function.eval(Expr.Fix(self.function).eval)
+
+
+let example() -> () &io =
+	let factorial =
+		Fix(
+			Lambda(
+				f =>
+					Lambda(
+						y =>
+							let y' = y.eval
+							let f' = f.eval
+
+							if y' == 0 then
+								Lift(1)
+							else
+								Lift(y' * f'(y' - 1))
+					)
+			)
+		)
+
+	let factorial-of-ten = Apply(factorial, Lift(10))
+
+	do print(factorial-of-ten.eval)
+
+	in ()
+
+
+-- Third GADT Example: Higher-Order Abstract Syntax ---------------------------
+
+
+<<
+Third example, also from [wikipedia][3].
+
+[3]: <https://en.wikipedia.org/wiki/Generalized_algebraic_data_type#Higher-order_abstract_syntax>
+>>
+
+
+let #expr =
+	has Self.Output: Type
+	has (e: Self).eval -> Self.Output
+
+
+given T
+let Lift[T] = record(value: T)
+
+
+given T: #expr, U: #expr
+let Pair[T, U] = record(first: T, second: U)
+
+
+given T: #expr, U: #expr
+let Lambda[T, U] = record(value: T -> U)
+
+
+given T: #expr, U: #expr
+let Apply[T, U] =
+	record (
+		function: Lambda[T, U],
+		argument: U,
+	)
+
+
+given T: #expr
+let Fix[T] = record(function: Lambda[T, T])
+
+
+let Lift[T]: #expr
+let Pair[T, U]: #expr
+let Lambda[T, U]: #expr
+let Apply[T, U]: #expr
+let Fix[T]: #expr
+
+
+let Lift[T].Output = T
+let Pair[T, U].Output = (T, U)
+let Lambda[T, U].Output = T -> U
+let Apply[T, U].Output = U
+let Fix[T].Output = T
+
+
+let (Lift[T]).eval -> T =
+	self.first.value
+
+
+let (Pair[T, U]).eval -> (T, U) =
+	(self.first.eval, self.second.eval)
+
+
+let (Lambda[T, U]).eval -> (T -> U) =
+	x -> self.function(Lift(x)).eval
+
+
+let (Apply[T, U]).eval -> U =
+	self.function.eval(self.argument.eval)
+
+
+let (Fix[T]).eval -> T =
+	self.function.eval(Fix(self.function).eval)
+
+
+let example() -> () &io =
+	let factorial =
+		Fix(
+			Lambda(f =>
+				Lambda(y =>
+					let y' = y.eval
+					let f' = f.eval
+
+					if y' == 0 then
+						Lift(1)
+					else
+						Lift(y' * f'(y' - 1))
+				)
+			)
+		)
+
+	let factorial-of-ten = Apply(factorial, Lift(10))
+
+	do print(factorial-of-ten.eval)
+
+	in ()

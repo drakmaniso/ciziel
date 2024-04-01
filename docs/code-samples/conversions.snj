@@ -1,46 +1,103 @@
--- With Keyword Overloading ---------------------------------------------------
+-- With Type Operators --------------------------------------------------------
 
 
-module /std
-public
+module std
 
 
-trait #to[A] {
-	fun (Self) to A -> A
-}
+def #to[A] =
+	has (Self) to A -> A
 
 
 module vectors
-public
 
 
-type Cartesian(x: data Float64 y: data Float64)
-type Polar(radius: data Float64 angle: data Float64)
+def Cartesian = struct(x: Float64 y: Float64)
 
 
-extend Polar as #to[Cartesian]
-fun (Polar) to Cartesian -> Cartesian =
-    Cartesian {
-        x = self.radius * math::cos(self.angle),
-        y = self.radius * math::sin(self.angle),
+def Polar = struct(radius: Float64 angle: Float64)
+
+
+def #to[Cartesian] for Polar
+
+
+def (p: Polar) to Cartesian -> Cartesian =
+	Cartesian {
+		x = p.radius * math::cos(p.angle),
+		y = p.radius * math::sin(p.angle),
 	}
 
 
-extend Cartesian as #to[Polar]
-fun (Cartesian) to Polar -> Polar =
-    Polar {
-        radius = math::sqrt((self.x ^ 2) + (self.y ^ 2)),
-        angle = math::atan2(self.y, self.x),
+def #to[Polar] for Cartesian
+
+
+def (c: Cartesian) to Polar -> Polar =
+	Polar {
+		radius = math::sqrt((c.x ^ 2) + (c.y ^ 2)),
+		angle = math::atan2(c.y, c.x),
 	}
 
 
 module usage
-use /std (#to, #add)
-public
 
 
-forall A #to[B],  B #add
-fun sum(values: Array[A]) -> B =
+use std { #to, #add }
+
+
+given A: #to[B],  B: #add
+let sum(values: Array[A]) -> B =
+	values.fold(
+		B.zero,
+		(accum, value) => accum + (value to B)
+	)
+
+
+-- With Keyword Overloading ---------------------------------------------------
+
+
+module std
+
+
+def #to[A] =
+	has (Self) to A -> A
+
+
+module vectors
+
+
+def Cartesian = struct(x: Float64 y: Float64)
+
+
+def Polar = struct(radius: Float64 angle: Float64)
+
+
+def #to[Cartesian] for Polar
+
+
+def (p: Polar) to Cartesian -> Cartesian =
+	Cartesian {
+		x = p.radius * math::cos(p.angle),
+		y = p.radius * math::sin(p.angle),
+	}
+
+
+def #to[Polar] for Cartesian
+
+
+def (c: Cartesian) to Polar -> Polar =
+	Polar {
+		radius = math::sqrt((c.x ^ 2) + (c.y ^ 2)),
+		angle = math::atan2(c.y, c.x),
+	}
+
+
+module usage
+
+
+use std { #to, #add }
+
+
+given A: #to[B],  B: #add
+let sum(values: Array[A]) -> B =
 	values.fold(
 		B.zero,
 		(accum, value) => accum + (value to B)
@@ -51,37 +108,39 @@ fun sum(values: Array[A]) -> B =
 
 
 module vectors
-public
 
 
-type Cartesian(x: data Float64, y: data Float64)
-type Polar(radius: data Float64, angle: data Float64)
+def Cartesian = struct(x: Float64, y: Float64)
 
 
-fun (Polar).to-Cartesian -> Cartesian =
-    Cartesian {
-        x = self.radius * math::cos(self.angle),
-        y = self.radius * math::sin(self.angle),
+def Polar = struct(radius: Float64, angle Float64)
+
+
+def (p: Polar).to-Cartesian -> Cartesian =
+	Cartesian {
+		x = p.radius * math::cos(p.angle),
+		y = p.radius * math::sin(p.angle),
 	}
 
 
-fun (Cartesian).to-Polar -> Polar =
-    Polar {
-        radius = math::sqrt((self.x ^ 2) + (self.y ^ 2)),
-        angle = math::atan2(self.y, self.x),
+def (c: Cartesian).to-Polar -> Polar =
+	Polar {
+		radius = math::sqrt((c.x ^ 2) + (c.y ^ 2)),
+		angle = math::atan2(c.y, c.x),
 	}
 
 
 module usage
-use /std(#add)
-public
 
 
-forall B #add
-fun sum(values: Array[A], to-B: A -> B) -> B =
+use std { #add }
+
+
+given B: #add
+let sum(values: Array[A], to-B: A -> B) -> B =
 	values.fold(
 		B.zero,
-		(accum, value) => accum + to-B(value)
+		(accum, value) -> accum + to-B(value),
 	)
 
 
@@ -89,53 +148,53 @@ fun sum(values: Array[A], to-B: A -> B) -> B =
 
 
 module std
-public
 
 
-trait #from[A] {
-	fun Self <from> (other: A) -> Self
-}
+def #from[A] =
+	has Self <from> (other: A) -> Self
 
 
 module vectors
-public
 
 
-type Cartesian(x: data Float64 y: data Float64)
-type Polar(radius: data Float64 angle: data Float64)
+def Cartesian = struct(x: Float64 y: Float64)
 
 
-extend Cartesian as #from[Polar]
+def Polar = struct(radius: Float64 angle: Float64)
 
 
-fun Cartesian <from> (other: Polar) -> Cartesian =
-    Cartesian {
-        x = other.radius * math::cos(other.angle),
-        y = other.radius * math::sin(other.angle),
+def #from[Polar] for Cartesian
+
+
+def Cartesian <from> (other: Polar) -> Cartesian =
+	Cartesian {
+		x = other.radius * math::cos(other.angle),
+		y = other.radius * math::sin(other.angle),
 	}
 
 
-extend Polar as #from[Cartesian]
+def #from[Cartesian] for Polar
 
 
-fun Polar <from> (other: Cartesian) -> Polar =
-    Polar {
-        radius = math::sqrt((other.x ^ 2) + (other.y ^ 2))
-        angle = math::atan2(other.y, other.x)
+def Polar <from> (other: Cartesian) -> Polar =
+	Polar {
+		radius = math::sqrt((other.x ^ 2) + (other.y ^ 2)),
+		angle = math::atan2(other.y, other.x),
 	}
 
 
 module usage
-use /std(#from, #add)
-public
 
 
-forall B #from[A] #add
-fun sum(values: Array[A]) -> B =
+use std { #from, #add }
+
+
+given B: #from[A] #add
+let sum(values: Array[A]) -> B =
 	values.fold(
 		B.zero,
-		(accum, value) =>
-			accum + (B <from> value)
+		(accum, value) ->
+			accum + (B <from> value),
 	)
 
 
@@ -143,46 +202,151 @@ fun sum(values: Array[A]) -> B =
 
 
 module std
-public
 
 
-trait #from[A] {
-	fun Self(A) -> Self
-}
+def #from[A] =
+	has Self(A) -> Self
 
 
 module vectors
-public
 
 
-type Cartesian(x: data Float64 y: data Float64)
-type Polar(radius: data Float64 angle: data Float64)
+def Cartesian = struct(x: Float64 y: Float64)
 
 
-extend Cartesian as #from[Polar]
-fun Cartesian(polar: Polar) -> Cartesian =
-    Cartesian {
-        x = polar.radius * math::cos(polar.angle),
-        y = polar.radius * math::sin(polar.angle),
+def Polar = struct(radius: Float64 angle: Float64)
+
+
+def #from[Polar] for Cartesian
+
+
+def Cartesian(polar: Polar) -> Cartesian =
+	Cartesian {
+		x = polar.radius * math::cos(polar.angle),
+		y = polar.radius * math::sin(polar.angle),
 	}
 
 
-extend Polar as #from[Cartesian]
-fun Polar(cartesian: Cartesian) -> Polar =
-    Polar {
-        radius = math::sqrt((cartesian.x ^ 2) + (cartesian.y ^ 2)),
-        angle = math::atan2(cartesian.y, cartesian.x),
+def #from[Cartesian] for Polar
+
+
+def Polar(cartesian: Cartesian) -> Polar =
+	Polar {
+		radius = math::sqrt((cartesian.x ^ 2) + (cartesian.y ^ 2)),
+		angle = math::atan2(cartesian.y, cartesian.x),
 	}
 
 
 module usage
-use /std(#from, #add)
-public
 
 
-forall B #from[A] #add
-fun sum(values: Array[A]) -> B =
+use std { #from, #add }
+
+
+given B #from[A] #add
+let sum(values: Array[A]) -> B =
 	values.fold(
 		B.zero,
-		(accum, value) => accum + (B <from> value)
+		(accum, value) -> accum + (B <from> value),
+	)
+
+
+-- Magic Names ----------------------------------------------------------------
+
+
+module std
+
+
+def #to[A] =
+	has (Self).to-A -> A
+
+
+module vectors
+
+
+def Cartesian = struct(x: Float64 y: Float64)
+
+
+def Polar = struct(radius: Float64 angle: Float64)
+
+
+def #to[Cartesian] for Polar
+
+
+def (p: Polar).to-Cartesian -> Cartesian =
+	Cartesian {
+		x = p.radius * math::cos(p.angle),
+		y = p.radius * math::sin(p.angle),
+	}
+
+
+def #to[Polar] for Cartesian
+
+
+def (c: Cartesian).to-Polar -> Polar =
+	Polar {
+		radius = math::sqrt((c.x ^ 2) + (c.y ^ 2)),
+		angle = math::atan2(c.y, self.x),
+	}
+
+
+module usage
+
+
+use std { #to, #add }
+
+
+given A #to[B],  B #add
+let sum(values: Array[A]) -> B =
+	values.fold(
+		B.zero,
+		(accum, value) => accum + (value.to-B)
+	)
+
+---
+
+module std
+
+
+def #from[A] =
+	has Self.from(value: B)
+
+
+def Cartesian = struct(x: Float64 y: Float64)
+
+
+def Polar = struct(radius: Float64 angle: Float64)
+
+
+def Cartesian as #from[Polar]
+
+
+def Cartesian.from(p: Polar) -> Cartesian =
+	Cartesian {
+		x = p.radius * math::cos(p.angle),
+		y = p.radius * math::sin(p.angle),
+	}
+
+
+def Polar as #from[Cartesian]
+
+
+def Polar.from(c: Cartesian) -> Polar =
+	Polar {
+		radius = math::sqrt((c.x ^ 2) + (c.y ^ 2)),
+		angle = math::atan2(c.y, self.x),
+	}
+
+
+module usage
+
+
+use std { #to, #add }
+
+
+given A,  B #add #from[A]
+let sum(values: Array[A]) -> B =
+	values.fold(
+		B.zero,
+		(accum, value) => accum + B.from(value)
 	)

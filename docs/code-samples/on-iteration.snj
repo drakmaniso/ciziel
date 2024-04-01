@@ -1,81 +1,71 @@
 -- From https://www.informit.com/articles/printerfriendly/1407357
 
 
-trait #one-pass-range {
-	type Self.Item #type
-	fun (Self).front -> Self.Item?
-	fun (Self).pop-front -> Self
-}
+def #one-pass-range =
+	has Self.Item #type
+	has (r: Self).front -> Option[Self.Item]
+	has (r: Self).pop-front -> Self
 
 
-forall R #one-pass-range
-fun find(range: R, value: R.Item) -> R =
+given R #one-pass-range
+def find(range: R, value: R.Item) -> R =
     if range.front is Ok(value) then
 		range
     else
 		find(range.pop-front, value)
-	end
 
 
-trait #writable-range {
-	type Self.Item #type
-	fun (Self).replace-front(item: Self.Item) -> Self?
-}
+def #writable-range =
+	has Self.Item #type
+	has (r: Self).replace-front(item: Self.Item) -> Option[Self]
 
 
-forall A #one-pass-range,
+given A #one-pass-range,
 	B #one-pass-range #writable-range,
 	A.Item == B.Item
-fun copy(source: A, target: B) -> (A, B) =
-	case source.front
-		of Ok(item) then
-			case target.replace-front(item)
-				of Ok(target') then
-					copy(source.pop-front, target'.pop-front)
-				of _ then
-					(source, target)
-			end
-		of _ then
+def copy(source: A, target: B) -> (A, B) =
+	match source.front
+	when Ok(item) then
+		match target.replace-front(item)
+		when Ok(target') then
+			copy(source.pop-front, target'.pop-front)
+		else
 			(source, target)
-	end
+	else
+		(source, target)
 
 
-forall A #one-pass-range,
+given A #one-pass-range,
 	B #one-pass-range #writable-range,
 	A.Item == B.Item
-fun copy(source: A, target: B) -> (A, B) =
-	item ?= source.front
-		?? _ => (source, target)
-	target' ?= target.replace-front(item)
-		?? _ => (source, target)
+def copy(source: A, target: B) -> (A, B) =
+	let? item = source.front
+		.or_else(_ => (source, target))
+	let? target' = target.replace-front(item)
+		.or_else(_ => (source, target))
 	copy(source.pop-front, target.pop-front)
 
 
-trait #forward-range {
-    tag Self #one-pass-range
-    fun (Self).save -> Self
-}
+def #forward-range =
+	has Self #one-pass-range
+	has (r: Self).save -> Self
 
 
-trait #double-ended-range {
-    tag Self #forward-range
-    fun (Self).back -> Self.Item?
-    fun (Self).pop-back -> Self
-}
+def #double-ended-range =
+	has Self #forward-range
+	has (r: Self).back -> Self.Item?
+	has (r: Self).pop-back -> Self
 
 
-trait #random-access-range {
-    tag Self #forward-range
-    fun (Self).at(index: Size) -> Self.Item?
-    fun (Self).slice(from: Size, to: Size) -> Self
-}
+def #random-access-range =
+	has Self #forward-range
+	has (r: Self).at(index: Size) -> Self.Item?
+	has (r: Self).slice(from: Size, to: Size) -> Self
 
 
-trait #length {
-    fun (Self).length -> Size
-}
+def #length =
+	has (r: Self).length -> Size
 
 
-trait #is-infinite {
-    val Self.is-infinite: Bool
-}
+def #is-infinite =
+	has Self.is-infinite: Bool

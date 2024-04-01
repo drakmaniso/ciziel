@@ -1,143 +1,203 @@
----- Single Dispatch ----------------------------------------------------------
+-- Single dispatch and structural unions --------------------------------------
 
 
 module /std/ops
-public
 
 
-trait #eq {
-	type Self.Eq-RHS = Self
-	fun (Self) == (other: Self.Eq-RHS) -> Bool
-}
+def #eq =
+	has (self: Self) == (other: Self) -> Bool
 
 
 module basic
-public
 
 
-type Basic =
+def Foo = def struct
+def Bar = def struct
+
+def Basic =
 	| Foo
 	| Bar
-	|;
 
 
-implement #eq for Basic
+def #eq for Basic
 
 
-fun (Basic) == (other: Basic) -> Bool =
+def (self: Basic) == (other: Basic) -> Bool =
 	match (self, other)
-		| (Foo, Foo) -> True
-		| (Bar, Bar) -> True
-		| (Foo, Bar) -> False
-		| (Bar, Foo) -> False
-		|;
+	case (Foo, Foo) then True
+	case (Bar, Bar) then True
+	case (Foo, Bar) then False
+	else (Bar, Foo) then False
 
 
-/*
-Question: do `Foo` and `Bar` implement `#eq`? This would require trait
-conformance to accept widening of arguments.
+<< Problems with pure structural unions:
 
-Note: this approach is not extensible, since the equality trait needs a
-concrete type.
-*/
+- while `Foo` and `Bar` have the `==` method, they do no implement the `#eq`
+  trait (only `Basic` does).
+- it's not extensible, since `Foo` and `Bar` already have the `==` methode, no
+  other unions containing them can implement the trait. >>
 
 
-// Single Dispatch with Unknown type //////////////////////////////////////////
+-- Single dispatch and nominal unions -----------------------------------------
+
+
+module /std/ops
+
+
+def #eq =
+	has (self: Self) == (other: Self) -> Bool
+
+
+module basic
+
+
+def Foo = def struct
+def Bar = def struct
+
+
+def Basic =
+	enum {
+		Foo,
+		Bar,
+	}
+
+
+def #eq for Foo
+def (self: Foo) == (other: Foo) -> True = True
+
+
+def #eq for Bar
+def (self: Bar) == (other: Bar) -> True = True
+
+
+def #eq for Basic
+def (self: Basic) == (other: Basic) -> Bool =
+	match (self, other)
+	case (Basic.Foo, Basic.Foo) then True
+	case (Basic.Bar, Basic.Bar) then True
+	case (Basic.Foo, Basic.Bar) then False
+	else (Basic.Bar, Basic.Foo) then False
+
+
+module extended
+
+
+use Basic { Foo, Bar }
+
+
+def Extended =
+	enum {
+		Foo,
+		Bar,
+		Baz,
+	}
+
+
+def #eq for Extended
+def (self: Extended) == (other: Extended) -> Bool =
+	match (self, other)
+	case (Extended.Foo, Extended.Foo) then True
+	case (Extended.Bar, Extended.Bar) then True
+	case (Extended.Baz, Extended.Baz) then True
+	else ? then False
+
+
+-- Single dispatch with unknown type ------------------------------------------
 
 
 module /std
-public
 
 
-trait #eq {
-	type Self.Eq-RHS = Self
-	fun (Self) == (other: Self.Eq-RHS) -> Bool
-}
+def #eq =
+	has Self.Eq-RHS: Type
+	has (self: Self) == (other: Self.Eq-RHS) -> Bool
 
 
-type Unknown -- (union of all types)
+def Unknown -- (union of all types, i.e. the top type)
 
 
 module basic
+
+
 use #eq, Unknown from /std
-public
 
 
-type Basic =
+def Basic =
 	| Foo
 	| Bar
-	|;
 
 
-extend Basic as #eq
+def #eq for Basic
 
 
-extend Foo as #eq
-alias Foo.Eq-RHS = Unknown
-fun (Foo) == (other: Unknown) -> Bool =
+def #eq for Foo
+def Foo.Eq-RHS = Unknown
+def (self: Foo) == (other: Unknown) -> Bool =
 	match (self, other)
-		| (Foo, Foo) -> True
-		| _ -> False
-		|;
+	case (Foo, Foo) then True
+	else ? then False
 
 
-tag Bar #eq
-alias Bar.Eq-RHS = Unknown
-fun (Bar) == (other: Unknown) -> Bool =
+def #eq for Bar
+def Bar.Eq-RHS = Unknown
+def (self: Bar) == (other: Unknown) -> Bool =
 	match (self, other)
-		| (Bar, Bar) -> True
-		| _ -> False
-		|;
+	case (Bar, Bar) then True
+	else ? then False
+
 
 module extended
 use #eq, Unknown from /std
 use Basic, Foo, Bar from basic
-public
 
 
-type Extended = Basic | Baz
-struct Baz
+def Extended = Basic | Baz
+def Baz = struct
 
 
-extend Extended as #eq
+def #eq for Extended
 
 
-extend Baz as #eq
-alias Baz.Eq-RHS = Unknown
-fun (Baz) == (other: Unknown) -> Bool =
+def #eq for Baz
+def Baz.Eq-RHS = Unknown
+def (self: Baz) == (other: Unknown) -> Bool =
 	match (self, other)
-		| (Baz, Baz) -> True
-		| _ -> False
-		|;
+	case (Baz, Baz) then True
+	else ? then False
 
 
----- Double Dispatch ----------------------------------------------------------
+---- Dispatch on tuples -------------------------------------------------------
 
 
 module std
-public
 
 
-trait #eq {
-	fun (Self) == (other: Self) -> Bool
-}
+def #eq =
+	has (self: Self) == (other: Self) -> Bool
 
 
 module basic
-public
 
 
-type Basic =
+def First = struct
+def Second = struct
+def Basic =
 	| First
 	| Second
-	|;
 
 
-extend Basic as #eq
-extend First as #eq
-extend Second as #eq
-fun (First) == (other: Basic) -> Bool = other is First
-fun (First) == (other: Basic) -> Bool = other is Basic
+def #eq for First
+def (self: (First, First)).equals -> Bool = True
+
+
+def #eq for Second
+def (self: (Second, Second)).equals -> Bool = True
+
+
+def #eq for Basic
+def (self: (Basic, Basic)).equals -> Bool
+def (self: (First, Second)).equals -> Bool = False
+def (self: (Second, First)).equals -> Bool = False
 
 
 -- Extension --
@@ -145,103 +205,82 @@ fun (First) == (other: Basic) -> Bool = other is Basic
 
 module extended
 use Basic, First, Second from basic
-public
 
 
-type Extended =
-	| as Basic
+def Third = struct
+def Extended =
+	| First
+	| Second
 	| Third
-	|;
 
 
-extend Extended as #eq
-extend Third as #eq
-fun (Basic) == (other: Third) -> Bool = False
-fun (Third) == (other: Extended) -> Bool = other is Third
+def #eq for Third
+def (self: (Third, Third)).equals -> Bool = True
 
 
--- Single Dispatch ------------------------------------------------------------
+def #eq for Extended
+def (self: (Extended, Extended)).equals -> Bool
+def (self: (Third, First)).equals -> Bool = False
+def (self: (Third, Second)).equals -> Bool = False
+def (self: (First, Third)).equals -> Bool = False
+def (self: (Second, Third)).equals -> Bool = False
+
+
+---- Double Dispatch ----------------------------------------------------------
+
+
+module std
+
+
+def #eq =
+	has (self: Self) == (other: Self) -> Bool
 
 
 module basic
 
 
-type Basic =
-	| Foo
-	| Bar
-	|;
+def First = struct
+def Second = struct
+def Basic =
+	| First
+	| Second
 
 
-trait #basic {
-	fun (Self).as-basic -> Option[Basic]
-}
+def #eq for First
+def (self: First) == (other: First) -> Bool = True
 
 
-extend Basic as #basic
-fun (Foo).as-basic = Some(self)
-fun (Bar).as-basic = Some(self)
+def #eq for Second
+def (self: Second) == (other: Second) -> Bool = True
 
 
-extend Basic as #eq
-
-
-alias Foo.Eq-RHS = A #basic
-forall A #basic
-fun (Foo) == (other: A) -> Bool =
-    match other.as-basic
-		| Some(Foo) -> True
-		| Some(Bar) -> False
-		| None -> False
-		|;
-
-
-alias Bar.Eq-RHS = A #basic
-forall A #basic
-fun (Bar) == (other: A) -> Bool =
-    match other.as-basic
-		| Some(Foo) -> False
-		| Some(Bar) -> True
-		| None -> False
-		|;
+def #eq for Basic
+def (self: Basic) == (other: Basic) -> Bool
+def (self: First) == (other: Second) -> Bool = False
+def (self: Second) == (other: First) -> Bool = False
 
 
 -- Extension --
 
 
 module extended
-use Basic, Foo, Bar, #basic from basic
-public
+use Basic, First, Second from basic
 
 
-type Extended =
-	| as Basic
-	| Baz
-	|;
+def Third = struct
+def Extended =
+	| First
+	| Second
+	| Third
 
 
-extend Extended as #basic
-alias Extended.Eq-RHS = A #basic
-fun (Baz).as-basic = None
+def #eq for Third
+def (self: Third) == (other: Third) -> Bool = True
 
 
-tag #extended {
-	fun (Self).as-extended -> Option[Extended]
-}
-
-
-extend Extended #extended
-fun (Foo).as-extended = Some(self)
-fun (Bar).as-extended = Some(self)
-fun (Baz).as-extended = Some(self)
-
-
-tag Extended #eq
-
-
-forall A #extended
-fun (Baz) == (other: A) -> Bool =
-    match other.as-extended
-		| Foo -> False
-		| Bar -> False
-		| Baz -> True
-		|;
+def #eq for Extended
+def (self: Extended) == (other: Extended) -> Bool
+def (self: Third) == (other: First) -> Bool = False
+def (self: Third) == (other: Second) -> Bool = False
+def (self: First) == (other: Third) -> Bool = False
+def (self: Second) == (other: Third) -> Bool = False

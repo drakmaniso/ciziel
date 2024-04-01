@@ -1,14 +1,14 @@
 ---- Monadic Bind -------------------------------------------------------------
 
 
-fun example-1(numbers: Array[Int]) -> Option[Int] =
-	first ?= numbers.at(0)
-	second ?= numbers.at(1)
+let example-1(numbers: Array[Int]) -> Option[Int] =
+	let? first = numbers.at(0)
+	let? second = numbers.at(1)
 
 	Some(first + second)
 
 
-fun example-1-desugared(numbers: Array[Int]) -> Option[Int] =
+let example-1-desugared(numbers: Array[Int]) -> Option[Int] =
 	numbers.at(0).and-then(first =>
 		numbers.at(1).and-then(second =>
 			Some(first + second)
@@ -16,29 +16,28 @@ fun example-1-desugared(numbers: Array[Int]) -> Option[Int] =
 	)
 
 
-fun example-1-desugared'(numbers: Array[Int]) -> Option[Int] =
+let example-1-desugared'(numbers: Array[Int]) -> Option[Int] =
 	numbers.at(0) <and-then> first =>
 		numbers.at(1) <and-then> second =>
 			Some(first + second)
 
 
-type My-Error =
-	| as None
-	| as Int.Parse-Error
-	|;
+let My-Error =
+	| None
+	| Int.Parse-Error
 
 
-fun example-2(numbers: Array[String]) -> Result[Int, My-Error] =
-	first ?= numbers.at(0)
-	a ?= Int.parse(first)
+let example-2(numbers: Array[String]) -> Result[Int, My-Error] =
+	let? first = numbers.at(0)
+	let? a = Int.parse(first)
 
-	second ?= numbers.at(1)
-	b ?= Int.parse(second)
+	let? second = numbers.at(1)
+	let? b = Int.parse(second)
 
 	Ok(a + b)
 
 
-fun example-3(numbers: Array[String]) -> Result[Int, My-Error] =
+let example-3(numbers: Array[String]) -> Result[Int, My-Error] =
 	numbers.at(0)
 		.and-then(first =>
 			Int.parse(first)
@@ -54,21 +53,23 @@ fun example-3(numbers: Array[String]) -> Result[Int, My-Error] =
 		) as Result[Int, My-Error]
 
 
-fun example-3(numbers: Array[String]) -> Result[Int, String] =
-	first ?= numbers.at(0)
+let example-3(numbers: Array[String]) -> Result[Int, String] =
+	let? first = numbers.at(0)
 		.ok-or("empty array")
-	a ?= Int.parse(first)
+
+	let? a = Int.parse(first)
 		.map-err(e => "parse error: {e}")
 
-	second ?= numbers.at(1)
+	let? second = numbers.at(1)
 		.ok-or("array too small")
-	b ?= Int.parse(second)
+
+	let? b = Int.parse(second)
 		.map-err(e => "parse error: {e}")
 
 	Ok(a + b)
 
 
-fun example-3(numbers: Array[String]) -> Result[Int, String] =
+let example-3(numbers: Array[String]) -> Result[Int, String] =
 	numbers.at(0)
 		.ok-or("empty array")
 		.and-then(first =>
@@ -88,15 +89,23 @@ fun example-3(numbers: Array[String]) -> Result[Int, String] =
 		)
 
 
-fun example-4(numbers: Array[String]) -> Result[Int, String] =
-	first ?= numbers.at(0) <fail> => "empty array"
-	a ?= Int.parse(first) <fail> e => "parse error: {e}"
-	second ?= numbers.at(1) <fail> => "array too small"
-	b ?= Int.parse(second) <fail> e => "parse error: {e}"
+let example-4(numbers: Array[String]) -> Result[Int, String] =
+	let? first = numbers.at(0)
+	else! _ => "empty array"
+
+	let? a = Int.parse(first)
+	else! e => "parse error: {e}"
+
+	let? second = numbers.at(1)
+	else! _ => "array too small"
+
+	let? b = Int.parse(second)
+	else! e => "parse error: {e}"
+
 	Ok(a + b)
 
 
-fun example-4-desugared(numbers: Array[String]) -> Result[Int, String] =
+let example-4-desugared(numbers: Array[String]) -> Result[Int, String] =
 	numbers.at(0)
 		.<fail>(=> "empty array")
 		.and-then(first =>
@@ -119,18 +128,18 @@ fun example-4-desugared(numbers: Array[String]) -> Result[Int, String] =
 ---- Chaining Operator --------------------------------------------------------
 
 
-fun example-5(numbers: Array[String]) -> Option[Int] =
+let example-5(numbers: Array[String]) -> Option[Int] =
 	numbers.at(0)?.to-Int?.abs
 
 
-fun example-5-desugared(numbers: Array[Int]) -> Option[String] =
+let example-5-desugared(numbers: Array[Int]) -> Option[String] =
 	numbers.at(0).and-then(=> ___.to-int.and-then(=> ___.abs))
 
 
 ---- Monadic Bind with failure wrapping ---------------------------------------
 
 
-/*
+<<
 From a Rust RFC:
 	fn get_count_item(s: &str) -> (u64, &str) {
 		let mut it = s.split(' ');
@@ -142,33 +151,63 @@ From a Rust RFC:
 		};
 		(count, item)
 	}
-*/
+>>
 
 
-fun get-count-item(s: String) -> Result[(Int, String), String] =
-	it = s.split(Char " ")
-	count-str ?= it.item
+let get-count-item(s: String) -> Result[(Int, String), String] =
+	let it = s.split(Char " ")
+
+	let? count-str = it.item
 		.ok-or("can't segment count/item pair: '{s}'")
-	it' = it.next
-	item ?= it'.item
+
+	let it' = it.next
+
+	let? item = it'.item
 		.ok-or("can't segment count/item pair: '{s}'")
-	count ?= Int.parse(count-str)
+
+	let? count = Int.parse(count-str)
 		.map-err(e => "can't parse integer '{count_str}': {e}")
 
 	Ok((count, item))
 
 
-type My-Error =
+let get-count-item(s: String) -> Result[(Int, String), String] =
+	let it = s.split(Char " ")
+
+	let? count-str = it.item
+	else! _ => "can't segment count/item pair: '{s}'"
+
+	let it' = it.next
+
+	let? item = it'.item
+	else! _ => "can't segment count/item pair: '{s}'"
+
+	let? count = Int.parse(count-str)
+	else! e => "can't parse integer '{count_str}': {e}")
+
+	Ok((count, item))
+
+
+let My-Error =
 	| Segment
 	| Parse(cause: Int.Parse-Error)
-	|;
 
 
-fun get-count-item(s: String) -> Result[(Int, String), My-Error] =
-	it = s.split(Char " ")
-	count-str ?= it.item.ok-or(My-Error.Segment)
-	it' = it.next
-	item ?= it'.item.ok-or(My-Error.Segment)
-	count ?= Int.parse(count-str).mat-err(e => My-Error.Parse(e))
+let get-count-item(s: String) -> Result[(Int, String), My-Error] =
+	let it = s.split(Char " ")
+	let? count-str = it.item.ok-or(My-Error.Segment)
+	let it' = it.next
+	let? item = it'.item.ok-or(My-Error.Segment)
+	let? count = Int.parse(count-str).map-err(e => My-Error.Parse(e))
+
+	(count, item)
+
+
+let get-count-item(s: String) -> Result[(Int, String), My-Error] =
+	let it = s.split(Char " ")
+	let? count-str = it.item else! _ => My-Error.Segment
+	let it' = it.next
+	let? item = it'.item else! _ => My-Error.Segment
+	let? count = Int.parse(count-str) else! e => My-Error.Parse(e)
 
 	(count, item)

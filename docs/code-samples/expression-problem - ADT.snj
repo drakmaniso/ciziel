@@ -1,0 +1,114 @@
+<< The Expression Problem >>
+
+
+module basic
+
+
+def #eval =
+	has (expr: Self).eval -> Int
+
+given T
+def Expr[T] =
+	data Literal {
+		value: Int
+	}
+	data Addition {
+		left: ref T,
+		right: ref T,
+	}
+
+
+given T: #eval
+def #eval for Expr[T]
+
+
+given T: #eval
+def (expr: Expr[T]).eval -> Int =
+	match expr
+	case Expr.Literal { value } then
+		value
+	else Expr.Addition { left, right } then
+		left.eval + right.eval
+
+
+-------------------------------------------------------------------------------
+
+
+module extended
+
+
+use basic { #eval }
+
+given T
+def Expr[T] =
+	data Literal as basic.Expr.Literal
+	data Addition as basic.Expr.Addition
+	data Negation {
+		subexpr: ref T,
+	}
+
+given T: #eval
+def #eval for Expr[T]
+
+
+given T: #eval
+def (expr: Expr[T]).eval -> Int =
+	match expr
+	case Expr.Negation { subexpr } then
+		- subexpr.eval
+	else b: basic.Expr then
+		b.eval
+
+
+def #pretty =
+	has (p: Self).pretty -> String
+
+
+given T: #pretty
+def #pretty for basic.Expr[T], Expr[T]
+
+
+given T: #pretty
+def (expr: basic.Expr[T]).eval -> String =
+	match expr
+	case basic.Expr.Literal { value } then
+		value <to> String
+	else basic.Expr.Addition { left, right } then
+		let l = left.pretty
+		let r = right.pretty
+		in
+		match (left, right)
+		case (Literal(_), Literal(_)) then
+			"{l} + {r}"
+		case (Literal(_), _) then
+			"{l} + ({r})"
+		case (_, Literal(_)) then
+			"({l}) + {r}"
+		else (_, _) then
+			"({l}) + ({r})"
+
+
+given T: #pretty
+def (expr: Expr[T]).pretty -> String =
+	match expr
+	case Expr.Negation { subexpr } then
+		"- ({n.subexpr.pretty})"
+	else b: basic.Expr then
+		b.pretty
+
+
+-------------------------------------------------------------------------------
+
+
+module main
+
+
+use std::io { &io }
+use basic { #eval }
+use extended { #pretty, Expr }
+
+
+def main() -> () &io =
+	let e1 = Expr.Addition(Expr.Literal(77), Expr.Negation(Expr.Literal(12)))
+	do Io.print("{e1.pretty} = {e1.eval}")
+	in ()

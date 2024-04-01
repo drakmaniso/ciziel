@@ -1,142 +1,119 @@
-/* The Expression Problem */
+<< The Expression Problem >>
 
 
 module basic
-public
 
 
-type Expr[E] =
-	| Literal(value: data Int)
-	| Addition(left: data ref E, right: data ref E)
-	|;
+def #eval =
+	has (e: Self).eval -> Int
 
 
-trait #eval {
-	fun (Self).eval -> Int
-}
+def Literal: #data =
+	struct {
+		value: Int,
+	}
 
 
-forall E #eval
-extend Expr[E] as #eval
+given T
+def Addition[T]: #data =
+	struct {
+		left: Ref[T],
+		right: Ref[T],
+	}
 
 
-forall E #eval
-fun (Expr[E]).eval -> Int =
-	match self
-		| Expr.Literal(value) -> value
-		| Expr.Addition(left, right) -> left.eval + right.eval
-		|;
+given T: #eval
+def #eval for Literal, Addition[T]
+
+
+def (l: Literal).eval -> Int =
+	l.value
+
+
+given T: #eval
+def (a: Addition[T]).eval -> Int =
+	a.left.eval + a.right.eval
 
 
 -------------------------------------------------------------------------------
+
+
 module extended
-use basic (#eval)
-public
 
 
-type Expr[E] =
-	| as basic::Expr[E].Literal
-	| as basic::Expr[E].Addition
-	| Negation(subexpr: data *E)
-	|;
+use basic { #eval, Literal, Addition }
 
 
-forall E #eval
-extend Expr[E] as #eval
+given T
+def Negation[T]: #data =
+	struct {
+		subexpr: Ref[T],
+	}
 
 
-forall E #eval
-fun (Expr[E]).eval -> Int =
-	match self
-		| Expr.Negation(subexpr) -> - subexpr.eval
-		| e: basic::Expr[E] -> e.eval
-		|;
+given T: #eval
+def #eval for Negation[T]
 
 
-trait #pretty {
-	fun (Self).pretty -> String
-}
+given T: #eval
+def (n: Negation[T]).eval -> Int =
+	- n.subexpr.eval
 
 
-forall E #pretty
-extend basic::Expr[E] as #pretty
+def #pretty =
+	has (p: Self).pretty -> String
 
 
-forall E #pretty
-fun (basic::Expr[E]).pretty -> String =
-	match self
-		| basic::Expr.Literal(value) -> value.to-String
-		| basic::Expr.Addition(left, right) ->
-			l = self.left.pretty
-			r = self.right.pretty
-
-			case (self.left, self.right)
-				| (Expr.Literal(...), Expr.Literal(...)) -> "{l} + {r}"
-				| (Expr.Literal(...), _) -> "{l} + ({r})"
-				| (_, Literal(...)) -> "({l}) + {r}"
-				| (_, _) -> "({l}) + ({r})"
-				|;
-		|;
+given T: #pretty
+def #pretty for Literal, Addition[T], Negation[T]
 
 
-forall E #pretty
-extend Expr[E] as #pretty
+def (l: Literal).pretty -> String =
+	l.value <to> String
 
 
-forall E #pretty
-fun (Expr[E]).pretty -> String =
-	match self
-		| Expr.Negation(subexpr) -> "- ({subexpr.pretty})"
-		| e: basic::Expr[E] -> e.pretty
-		|;
+given T: #pretty
+def (a: Addition[T]).pretty -> String =
+	let l = a.left.pretty
+	let r = a.right.pretty
+	in
+	match (a.left, a.right)
+	case (Literal(_), Literal(_)) then
+		"{l} + {r}"
+	case (Literal(_), _) then
+		"{l} + ({r})"
+	case (_, Literal(_)) then
+		"({l}) + {r}"
+	else (_, _) then
+		"({l}) + ({r})"
+
+
+given T: #pretty
+def (n: Negation[T]).pretty -> String =
+	"- ({n.subexpr.pretty})"
 
 
 -------------------------------------------------------------------------------
+
+
 module main
-use &io from /std/io
-use #eval from basic
-use #pretty from extended
-public
 
 
-type My-Expr(expr: Expr[My-Expr])
-extend My-Expr as #eval
-extend My-Expr as #pretty
+use std::io { &io }
+use basic { #eval, Literal, Addition }
+use extended { #pretty, Negation }
 
 
-fun main() -> () &io =
-	e1 = My-Expr(
-		Expr.Addition( Expr.Literal(77), Expr.Negation( Expr.Literal(12) ) )
-	)
-	print("{e1.pretty} = {e1.eval}")
+let Expr =
+	| Literal
+	| Addition[Expr]
+	| Negation[Expr]
 
 
--------------------------------------------------------------------------------
-module main
-use &io from /std/io
-use #eval from basic
-use #pretty from extended
-public
+let Expr as #eval #pretty
 
 
-type Expr =
-	| as extended::Expr[Expr]
-	|;
-extend Expr as #eval
-extend Expr as #pretty
-
-
--------------------------------------------------------------------------------
-module main
-use &io from /std/io
-use #eval from basic
-use #pretty from extended
-public
-
-
-alias Expr = extended::Expr[Expr]
-
-
-fun main() -> () &io =
-	e1 = Expr.Addition(Expr.Literal(77), Expr.Negation(Expr.Literal(12)))
-	print("{e1.pretty} = {e1.eval}")
+def main() -> () &io =
+	let e1: Expr = Addition(Literal(77), Negation(Literal(12)))
+	do Io.print("{e1.pretty} = {e1.eval}")
+	in ()

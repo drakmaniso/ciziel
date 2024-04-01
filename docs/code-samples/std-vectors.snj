@@ -1,167 +1,174 @@
 module /std/vectors
 
 
-use /std/math (#num, #add)
+use /std/math  { #num, #add }
 
 
-public ------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-trait #scalar {
-	type Self.Scalar #num
-}
+def #has-scalar =
+	has Self.Scalar: #num
 
 
-trait #vector {
-	trait #scalar
-	trait #add
-	fun (Self).length -> Self.Scalar
-	fun (Self).normalized -> Self
-	fun (Self) * (other: Self.Scalar) -> Self
-}
+def #vector: #has-scalar #add =
+	has (v: Self).length -> Self.Scalar
+	has (v: Self).normalized -> Self
+	has (v: Self) * (other: Self.Scalar) -> Self
 
 
-trait #vec2 {
-	trait #scalar
-
-	type Self { x: Self.Scalar, y: Self.Scalar }
-	-- or:
-	fun Self { x: Self.Scalar, y: Self.Scalar } -> Self
-	fun (Self).x -> Self.Scalar
-	fun (Self).y -> Self.Scalar
-	fun (Self).with { x: Self.Scalar } -> Self
-	fun (Self).with { y: Self.Scalar } -> Self
-
-	extend Self as #add
-
-	val Self.zero =
-		Self {
-			x = Self.Scalar.zero,
-			y = Self.Scalar.zero,
-		}
-
-	fun (Self) + (other: Self) -> Self =
-		Self {
-			x = self.x + other.x,
-			y = self.y + other.y,
-		}
-
-	fun (Self) - (other: Self) -> Self =
-		Self {
-			x = self.x - other.x,
-			y = self.y - other.y,
-		}
-
-	extend Self as #vector
-
-	fun (Self).length -> Self.Scalar =
-		((self.x * self.x) + (self.y * self.y)).sqrt
-
-	fun (Self).normalized -> Self =
-		l = self.length
-		self.with { x /= l, y /= l }
-
-	fun (Self) * (other: Self) -> Self =
-		Self {
-			x = self.x * other.x,
-			y = self.y * other.y,
-		}
-}
+def #vec2: #has-scalar =
+	has Self { x: Self.Scalar, y: Self.Scalar }
+	has (v: Self).x -> Self.Scalar
+	has (v: Self).y -> Self.Scalar
+	has (v: Self).with { x: Self.Scalar }
+	has (v: Self).with { y: Self.Scalar }
 
 
-trait #vec3 {
-	trait #scalar
-	type Self { x: Self.Scalar, y: Self.Scalar, z: Self.Scalar }
-	...
-}
+def #vec3: #has-scalar =
+	has Self { x: Self.Scalar, y: Self.Scalar, z: Self.Scalar }
+	has (v: Self).x -> Self.Scalar
+	has (v: Self).y -> Self.Scalar
+	has (v: Self).z -> Self.Scalar
+	has (v: Self).with { x: Self.Scalar }
+	has (v: Self).with { y: Self.Scalar }
+	has (v: Self).with { z: Self.Scalar }
 
 
-public ------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+
+given V: #vec2
+def #add for V
+
+
+given V: #vec2
+def V.zero =
+	V {
+		x = V.Scalar.zero,
+		y = V.Scalar.zero,
+	}
+
+
+given V: #vec2
+def (v: V) + (other: V) -> V =
+	V {
+		x = v.x + other.x,
+		y = v.y + other.y,
+	}
+
+
+given V: #vec2
+def (v: V) - (other: V) -> V =
+	V {
+		x = v.x - other.x,
+		y = v.y - other.y,
+	}
+
+
+given V: #vec2
+def #vector for V
+
+
+given V: #vec2
+def (v: V).length -> V.Scalar =
+	((v.x * v.x) + (v.y * v.y)).sqrt
+
+
+given V: #vec2
+def (v: V).normalized -> V =
+	let l = v.length
+
+	in v.with { x /= l, y /= l }
+
+
+given V: #vec2
+def (v: V) * (other: V) -> V =
+	V {
+		x = v.x * other.x,
+		y = v.y * other.y,
+	}
+
+
+-------------------------------------------------------------------------------
 
 
 -- Implement `#vector` for `Vec2` using the automatic extension:
 
 
-type Vec2(
-	x: data Float32,
-	y: data Float32,
-)
+def Vec2 = data record(x: Float32, y: Float32)
 
 
-type alias Vec2.Scalar = Float32
-extend Vec2 as #scalar #vec2
+def Vec2.Scalar = Float32
 
 
-public ------------------------------------------------------------------------
+def #has-scalar #vec2 for Vec2
+
+
+-------------------------------------------------------------------------------
 
 
 -- Implement `#vector` for `Polar2` manually:
 
 
-type Polar2(
-	angle: data Float32,
-	length: data Float32,
-)
+def Polar2 = data record(angle: Float32, length: Float32)
 
 
-extend Polar2 as #scalar #vector
+def #has-scalar #vector for Polar2
 
 
-type alias Polar2.Scalar = Float32
+def Polar2.Scalar = Float32
 
 
-val Polar2.zero =
+def Polar2.zero =
 	Polar2(0, 0)
 
 
-fun (Polar2).normalized -> Polar2 =
-    self.with { length = 1 }
+def (p: Polar2).normalized -> Polar2 =
+    p.with { length = 1 }
 
 
-fun (Polar2) + (other: Polar2) -> Polar2 =
+def (p: Polar2) + (other: Polar2) -> Polar2 =
     ...
 
 
-fun (Polar2) - (other: Polar2) -> Polar2 =
+def (p: Polar2) - (other: Polar2) -> Polar2 =
     ...
 
 
-fun (Polar2) * (other: Float32) -> Polar2 =
+def (p: Polar2) * (other: Float32) -> Polar2 =
     ...
 
 
-fun (other: Float32) * (self: Polar2) -> Polar2 =
+def (other: Float32) * (p: Polar2) -> Polar2 =
     ...
 
 
-public ------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-type Point(
-	x: data Float32,
-	y: data Float32,
-)
+data type Point(x: Float32, y: data Float32)
 
 
-type alias Point.Scalar = Float32
+data type Point.Scalar = Float32
 
 
-val Point.origin = Point(0, 0)
+def Point.origin = Point(0, 0)
 
 
-fun (Point) + (other: Vec2) -> Point =
-	Point(self.x + other.x, self.y + other.y)
+def (p1: Point) + (p2: Vec2) -> Point =
+	Point(p1.x + p2.x, p1.y + p2.y)
 
 
-fun (Point).distance(other: Point) -> Float32 =
-	self' = self as Vec2
-	other' = other as Vec2
-	(self' - other').length
+def (p1: Point).distance(p2: Point) -> Float32 =
+	let p1' = p1 as Vec2
+	let p2' = p2 as Vec2
+	(p' - p2').length
 
 
-fun (Point) as Vec2 -> Vec2 =
-	Vec2(self.x, self.y)
+def (p: Point) as Vec2 -> Vec2 =
+	Vec2(p.x, p.y)
 
 
-fun (Vec2) as Point -> Point =
-	Point(self.x, self.y)
+def (p: Vec2) as Point -> Point =
+	Point(p.x, p.y)

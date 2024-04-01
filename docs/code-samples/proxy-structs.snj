@@ -1,52 +1,101 @@
-/* Different approaches for proxy structs */
+<< Different approaches for proxy structs >>
 
 
-struct Date {
-	repr: UInt32
-}
+def Date =
+	struct {
+		let day: Int32 = (repr <and> 0x000000FF) + 1
+		let month: Int32 = ((d.repr <and> 0x0000FF00) <rshift> 16) + 1
+		let year: Int32 = (d.repr <and> 0xFFFFFF00) <rshift> 32
+		in {
+			repr: UInt32 =
+				(day - 1)
+				<and> ((month - 1) <lshift> 16)
+				<and> (year <lshift> 32)
+		}
+	}
 
 
-fun Date.new(day: Int, month: Int, year: Int) -> Date
-		require 1 <= day <= 31
-			and 1 <= month <= 12
-			and -32768 <= year <= 32767
-	=
-	day' = day - 1
-	month' = (month - 1) <lshift> 16
-	year' = (year - 1) <lshift> 32
+-------------------------------------------------------------------------------
 
+
+def Date =
+	struct {
+		repr: UInt32
+	}
+
+
+def Date { day: Int32, month: Int32, year: Int32 } =
+	let day' = day - 1
+	let month' = (month - 1) <lshift> 16
+	let year' = year <lshift> 32
+	in
 	Date { repr = year' <and> month' <and> day' }
 
 
-fun (Date).day -> Int =
-    self.repr <and> 0x000000FF
+def (d: Date).day -> Int32 =
+    (d.repr <and> 0x000000FF) + 1
 
 
-fun (Date).with-day(day: Int) -> Date =
-	self' = self.repr <and> 0xFFFFFF00
-	day' = day - 1
-	Date { repr = day' <and> self' }
+def (d: Date).month -> Int32 =
+    ((d.repr <and> 0x0000FF00) <rshift> 16) + 1
 
 
-fun (Date).month -> Int =
-    (self.repr <and> 0x0000FF00) <rshift> 16
+def (d: Date).year -> Int32 =
+	(d.repr <and> 0xFFFFFF00) <rshift> 32
 
 
-fun (Date).with-month(month: Int) -> Date =
-	self' = self.repr <and> 0xFFFFFF00
-	month' = (month - 1) <lshift> 16
-	Date { repr = month' <and> self' }
+def (d: Date).with-day(day: Int32) -> Date =
+	let d' = d.repr <and> 0xFFFFFF00
+	let day' = day - 1
+	in
+	Date { repr = day' <and> d' }
 
 
-fun (Date).year -> Int =
-	self' = self.repr <and> 0xFFFFFF00
-    self.repr <rshift> 32
+def (d: Date).with-month(month: Int32) -> Date =
+	let d' = d.repr <and> 0xFFFFFF00
+	let month' = (month - 1) <lshift> 16
+	in
+	Date { repr = month' <and> d' }
 
 
-fun (Date).with-year(year: Int) -> Date =
-	self' = self.repr <and> 0xFFFFFF00
-	year' = value <lshift> 32
-	Date { repr = year' <and> self' }
+def (d: Date).with-year(year: Int32) -> Date =
+	let d' = d.repr <and> 0xFFFFFF00
+	let year' = year <lshift> 32
+	in
+	Date { repr = year' <and> d' }
+
+
+-------------------------------------------------------------------------------
+
+
+def Date =
+	struct {
+		repr: UInt32
+	}
+
+
+def RDate =
+	struct {
+		day: Int32,
+		month: Int32,
+		year: Int32,
+	}
+
+
+def (d: Date) as RDate -> RDate =
+	let day = (d.repr <and> 0x000000FF) + 1
+	let month = ((d.repr <and> 0x0000FF00) <rshift> 16) + 1
+	let year = (d.repr <and> 0xFFFFFF00) <rshift> 32
+	in
+	RDate { day, month, year}
+
+
+def (r: RDate) as Date -> Date =
+	let day' = day - 1
+	let month' = (month - 1) lshift 16
+	let year' = year lshift 32
+	in
+	Date { repr = year' && month' && day' }
 
 
 -------------------------------------------------------------------------------
@@ -103,19 +152,15 @@ fun (Date).with { year: Int } -> Date =
 -------------------------------------------------------------------------------
 
 
-proxy Date {
-	day: data Int = self.repr <and> 0x000000FF
-	month: data Int = (self.repr <and> 0x0000FF00) <rshift> 16
-	year: data Int = self.repr <rshift> 32
-
-	self: UInt32 =
-		require 1 <= day <= 31
-			and 1 <= month <= 12
-			and -32768 <= year <= 32767
-
-		day' = day - 1
-		month' = (month - 1) <lshift> 16
-		year' = (year - 1) <lshift> 32
-
-		Date { repr = year' <and> month' <and> day' }
-}
+def Date =
+	proxy {
+		day: Int32 = (self.repr <and> 0x000000FF) + 1
+		month: Int32 = ((self.repr <and> 0x0000FF00) <rshift> 16) + 1
+		year: Int32 = self.repr <rshift> 32
+	}
+	struct {
+		repr: UInt32 =
+			<and> (day - 1)
+			<and> ((month - 1) <lshift> 16)
+			<and> ((year - 1) <lshift> 32)
+	}

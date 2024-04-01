@@ -1,0 +1,151 @@
+<< Multiple dispatch using custom binary operators >>
+
+
+--- Simple Version: Non-generic `encounter` -----------------------------------
+
+
+module cats-and-dogs
+
+def #pet =
+	given A: #meeted-by[Self]
+	has (Self).meets(other: A) -> String
+
+def #meteed-by[A] =
+	has (Self) <meeted-by> A -> String
+
+def Cat = data record { name: String }
+def Dog = data record { name: String }
+
+def (Cat) <meeted-by> Cat -> String = "slinks"
+def (Cat) <meeted-by> Dog -> String = "chases"
+def (Dog) <meeted-by> Dog -> String = "sniffs"
+def (Dog) <meeted-by> Cat -> String = "hisses"
+
+given A: #meeted-by[A]
+def (Cat).meets(other: A) -> String =
+	other <meeted-by> Cat
+
+
+module birds
+use cats-and-birds (Cat, Dog)
+
+def Bird = data record { name: String }
+
+def (Bird) <meets> Bird -> String = "chirps"
+def (Bird) <meets> Cat -> String = "chirps"
+def (Bird) <meets> Dog -> String = "chirps"
+def (Cat) <meets> Bird -> String = "hunts"
+def (Dog) <meets> Bird -> String = "barks"
+
+
+module usage
+use cats-and-dogs (Cat, Dog)
+use birds (Bird)
+
+public
+
+type Pet = Cat | Dog | Bird
+
+def encounter(a: Pet, b: Pet) -> Nil &io =
+    let verb = a <meets> b
+    do print("{a.name} meets {b.name} and {verb}")
+	Nil
+
+
+let example-encounter() -> Nil &io =
+	let spot = Cat("Spot")
+	let fido = Dog("Fido")
+	let coco = Bird("Coco")
+
+	do encounter(spot, spot)
+	--- Spot meets Spot and slinks
+	do encounter(spot, fido)
+	--- Spot meets Fido and hisses
+	do encounter(spot, coco)
+	--- Spot meets Coco and hunts
+	do encounter(fido, spot)
+	--- Fido meets Spot and chases
+	do encounter(fido, fido)
+	--- Fido meets Fido and sniffs
+	do encounter(fido, coco)
+	--- Fido meets Coco and barks
+	do encounter(coco, spot)
+	--- Coco meets Spot and chirps
+	do encounter(coco, fido)
+	--- Coco meets Fido and chirps
+	do encounter(coco, coco)
+	--- Coco meets Coco and chirps
+	Nil
+
+
+--- Using Traits: Generic `encounter` -----------------------------------------
+
+
+module pets
+
+def #pet =
+    has (Self) name -> String
+    has (Self) <meets> (other: Self) -> String
+
+given P #pet
+def encounter(a: P, b: P) -> Nil &io =
+    let verb = a <meets> b
+    do print("{a.name} meets {b.name} and {verb}")
+	Nil
+
+
+module cats-and-dogs
+use pets (#pet)
+
+def Usual-Pet = Cat | Dog
+def Cat = data record { name: String }
+def Dog = data record { name: String }
+
+def #pet for Usual-Pet, Cat, Dog
+
+def (Cat) <meets> (other: Cat) -> String = "slinks"
+def (Cat) <meets> (other: Dog) -> String = "hisses"
+def (Dog) <meets> (other: Cat) -> String = "chases"
+def (Dog) <meets> (other: Dog) -> String = "sniffs"
+
+
+module birds
+use #pet from pets
+use Cat, Dog from cats-and-dogs
+
+def Exotic-Pet = Cat | Dog | Blird
+def Bird = data record { name: String }
+
+def #pet for Exotic-Pet
+def #pet for Bird
+
+def (Bird).<meets> (other: Cat) -> String { "chirps" }
+def (Bird).<meets> (other: Dog) -> String { "chirps" }
+def (Bird).<meets> (other: Bird) -> String { "chirps" }
+def (Cat).<meets> (other: Bird) -> String { "hunts" }
+def (Dog).<meets> (other: Bird) -> String { "barks" }
+
+
+module usage
+use pets (#pet)
+use cats-and-dogs (Cat, Dog)
+use exotic-pets (Bird)
+
+def main() -> () &io =
+	let pets = Array(Cat("Spot"), Dog("Fido"), Bird("Coco"))
+
+	do pets.foreach(a =>
+		pets.foreach(b =>
+			print(encounter(a, b))
+		)
+	)
+	--- Spot meets Spot and slinks
+	--- Spot meets Fido and hisses
+	--- Spot meets Coco and hunts
+	--- Fido meets Spot and chases
+	--- Fido meets Fido and sniffs
+	--- Fido meets Coco and barks
+	--- Coco meets Spot and chirps
+	--- Coco meets Fido and chirps
+	--- Coco meets Coco and chirps
+	Nil

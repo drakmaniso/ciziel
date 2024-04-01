@@ -2,35 +2,41 @@
 
 
 fun example-1(numbers: Array[Int]) -> Option[Int] =
-	Some(first) ?= numbers.at(0)
-	Some(second) ?= numbers.at(1)
-	Some(first + second)
+	do
+		Some(first?) = numbers.at(0)
+		Some(second?) = numbers.at(1)
+		Some(first + second)
+	end
 
 
 fun example-1-desugared(numbers: Array[Int]) -> Option[Int] =
 	match numbers.at(0)
-		| Some(first) ->
-			match numbers.at(1)
-				| Some(second) ->
-					Some(first + second)
-				| a -> a
-				|;
-		| a -> a
-		|;
+	case Some(first) then
+		match numbers.at(1)
+		case Some(second) then
+			Some(first + second)
+		case a then
+			a
+		end
+	case a then
+		a
+	end
 
 
 fun example-2(numbers: Array[String]) -> Result[Int, String] =
-	Ok(first) ?= numbers.at(0)
-		.ok-or("empty array")
-	Ok(a) ?= Int.parse(first)
-		.map-err(e => "parse error: {e}")
+	do
+		Ok(first?) = numbers.at(0)
+			.ok-or("empty array")
+		Ok(a?) = Int.parse(first)
+			.map-err(e => "parse error: {e}")
 
-	Ok(second) ?= numbers.at(1)
-		.ok-or("array too small")
-	Ok(b) ?= Int.parse(second)
-		.map-err(e => "parse error: {e}")
+		Ok(second?) = numbers.at(1)
+			.ok-or("array too small")
+		Ok(b?) = Int.parse(second)
+			.map-err(e => "parse error: {e}")
 
-	Ok(a + b)
+		Ok(a + b)
+	end
 
 
 fun example-2-desugard(numbers: Array[String]) -> Result[Int, String] =
@@ -54,11 +60,11 @@ fun example-2-desugard(numbers: Array[String]) -> Result[Int, String] =
 
 
 fun example-3(numbers: Array[String]) -> Result[Int, String] =
-	Ok(first) ?= numbers.at(0) <else> => "array is empty"
-	Ok(a) ?= Int.parse(first) <else> e => "parse error: {e}"
+	Ok(first?) = numbers.at(0) <else> => "array is empty"
+	Ok(a?) = Int.parse(first) <else> e => "parse error: {e}"
 
-	Ok(second) ?= numbers.at(1) <else> => "array is too small"
-	Ok(b) ?= Int.parse(second) <else> e => "parse error: {e}"
+	Ok(second?) = numbers.at(1) <else> => "array is too small"
+	Ok(b?) = Int.parse(second) <else> e => "parse error: {e}"
 
 	Ok(a + b)
 

@@ -1,10 +1,38 @@
-all: build compile.exe
+CC = gcc
+CFLAGS = -Wall -g -std=c99
+LINK = gcc
+RM = rm
+MKDIR = mkdir
 
-compile.exe: src\main.c src\global.c src\string.c src\token.c src\scanner.c src\parser.c
-	cl /Fobuild\ /Fecompile.exe $**
 
-build:
-	mkdir build
+# Source Files
+
+TARGET = compile
+
+SRCDIR = src
+OBJDIR = build
+
+SOURCES = $(wildcard  $(SRCDIR)/*.c)
+HEADERS = $(wildcard  $(SRCDIR)/*.h)
+OBJECTS = ${subst $(SRCDIR),$(OBJDIR),$(SOURCES:.c=.o)}
+
+
+.PHONY: all clean
+
+
+all: $(TARGET)
+
+
+$(TARGET): $(OBJDIR) $(OBJECTS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
+
+
+$(OBJDIR)/%.o: src/%.c $(HEADERS)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
+$(OBJDIR):
+	$(MKDIR) -p $(OBJDIR)
 
 clean:
-	del build\*.obj
+	$(RM) $(OBJECTS)

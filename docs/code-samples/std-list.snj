@@ -4,180 +4,232 @@ module /std/lists
 use #iterator, #iterable from /std
 
 
-public ------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-type List[A] =
+given A
+def List[A] =
 	| Empty[A]
-	| ref Link[A] {
-		head: data A
-		tail: data List[A]
+	| ref Link[A]
+
+
+given A
+def Empty[A] = data record
+
+
+given A
+def Link[A] =
+	data record {
+		head: A
+		tail: List[A]
 	}
-	|;
 
 
-alias Empty = List[_].Empty
-alias Link[A] = List[A].Link
-
-
-fun List[A].new(...items: Array[A]) -> List[A] =
+given A
+def List[A].new(...items: Array[A]) -> List[A] =
     items.fold-reverse(
-		List.Empty,
+		Empty,
         (item, list) ->
-            List.Link { head = item, tail = list }
+            Link { head = item, tail = list }
 	)
 
 
-public --- Equality -----------------------------------------------------------
+-- Equality -------------------------------------------------------------------
 
 
-extend List[#eq] as #eq
+given A: #eq
+def #eq for List[A]
 
 
-forall A #eq
-fun (List[A]) == (other: List[A]) -> Bool =
+given A: #eq
+def (l: List[A]) == (l: List[A]) -> Bool
+
+
+def (e: Empty) == (other: Empty) -> Bool =
+	True
+
+
+given A
+def (e: Empty) == (other: List[A]) -> Bool =
+	False
+
+
+given A
+def (l: Link[A]) == (other: Empty) -> Bool =
+	False
+
+
+given A: #eq
+def (l: Link[A]) == (other: Link[A]) -> Bool =
+	if l.head == other.head then
+		l.tail == other.tail
+	else
+		False
+
+
+given A: #eq
+def (l: List[A]) == (other: List[A]) -> Bool =
 	match (self, other)
-		| (List.Empty, List.Empty) ->
-			True
-
-		| (a: List.Link, b: List.Link) ->
-			(a.head == b.item) and (a.tail == b.tail)
-
-		| (_, _) ->
-			False
-		|;
+	when (Empty, Empty) then
+		True
+	when (a: Link, b: Link) then
+		(a.head == b.item) and (a.tail == b.tail)
+	else
+		False
 
 
-public --- Pushing and Poping -------------------------------------------------
+-- Pushing and Poping ---------------------------------------------------------
 
 
-fun (List[A]).push(item: A) -> List[A].Link =
-    List.Link { head = item, tail = self }
+given A
+def (List[A]).push(item: A) -> Link[A] =
+    Link { head = item, tail = self }
 
 
-dispatch (List[A]).head -> Option[A]
-fun (List[A].Empty).head -> None =
+given A
+def (List[A]).head -> Option[A]
+
+
+given A
+def (Empty[A]).head -> None =
 	None
 
 
-dispatch (List[A]).tail -> List[A]
-fun (List[A].Empty).tail -> List[A].Empty =
-	List.Empty
+given A
+def (List[A]).tail -> List[A]
 
 
-public --- Functor Implementation ---------------------------------------------
+given A
+def (Empty[A]).tail -> Empty[A] =
+	Empty
 
 
-extend List[A] as #functor
-extend List[A].Empty as #functor
-extend List[A].Link as #functor
+-- Functor Implementation -----------------------------------------------------
 
 
-dispatch (List[A]).map(transform: A -> B) -> List[B]
+def #functor for List[A]
+def #functor for Empty[A]
+def #functor for Link[A]
 
 
-fun (List[A].Empty).map(transform: A -> B) -> List[B].Empty =
-    List.Empty
+given A, B
+def (List[A]).map(transform: A -> B) -> List[B]
 
 
-fun (List[A].Link).map(transform: A -> B) -> List[B].Link =
-    List.Link {
+given A, B
+def (Empty[A]).map(transform: A -> B) -> List[B].Empty =
+    Empty
+
+
+given A, B
+def (Link[A]).map(transform: A -> B) -> List[B].Link =
+    Link {
         head = transform(self.head),
         tail = self.tail.map(transform),
 	}
 
 
-public ------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 
-extend List[A] as #concat
+def #concat for List[A]
 
 
-fun (List[A]) ++ (other: List[A]) -> List[A] =
+def (List[A]) ++ (other: List[A]) -> List[A] =
 	match self
-		| List.Empty ->
-			other
-		| List.Link { head, tail } ->
-			List.Link {
-				head = head,
-				tail = tail ++ list-2
-			}
-		|;
+	when Empty then
+		other
+	else when Link { head, tail } then
+		Link {
+			head = head,
+			tail = tail ++ list-2
+		}
 
 
-extend List[A] as #flatten
+def #flatten for List[A]
 
 
-fun (List[List[A]]).flatten -> List[A] =
+def (List[List[A]]).flatten -> List[A] =
 	match self
-		| List.Empty -> List.Empty
-		| List.Link { head, tail } ->
-			head ++ tail.flatten
-		|;
+	when Empty then
+		Empty
+	else when Link { head, tail } then
+		head ++ tail.flatten
 
 
-extend List[A] as #monad[A]
+def #monad[A] for List[A]
 
 
-fun (List[A]).and-then(operation: A -> List[B]) -> List[B] =
+def List[A].wrap(value: A) -> List[A] =
+	Link { head = A, tail = Empty }
+
+
+def (List[A]).and-then(operation: A -> List[B]) -> List[B] =
 	self.map(operation).flatten
 
 
-public --- Iterator Implementation --------------------------------------------
+-- Iterator Implementation ----------------------------------------------------
 
 
-extend List[A] as #iterable
+def #iterable for List[A]
 
 
-type List[A].Iterator {
-	current: List[A]
-}
+def List-Iterator[A] =
+	record {
+		current: List[A]
+	}
 
 
-fun (List[A]).iterator -> List[A].Iterator =
-    List.Iterator { current = self }
+def List[A].Iterator = List-Iterator[A]
 
 
-extend List[A].Iterator as #iterator
+def (List[A]).iterator -> List-Iterator[A] =
+    List-Iterator { current = self }
 
 
-type List[A].Iterator.Item = A
+def #iterator for List-Iterator[A]
 
 
-fun (List[A].Iterator).peek -> Option[A] =
+def List-Iterator[A].Item = A
+
+
+def (List-Iterator[A]).peek -> Option[A] =
     self.current.head
 
 
-fun (List[A].Iterator).next -> List[A].Iterator =
-    match self.current
-		| List.Empty -> self
-		| List.Link { tail, ... } ->
-			self.with { current = tail }
-		|;
+def (List-Iterator[A]).next -> List-Iterator[A] =
+	match self.current
+	when Empty then
+		self
+	else when Link { tail, ... } then
+		self.with { current = tail }
 
 
-local ["test"] ----------------------------------------------------------------
+-- Test -----------------------------------------------------------------------
+
+
+module test
 
 
 use &io from /std/io
 use List from /std/list
 
 
-fun double(list: List[Int]) -> List[Int] =
+let double(list: List[Int]) -> List[Int] =
     list.map(___ * 2)
 
 
-fun example() -> () &io =
-	a = List.Link(1, List.Link(2, List.Link(3, List.Empty)))
-	b = List.new(1, 2, 3)
+let example() -> Nil / Io =
+	let a = Link(1, Link(2, Link(3, Empty)))
+	let b = List.new(1, 2, 3)
 
-	!print(a.Type)
+	do Io.print(a.Type)
 	-- Link[Int]
 
-	!print(b.Type)
+	do Io.print(b.Type)
 	-- List[Int]
 
-	!print(a.map.Type))
+	do Io.print(a.map.Type))
 	-- (Link[Int], Int -> A) -> Link[A]
 
-	()
+	Nil

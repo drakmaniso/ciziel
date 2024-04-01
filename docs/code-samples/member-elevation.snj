@@ -1,40 +1,38 @@
 
-type Pet =
-	| Cat { name: String }
-	| Dog { name: String }
-	|;
+def Pet = Cat | Dog
+def Cat = record { name: String }
+def Dog = record { name: String }
 
 
-/* The fields that are common to all variants are automatically dispatched: */
+<< The fields that are common to all variants are automatically dispatched: >>
 
 
-dispatch (Pet).name -> String
+def (p: Pet).name -> String
 
 
-/**/
+<< >>
 
 
-type Pet-Toy =
-	| Wool-Ball { color: Color }
-	| Stick { length: Int }
-	|;
+def Pet-Toy = Wool-Ball | Stick
+def Wool-Ball = record { color: Color }
+def Stick = record { length: Int }
 
 
-type Pet.Typical-Toy -- Pet-Toy
-type Cat.Typical-Toy = Wool-Ball
-type Dog.Typical-Toy = Stick
+def Pet.Typical-Toy -- Pet-Toy
+def Cat.Typical-Toy = Wool-Ball
+def Dog.Typical-Toy = Stick
 
 
-/* The `greet` method is automatically dispatched: */
+<< The `greet` method is automatically dispatched: >>
 
 
-fun (Pet).greet(human: String) -> String
-fun (Cat).greet(human: String) -> String = "{self.name} ignores {human}"
-fun (Dog).greet(human: String) -> String = "{self.name} plays with {human}"
+def (p: Pet).greet(human: String) -> String
+def (c: Cat).greet(human: String) -> String = "{self.name} ignores {human}"
+def (d: Dog).greet(human: String) -> String = "{self.name} plays with {human}"
 
 
-/* But the `play` method cannot be dispatched: */
+<< But the `play` method cannot be dispatched: >>
 
 
-fun (Cat).play(toy: Wool-Ball) -> String = "{self.name} plays with a ball of color {toy.color}"
-fun (Dog).play(toy: Stick) -> String = "{self.name} plays with a stick of length {toy.length}"
+def (c: Cat).play(toy: Wool-Ball) -> String = "{self.name} plays with a ball of color {toy.color}"
+def (d: Dog).play(toy: Stick) -> String = "{self.name} plays with a stick of length {toy.length}"

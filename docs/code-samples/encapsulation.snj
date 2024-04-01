@@ -1,91 +1,82 @@
-/* Encapsulation */
+<< Encapsulation >>
+
+
+-- Records --------------------------------------------------------------------
+
+
+let Private =
+	struct {
+		foo: Int,
+		bar: Bool,
+	}
+
+
+def Opaque =
+	struct {
+		foo: Int,
+		bar: Bool,
+	}
+
+
+def Mixed =
+	struct {
+		hidden: Int,
+		def read-only: Bool,
+		public writable: String,
+	}
+
+
+def Transparent =
+	public struct {
+		foo: Int,
+		bar: Bool,
+	}
+
+
+-- Unions ---------------------------------------------------------------------
+
+
+let Private =
+	union Foo | Bar
+
+
+def Opaque =
+	union Foo | Bar
+
+
+def Transparent =
+	public union Foo | Bar
+
+
+-- Aliases --------------------------------------------------------------------
+
+
+let Foo = Int
+
+
+<< Outside of the module, `Foo` is visible, but opaque (i.e. it is not an alias
+for `Int` anymore). >>
+def Foo = union Int
+
+
+def Foo = public union Int
 
 
 -------------------------------------------------------------------------------
 
 
-local
+let #private =
+	trait
+	has (t: Self).foo -> Int
+	has (t: Self).bar(arg: Bool) -> String
 
 
-type Private {
-	foo: Int,
-	bar: Bool,
-}
+def #opaque =
+	trait
+	has Self #private
 
 
-public
-
-
-type Opaque {
-	foo: Int,
-	bar: Bool,
-}
-
-
-type Read-Only {
-	foo: public Int,
-	bar: public Bool,
-}
-
-
-type Transparent {
-	foo: data Int,
-	bar: data Bool,
-}
-
-
-type Translucent {
-	hidden: Int,
-	read-only: public Bool,
-	read-and-write: data String,
-}
-
-
--------------------------------------------------------------------------------
-
-
-local
-
-
-type Private =
-    | Foo
-    | Bar
-	|;
-
-
-public
-
-
-alias Opaque = Private
-
-
-type Transparent =
-    | Foo
-    | Bar
-	|;
-
-
--------------------------------------------------------------------------------
-
-
-local
-
-
-trait #private {
-	fun (Self).foo -> Int
-	fun (Self).bar(arg: Bool) -> String
-}
-
-
-public
-
-
-trait #opaque {
-	trait #private
-}
-
-
-trait #transparent {
-	fun (Self).foo -> Int
-	fun (Self).bar(arg: Bool) -> String
-}
+def #transparent =
+	trait
+	has (t: Self).foo -> Int
+	has (t: Self).bar(arg: Bool) -> String

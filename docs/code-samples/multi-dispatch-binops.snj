@@ -6,68 +6,63 @@
 
 module cats-and-dogs
 
-public
+def Cat = record { name: data String }
+def Dog = record { name: data String }
 
-type Cat { name: data String }
-type Dog { name: data String }
-
-fun (Cat) <meets> (other: Cat) -> String = "slinks"
-fun (Cat) <meets> (other: Dog) -> String = "hisses"
-fun (Dog) <meets> (other: Dog) -> String = "sniffs"
-fun (Cat) <meets> (other: Cat) -> String = "chases"
+def (c: Cat) <meets> (other: Cat) -> String = "slinks"
+def (c: Cat) <meets> (other: Dog) -> String = "hisses"
+def (d: Dog) <meets> (other: Dog) -> String = "sniffs"
+def (c: Cat) <meets> (other: Cat) -> String = "chases"
 
 
 module birds
 use cats-and-birds (Cat, Dog)
 
-public
+def Bird = record { name: data String }
 
-type Bird { name: data String }
-
-fun (Bird) <meets> (other: Bird) -> String = "chirps"
-fun (Bird) <meets> (other: Cat) -> String = "chirps"
-fun (Bird) <meets> (other: Dog) -> String = "chirps"
-fun (Cat) <meets> (other: Bird) -> String = "hunts"
-fun (Dog) <meets> (other: Bird) -> String = "barks"
+def (b: Bird) <meets> (other: Bird) -> String = "chirps"
+def (b: Bird) <meets> (other: Cat) -> String = "chirps"
+def (b: Bird) <meets> (other: Dog) -> String = "chirps"
+def (c: Cat) <meets> (other: Bird) -> String = "hunts"
+def (d: Dog) <meets> (other: Bird) -> String = "barks"
 
 
 module usage
 use cats-and-dogs (Cat, Dog)
 use birds (Bird)
 
-public
+let Pet = Cat | Dog | Bird
 
-type Pet = Cat | Dog | Bird
+let encounter(a: Pet, b: Pet) -> Nil &io =
+    let verb = a <meets> b
+    do print("{a.name} meets {b.name} and {verb}")
+	Nil
 
-fun encounter(a: Pet, b: Pet) -> Void &io =
-    verb = a <meets> b
-    print("{a.name} meets {b.name} and {verb}")
 
+let example-encounter() -> Nil &io =
+	let spot = Cat("Spot")
+	let fido = Dog("Fido")
+	let coco = Bird("Coco")
 
-fun example-encounter() -> () &io =
-	spot = Cat("Spot")
-	fido = Dog("Fido")
-	coco = Bird("Coco")
-
-	!encounter(spot, spot)
+	do encounter(spot, spot)
 	--- Spot meets Spot and slinks
-	!encounter(spot, fido)
+	do encounter(spot, fido)
 	--- Spot meets Fido and hisses
-	!encounter(spot, coco)
+	do encounter(spot, coco)
 	--- Spot meets Coco and hunts
-	!encounter(fido, spot)
+	do encounter(fido, spot)
 	--- Fido meets Spot and chases
-	!encounter(fido, fido)
+	do encounter(fido, fido)
 	--- Fido meets Fido and sniffs
-	!encounter(fido, coco)
+	do encounter(fido, coco)
 	--- Fido meets Coco and barks
-	!encounter(coco, spot)
+	do encounter(coco, spot)
 	--- Coco meets Spot and chirps
-	!encounter(coco, fido)
+	do encounter(coco, fido)
 	--- Coco meets Fido and chirps
-	!encounter(coco, coco)
+	do encounter(coco, coco)
 	--- Coco meets Coco and chirps
-	()
+	Nil
 
 
 --- Using Traits: Generic `encounter` -----------------------------------------
@@ -75,85 +70,76 @@ fun example-encounter() -> () &io =
 
 module pets
 
-public
-
-trait #pet {
-    (Self) name -> String
-    (Self) <meets> (other: Self) -> String
-}
+def #pet =
+    has (p: Self) name -> String
+    has (p: Self) <meets> (other: Self) -> String
 
 forall P #pet
-fun encounter(a: P, b: P) -> Void &io =
-    verb = a <meets> b
-    print("{a.name} meets {b.name} and {verb}")
+def encounter(a: P, b: P) -> Nil &io =
+    let verb = a <meets> b
+    do print("{a.name} meets {b.name} and {verb}")
+	Nil
 
 
 module cats-and-dogs
 use pets (#pet)
 
-public
+def Usual-Pet = Cat | Dog
+def Cat = record { name: data String }
+def Dog = record { name: data String }
 
-type Usual-Pet =
-	| Cat { name: data String }
-	| Dog { name: data String }
+def Usual-Pet: #pet
+def Cat: #pet
+def Dog: #pet
 
-extend Usual-Pet as #pet
-extend Cat as #pet
-extend Dog as #pet
-
-fun (Cat) <meets> (other: Cat) -> String = "slinks"
-fun (Cat) <meets> (other: Dog) -> String = "hisses"
-fun (Dog) <meets> (other: Cat) -> String = "chases"
-fun (Dog) <meets> (other: Dog) -> String = "sniffs"
+def (c: Cat) <meets> (other: Cat) -> String = "slinks"
+def (c: Cat) <meets> (other: Dog) -> String = "hisses"
+def (d: Dog) <meets> (other: Cat) -> String = "chases"
+def (d: Dog) <meets> (other: Dog) -> String = "sniffs"
 
 
 module birds
 use #pet from pets
 use Cat, Dog from cats-and-dogs
 
-public
+def Exotic-Pet = Cat | Dog | Blird
+def Bird = record { name: data String }
 
-type Exotic-Pet = Cat | Dog | Blird
-struct Bird { name: data String }
+def Exotic-Pet: #pet
+def Bird: #pet
 
-tag Exotic-Pet #pet
-tag Bird #pet
-
-fun (Bird).<meets> (other: Cat) -> String { "chirps" }
-fun (Bird).<meets> (other: Dog) -> String { "chirps" }
-fun (Bird).<meets> (other: Bird) -> String { "chirps" }
-fun (Cat).<meets> (other: Bird) -> String { "hunts" }
-fun (Dog).<meets> (other: Bird) -> String { "barks" }
+def (b: Bird) <meets> (other: Cat) -> String { "chirps" }
+def (b: Bird) <meets> (other: Dog) -> String { "chirps" }
+def (b: Bird) <meets> (other: Bird) -> String { "chirps" }
+def (c: Cat) <meets> (other: Bird) -> String { "hunts" }
+def (d: Dog) <meets> (other: Bird) -> String { "barks" }
 
 
 module usage
 use pets (#pet)
 use cats-and-dogs (Cat, Dog)
-use exotic-pets (Bird)
+use exotic-pets (b: Bird)
 
-public
-
-fun main() -> () &io =
-	do
-		pets =
-			Array(
-				Cat("Spot"),
-				Dog("Fido"),
-				Bird("Coco"),
-			)
-
-		pets.foreach(a =>
-			pets.foreach(b =>
-				print(encounter(a, b))
-			)
+def main() -> () &io =
+	let pets =
+		Array(
+			Cat("Spot"),
+			Dog("Fido"),
+			Bird("Coco"),
 		)
-		--- Spot meets Spot and slinks
-		--- Spot meets Fido and hisses
-		--- Spot meets Coco and hunts
-		--- Fido meets Spot and chases
-		--- Fido meets Fido and sniffs
-		--- Fido meets Coco and barks
-		--- Coco meets Spot and chirps
-		--- Coco meets Fido and chirps
-		--- Coco meets Coco and chirps
-	end
+
+	do pets.foreach(a =>
+		pets.foreach(b =>
+			print(encounter(a, b))
+		)
+	)
+	--- Spot meets Spot and slinks
+	--- Spot meets Fido and hisses
+	--- Spot meets Coco and hunts
+	--- Fido meets Spot and chases
+	--- Fido meets Fido and sniffs
+	--- Fido meets Coco and barks
+	--- Coco meets Spot and chirps
+	--- Coco meets Fido and chirps
+	--- Coco meets Coco and chirps
+	()

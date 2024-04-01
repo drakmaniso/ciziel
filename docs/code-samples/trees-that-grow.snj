@@ -1,0 +1,75 @@
+def #extension =
+	has Self.Literal: Type
+	has Self.Variable: Type
+	has Self.Annotation: Type
+	has Self.Abstraction: Type
+	has Self.Application: Type
+	has Self.Extra: Type
+
+
+given E: #extension
+def Expression[E] =
+	| Literal[E]
+	| Variable[E]
+	| Annotation[E]
+	| Abstraction[E]
+	| Application[E]
+	| Extra[E]
+
+
+given E: #extension
+def Literal[E] =
+	data(value: Int, extra: E.Literal)
+
+
+given E: #extension
+def Variable[E] =
+	data(var: Identifier, extra: E.Variable)
+
+
+given E: #extension
+def Annotation[E] =
+	data(expression: Expression[E], typ: Typ, extra: E.Annotation)
+
+
+given E: #extension
+def Abstraction[E] =
+	data(var: Identifier, body: Expression[E], extra: E.Abstraction)
+
+
+given E: #extension
+def Application[E] =
+	data(funct: Expression[E], arg: Expression[E], extra: E.Application)
+
+
+given E: #extension
+def Extra[E] =
+	data(extra: E.Extra)
+
+
+def Undecorated = data()
+def Undecorated.Literal = Nil
+def Undecorated.Variable = Nil
+def Undecorated.Annotation = Nil
+def Undecorated.Abstraction = Nil
+def Undecorated.Application = Nil
+def Undecorated.Extra = Never
+
+
+def Type-Checking = data()
+def Type-Checking.Literal = Nil
+def Type-Checking.Variable = Nil
+def Type-Checking.Annotation = Nil
+def Type-Checking.Abstraction = Nil
+def Type-Checking.Application = Typ
+def Type-Checking.Extra = Never
+
+
+def Partial-Evaluation = data()
+def Partial-Evaluation.Literal = Nil
+def Partial-Evaluation.Variable = Nil
+def Partial-Evaluation.Annotation = Nil
+def Partial-Evaluation.Abstraction = Nil
+def Partial-Evaluation.Application = Nil
+def Partial-Evaluation.Extra = Value
+def Value = data(...)

@@ -1,9 +1,12 @@
 # About the name
 
-Sona-Jo is a coumpound word in [toki pona](https://tokipona.org/).  It can be
-translated to "the understanding of ownership".
+Ciziel: pronunciation of the file extension ".czl", which was the abbreviation
+of a former name of the project (Cozely).
 
 ## Old names
+
+Sona-Jo is a coumpound word in [toki pona](https://tokipona.org/).  It can be
+translated to "the understanding of ownership".
 
 I initially called the language "Grace", after Grace Hopper, the computer
 pioneer who wrote the first compiler. Unfortunately, the name was already taken
