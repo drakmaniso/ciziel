@@ -1,14 +1,11 @@
-# The Sona-Jo programming language
+# Ciziel
 
 This is an ongoing project to design a pure functional language with an
 ownership type system, and write a compiler for it.
 
-
 ## Status
 
 The project is still in the design phase, *nothing is implemented*.
-
-
 
 ## Motivation
 
